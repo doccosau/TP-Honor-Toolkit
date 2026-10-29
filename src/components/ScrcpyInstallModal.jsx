@@ -22,7 +22,7 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
   const isMac = env?.os === 'darwin';
 
   const installCmd = isWin
-    ? 'winget install Genymobile.scrcpy'
+    ? 'winget install Genymobile.scrcpy ; reg add HKCU\\Software\\Classes\\scrcpy /ve /d "URL:Scrcpy" /f ; reg add HKCU\\Software\\Classes\\scrcpy /v "URL Protocol" /d "" /f ; reg add HKCU\\Software\\Classes\\scrcpy\\shell\\open\\command /ve /d "cmd.exe /c scrcpy -S" /f'
     : isLinux
     ? 'sudo apt install -y scrcpy adb'
     : isMac
@@ -159,11 +159,11 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
             }}
           >
             <div style={{ fontWeight: 600, color: '#38bdf8', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>Bước 1: Cài đặt Scrcpy chính hãng (Nếu máy tính chưa có)</span>
+              <span>Bước 1: Kích hoạt 1-chạm mở Scrcpy từ Web lên Desktop (Chạy 1 lần duy nhất)</span>
             </div>
             <div style={{ fontSize: '11.5px', color: '#94a3b8', marginBottom: '8px' }}>
               {isWin
-                ? 'Mở PowerShell hoặc Command Prompt rồi chạy lệnh Microsoft Package Manager (winget) chính hãng:'
+                ? 'Mở PowerShell và dán 1 dòng lệnh chính thức Microsoft này (Vừa cài Scrcpy sạch, vừa cho phép bấm trên Web là tự bung cửa sổ 120Hz):'
                 : isLinux
                 ? 'Mở Terminal Linux và dán lệnh cài đặt gói apt/pacman chính thức:'
                 : 'Mở Terminal trên Mac và chạy lệnh Homebrew chính thức:'}

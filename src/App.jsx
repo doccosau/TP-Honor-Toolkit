@@ -303,8 +303,19 @@ export default function App() {
     }
 
     // 2. On WebUSB (Cloudflare Pages):
-    // DO NOT disconnect USB! Keep web connection active.
-    // Open the official Scrcpy guidance modal with 1-click winget commands and Web Mirror option.
+    // Trigger desktop native launcher via custom protocol handler (scrcpy://launch)
+    try {
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = 'scrcpy://launch';
+      document.body.appendChild(iframe);
+      setTimeout(() => {
+        try { iframe.remove(); } catch (e) {}
+      }, 2500);
+      addToast('info', 'Scrcpy Desktop', 'Đang gửi tín hiệu mở cửa sổ Scrcpy 120Hz lên màn hình máy tính...');
+    } catch (e) {}
+
+    // Open guidance modal with 1-click Winget setup (if Windows hasn't registered the protocol yet)
     setShowScrcpyModal(true);
   };
 
