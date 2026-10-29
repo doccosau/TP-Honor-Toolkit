@@ -740,6 +740,10 @@ export default function App() {
       <ScrcpyInstallModal
         isOpen={showScrcpyModal}
         onClose={() => setShowScrcpyModal(false)}
+        onOpenWebMirror={() => {
+          setShowScrcpyModal(false);
+          setShowWebMirrorModal(true);
+        }}
         onInstallSuccess={() => {
           addToast('success', 'Scrcpy Sẵn Sàng', 'Đã cài đặt Scrcpy thành công! Đang mở màn hình 120Hz...');
           handleLaunchScrcpy({ turnOffScreen: true, stayAwake: true });
