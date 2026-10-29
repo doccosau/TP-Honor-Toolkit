@@ -167,76 +167,92 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
             </div>
           </div>
 
-          {/* WebUSB Explanation & Quick Launch */}
+          {/* WebUSB 1-Click Protocol Setup */}
           {isWeb ? (
             <div>
+              {/* 1-Click Automated Setup Card */}
               <div
                 style={{
-                  background: 'rgba(56, 189, 248, 0.08)',
-                  border: '1px solid rgba(56, 189, 248, 0.25)',
+                  background: 'rgba(16, 185, 129, 0.08)',
+                  border: '1px solid rgba(16, 185, 129, 0.25)',
+                  borderRadius: '8px',
+                  padding: '14px',
+                  marginBottom: '14px',
+                }}
+              >
+                <div style={{ fontWeight: 600, color: '#10b981', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="svg-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                  </span>
+                  <span>Thiết Lập 1-Click Để Web Tự Động Mở Scrcpy 120Hz Ngầm</span>
+                </div>
+                <div style={{ fontSize: '12px', color: '#cbd5e1', lineHeight: '1.5', marginBottom: '12px' }}>
+                  Chỉ cần chạy file kích hoạt <b>1 lần duy nhất</b> trên máy tính! File sẽ tự động cài Scrcpy (nếu chưa có) và cho phép trang web tự kích hoạt cửa sổ Scrcpy 120Hz siêu mượt mỗi khi bạn bấm nút trên web.
+                </div>
+
+                {isWin ? (
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <a
+                      href="/setup-scrcpy-windows.bat"
+                      download="setup-scrcpy-windows.bat"
+                      className="btn-tool primary"
+                      style={{ padding: '6px 14px', fontSize: '11.5px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      <span>⬇️ Tải File Kích Hoạt (setup-scrcpy-windows.bat)</span>
+                    </a>
+                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>(Bấm mở chạy file là xong)</span>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>
+                      Chạy 1 dòng lệnh này trong Terminal để kích hoạt:
+                    </div>
+                    <div
+                      style={{
+                        background: '#11141c',
+                        border: '1px solid #2e3547',
+                        borderRadius: '6px',
+                        padding: '8px 12px',
+                        fontFamily: 'monospace',
+                        fontSize: '11.5px',
+                        color: '#4ade80',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <span>curl -sSL https://tphntools.pages.dev/setup-scrcpy-linux.sh | bash</span>
+                      <button
+                        type="button"
+                        className="btn-tool"
+                        style={{ padding: '3px 8px', fontSize: '11px', marginLeft: '8px' }}
+                        onClick={() => {
+                          navigator.clipboard.writeText('curl -sSL https://tphntools.pages.dev/setup-scrcpy-linux.sh | bash');
+                          setCopiedInstall(true);
+                          setTimeout(() => setCopiedInstall(false), 2000);
+                        }}
+                      >
+                        {copiedInstall ? '✓ Đã chép' : 'Sao chép'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Direct Launch Fallback */}
+              <div
+                style={{
+                  background: 'rgba(56, 189, 248, 0.06)',
+                  border: '1px solid rgba(56, 189, 248, 0.2)',
                   borderRadius: '8px',
                   padding: '12px 14px',
                   marginBottom: '14px',
                 }}
               >
-                <div style={{ fontWeight: 600, color: '#38bdf8', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span className="svg-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="16" x2="12" y2="12"></line>
-                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                  </span>
-                  <span>Máy tính của bạn đã có sẵn Scrcpy?</span>
-                </div>
-                <div style={{ fontSize: '12px', color: '#cbd5e1', lineHeight: '1.5' }}>
-                  Do cơ chế bảo mật của trình duyệt web (Sandbox), trang web online <b>không thể tự quét ổ cứng PC</b> hay tự bật ứng dụng màn hình Desktop.
-                  Nếu máy tính của bạn đã cài Scrcpy (như Ubuntu/Debian/Arch/Windows), bạn có thể chiếu ngay từ Terminal:
-                </div>
-
-                {/* Direct Launch Command */}
-                <div style={{ marginTop: '10px' }}>
-                  <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '4px', fontWeight: 600 }}>
-                    1. Mở Terminal / PowerShell và gõ lệnh:
-                  </div>
-                  <div
-                    style={{
-                      background: '#11141c',
-                      border: '1px solid #2e3547',
-                      borderRadius: '6px',
-                      padding: '8px 12px',
-                      fontFamily: 'monospace',
-                      fontSize: '12px',
-                      color: '#4ade80',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <span>{runCmd}</span>
-                    <button
-                      type="button"
-                      className="btn-tool"
-                      style={{ padding: '3px 8px', fontSize: '11px', marginLeft: '8px' }}
-                      onClick={handleCopyRun}
-                    >
-                      {copiedRun ? '✓ Đã sao chép' : 'Sao chép'}
-                    </button>
-                  </div>
-                </div>
-
-                <div style={{ marginTop: '8px', fontSize: '11px', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>⚠️</span>
-                  <span>
-                    <b>Mẹo:</b> Nếu Terminal báo thiết bị đang bận, hãy bấm nút <b>"Ngắt kết nối"</b> trên web để nhường cổng USB cho lệnh <code>scrcpy</code>.
-                  </span>
-                </div>
-              </div>
-
-              {/* Install guide if not installed */}
-              <div style={{ marginBottom: '14px' }}>
-                <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>
-                  2. Nếu máy tính chưa cài Scrcpy, chạy lệnh cài đặt sau trong Terminal:
+                <div style={{ fontSize: '11.5px', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>
+                  Hoặc nếu máy đã có Scrcpy, bạn có thể chạy nhanh từ Terminal:
                 </div>
                 <div
                   style={{
@@ -245,21 +261,21 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
                     borderRadius: '6px',
                     padding: '8px 12px',
                     fontFamily: 'monospace',
-                    fontSize: '11.5px',
+                    fontSize: '12px',
                     color: '#38bdf8',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                   }}
                 >
-                  <span>{installCmd}</span>
+                  <span>{runCmd}</span>
                   <button
                     type="button"
                     className="btn-tool"
                     style={{ padding: '3px 8px', fontSize: '11px', marginLeft: '8px' }}
-                    onClick={handleCopyInstall}
+                    onClick={handleCopyRun}
                   >
-                    {copiedInstall ? '✓ Đã sao chép' : 'Sao chép'}
+                    {copiedRun ? '✓ Đã sao chép' : 'Sao chép'}
                   </button>
                 </div>
               </div>
