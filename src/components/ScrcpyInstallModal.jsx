@@ -1,21 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, adbService }) {
+  const [copiedCmd, setCopiedCmd] = useState(false);
+
   if (!isOpen) return null;
 
-  // Client-side auto detection
   const ua = (typeof navigator !== 'undefined' ? navigator.userAgent : '') || '';
   const plat = (typeof navigator !== 'undefined' ? (navigator.userAgentData?.platform || navigator.platform) : '') || '';
 
   const isWin = /Win/i.test(plat) || /Windows/i.test(ua);
   const isMac = /Mac/i.test(plat) || /Macintosh/i.test(ua);
 
-  const osTitle = isWin ? 'Windows PC (10 / 11)' : isMac ? 'Apple macOS' : 'Linux (Ubuntu / Debian / Arch / Fedora)';
+  const osTitle = isWin ? 'Windows PC' : isMac ? 'Apple macOS' : 'Linux (Ubuntu / Debian / Arch / Fedora)';
   const osIcon = isWin ? '🪟' : isMac ? '🍎' : '🐧';
-  const helperFileName = isWin ? 'run.bat' : './run.sh';
 
-  const handleCopyCmd = (cmd) => {
-    navigator.clipboard.writeText(cmd);
+  // 1-line command to run bridge directly without manually saving file
+  const oneLineCmd = isWin
+    ? 'python -c "import urllib.request; exec(urllib.request.urlopen(\'https://tphntools.pages.dev/scrcpy_bridge.py\').read())"'
+    : 'curl -sSL https://tphntools.pages.dev/scrcpy_bridge.py | python3';
+
+  const handleCopyCmd = () => {
+    navigator.clipboard.writeText(oneLineCmd);
+    setCopiedCmd(true);
+    setTimeout(() => setCopiedCmd(false), 2500);
   };
 
   return (
@@ -67,10 +74,10 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
             </span>
             <div>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>
-                Chiếu Màn Hình Scrcpy 120Hz Siêu Mượt
+                Bật Cầu Nối Scrcpy 120Hz Lên Desktop
               </div>
               <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                Kết hợp Web &amp; Local Helper cho trải nghiệm Native 120 FPS
+                Cầu nối siêu nhẹ (chỉ 2 KB), không cần tải cả mã nguồn
               </div>
             </div>
           </div>
@@ -93,7 +100,7 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
         {/* Body */}
         <div style={{ padding: '16px 18px', fontSize: '12.5px', color: '#cbd5e1', lineHeight: '1.6', maxHeight: '78vh', overflowY: 'auto' }}>
           
-          {/* Architecture Concept Notice */}
+          {/* Architecture Notice */}
           <div
             style={{
               background: '#232938',
@@ -103,15 +110,15 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
               marginBottom: '14px',
             }}
           >
-            <div style={{ fontSize: '12px', fontWeight: 600, color: '#38bdf8', marginBottom: '3px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 600, color: '#38bdf8', marginBottom: '2px' }}>
               🌐 Mọi tính năng khác đang chạy trực tiếp 100% trên Web:
             </div>
             <div style={{ fontSize: '11.5px', color: '#94a3b8' }}>
-              Tối ưu máy, gỡ app rác Trung Quốc, cài Zalo/MoMo, kiểm tra pin, gán trợ lý Google... đều hoạt động mượt mà ngay trên web mà không cần cài đặt bất kỳ file nào.
+              Tối ưu máy, gỡ app rác, cài Zalo/MoMo, kiểm tra pin, gán trợ lý Google... đều chạy trực tiếp trên web mà không cần tải bất kỳ file nào.
             </div>
           </div>
 
-          {/* Local Helper Guidance */}
+          {/* Bridge Guidance */}
           <div
             style={{
               background: 'rgba(56, 189, 248, 0.06)',
@@ -123,7 +130,7 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <div style={{ fontWeight: 600, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>🖥️ Riêng chiếu màn hình Native 120 FPS ngoài Desktop:</span>
+                <span>🖥️ Bật cầu nối nhẹ (2 KB) để mở Scrcpy Desktop:</span>
               </div>
               <span className="badge-tag tag-safe" style={{ fontSize: '10.5px' }}>
                 {osIcon} {osTitle}
@@ -131,10 +138,10 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
             </div>
 
             <div style={{ fontSize: '11.5px', color: '#94a3b8', marginBottom: '10px' }}>
-              Do cơ chế bảo mật Sandbox của trình duyệt chặn web tự mở app ngoài màn hình máy tính, bạn chỉ cần bật <b>Local Helper</b> chạy ngầm trên máy:
+              Do bảo mật Sandbox của trình duyệt chặn trang web tự mở app ngoài màn hình máy tính, bạn chỉ cần bật cầu nối Python siêu nhẹ (file độc lập chỉ 2 KB, không tải cả mã nguồn):
             </div>
 
-            {/* Action Card */}
+            {/* Option A: Direct 1-Line Command */}
             <div
               style={{
                 background: '#11141c',
@@ -145,64 +152,81 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
               }}
             >
               <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff', marginBottom: '4px' }}>
-                Cách 1: Chạy file Helper có sẵn trong thư mục công cụ
+                Cách 1: Chạy trực tiếp 1 dòng lệnh (Không cần tải file về máy)
               </div>
               <div style={{ fontSize: '11.5px', color: '#94a3b8', marginBottom: '8px' }}>
-                {isWin ? (
-                  <>Mở thư mục tool và nhấp đúp vào file <code style={{ color: '#38bdf8' }}>run.bat</code></>
-                ) : (
-                  <>Mở Terminal trong thư mục tool và chạy: <code style={{ color: '#38bdf8' }}>./run.sh</code></>
-                )}
+                Mở {isWin ? 'PowerShell' : 'Terminal'} và dán lệnh sau để bật cầu nối ngay:
               </div>
 
-              <div style={{ fontSize: '11px', color: '#10b981' }}>
-                ✓ Khi Local Helper chạy, trang web sẽ <b>tự động bắt sóng</b> và mở ngay cửa sổ Scrcpy 120Hz lên màn hình máy tính mỗi khi bạn bấm nút!
+              <div
+                style={{
+                  background: '#0c0e14',
+                  border: '1px solid #262e3d',
+                  borderRadius: '5px',
+                  padding: '7px 10px',
+                  fontFamily: 'monospace',
+                  fontSize: '11px',
+                  color: '#38bdf8',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  wordBreak: 'break-all',
+                }}
+              >
+                <span style={{ marginRight: '8px' }}>{oneLineCmd}</span>
+                <button
+                  type="button"
+                  className="btn-tool"
+                  style={{ padding: '3px 9px', fontSize: '11px', flexShrink: 0, fontWeight: 600 }}
+                  onClick={handleCopyCmd}
+                >
+                  {copiedCmd ? '✓ Đã chép' : 'Sao chép lệnh'}
+                </button>
               </div>
             </div>
 
-            {/* Quick manual terminal command fallback */}
+            {/* Option B: Download single-file scrcpy_bridge.py */}
             <div
               style={{
                 background: '#11141c',
                 border: '1px solid #2e3547',
                 borderRadius: '6px',
-                padding: '8px 12px',
+                padding: '10px 12px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
               }}
             >
               <div>
-                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Cách 2: Hoặc gõ lệnh trực tiếp: </span>
-                <code style={{ color: '#4ade80', fontSize: '12px' }}>scrcpy -S</code>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff' }}>
+                  Cách 2: Hoặc tải file đơn <code>scrcpy_bridge.py</code> (2 KB)
+                </div>
+                <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                  Sau khi tải về, chỉ cần nhấp đúp hoặc gõ: <code>python scrcpy_bridge.py</code>
+                </div>
               </div>
-              <button
-                type="button"
-                className="btn-tool"
-                style={{ padding: '3px 8px', fontSize: '11px' }}
-                onClick={() => handleCopyCmd('scrcpy -S')}
-              >
-                Sao chép lệnh
-              </button>
-            </div>
-
-            {/* Download Link */}
-            <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end' }}>
               <a
-                href="https://github.com/doccosau/TP-Honor-Toolkit/archive/refs/heads/main.zip"
-                target="_blank"
-                rel="noreferrer"
+                href="/scrcpy_bridge.py"
+                download="scrcpy_bridge.py"
+                className="btn-tool primary"
                 style={{
-                  fontSize: '11.5px',
-                  color: '#38bdf8',
+                  padding: '5px 12px',
+                  fontSize: '11px',
                   textDecoration: 'none',
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '4px',
+                  gap: '5px',
+                  fontWeight: 600,
                 }}
               >
-                <span>⬇️ Tải gói Local Helper đầy đủ (.zip từ GitHub)</span>
+                <span>⬇️ Tải file (2 KB)</span>
               </a>
+            </div>
+
+            <div style={{ marginTop: '10px', fontSize: '11px', color: '#10b981' }}>
+              ✓ Khi cầu nối đang chạy ở cổng 5050, trang web sẽ <b>tự động bắt sóng</b> và mở Scrcpy 120 FPS lên màn hình máy tính mỗi khi bạn bấm nút!
             </div>
           </div>
 
@@ -222,10 +246,10 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
             >
               <div>
                 <div style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '2px' }}>
-                  📱 Hoặc xem &amp; chạm trực tiếp ngay trên Web (Không cần tải file)
+                  📱 Không muốn tải hay bật cầu nối? Xem ngay trên Web:
                 </div>
                 <div style={{ fontSize: '11px', color: '#64748b' }}>
-                  Nếu bạn không muốn tải hay bật Local Helper, hãy dùng Web Mirror để xem màn hình ngay trong trình duyệt.
+                  Bạn có thể dùng Web Mirror để xem và chạm màn hình trực tiếp trong tab trình duyệt mà không cần bất kỳ file nào.
                 </div>
               </div>
               <button
