@@ -41,12 +41,14 @@ Có 2 cách để triển khai từ GitHub sang Cloudflare Pages:
 1. **Lấy Account ID:**
    - Đăng nhập [dash.cloudflare.com](https://dash.cloudflare.com).
    - Nhìn sang góc phải màn hình trang chủ (hoặc trong thanh URL), copy chuỗi **Account ID** (khoảng 32 ký tự).
-2. **Tạo API Token:**
+2. **Tạo API Token (dành riêng cho Cloudflare Pages):**
    - Bấm vào biểu tượng Avatar ở góc trên cùng bên phải &rarr; Chọn **My Profile**.
    - Chọn mục **API Tokens** ở menu bên trái &rarr; Bấm **Create Token**.
-   - Tìm mục **Edit Cloudflare Workers** &rarr; Bấm **Use template**.
-   - Hoặc tạo Custom Token với quyền: `Account` &rarr; `Cloudflare Pages` &rarr; `Edit`.
-   - Bấm **Continue to summary** &rarr; Bấm **Create Token** và copy mã token vừa tạo.
+   - Cuộn xuống dưới cùng tại dòng **Custom Token** &rarr; Bấm nút **Get started**.
+   - Đặt tên Token (ví dụ: `TP-Honor-Toolkit-Pages`).
+   - Tại mục **Permissions**, thiết lập đúng quyền cho Pages:
+     - **Account** &rarr; **Cloudflare Pages** &rarr; **Edit**
+   - Bấm **Continue to summary** &rarr; Bấm **Create Token** và copy chuỗi token vừa tạo.
 
 ### Bước 2: Cài đặt Secrets trên GitHub
 1. Vào trang cấu hình Secrets của Repository trên GitHub:
