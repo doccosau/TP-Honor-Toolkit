@@ -868,9 +868,14 @@ def get_device_inspection_report():
     # 2. Real Bootloader lock state
     _, bl_locked_prop, _ = run_cmd(['adb', 'shell', 'getprop', 'ro.boot.flash.locked'])
     _, bl_state_prop, _ = run_cmd(['adb', 'shell', 'getprop', 'ro.boot.verifiedbootstate'])
-    is_locked = (bl_locked_prop.strip() == '1' or bl_state_prop.strip().lower() == 'green')
+    _, bl_vbmeta_prop, _ = run_cmd(['adb', 'shell', 'getprop', 'ro.boot.vbmeta.device_state'])
+    bl_l = bl_locked_prop.strip()
+    bl_s = bl_state_prop.strip().lower()
+    bl_v = bl_vbmeta_prop.strip().lower()
+    is_explicitly_unlocked = (bl_l == '0' or bl_s == 'orange' or bl_v == 'unlocked')
+    is_locked = not is_explicitly_unlocked
 
-    bl_val = f"Đã Khóa Bảo Mật (ro.boot.flash.locked={bl_locked_prop.strip() or '1'})" if is_locked else "Bootloader Đã Mở Khóa (Unlocked)"
+    bl_val = "Đã Khóa Bảo Mật (Locked - Chuẩn Hãng)" if is_locked else "Bootloader Đã Mở Khóa (Unlocked)"
     bl_note = f"Verified Boot: {bl_state_prop.strip() or 'green'} (Phân vùng Boot nguyên bản)" if is_locked else "Thiết bị có thể đã can thiệp root"
 
     # 3. Real SoC & Hardware

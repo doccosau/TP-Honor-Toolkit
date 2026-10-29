@@ -19,13 +19,11 @@ export default function InspectionTab({ device }) {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [bat, insp, ptr] = await Promise.all([
-        adbService.getBatteryHealth(),
-        adbService.getInspectionReport(),
-        adbService.executeShell('settings get system pointer_location'),
-      ]);
+      const bat = await adbService.getBatteryHealth();
       if (bat) setBatteryData(bat);
+      const insp = await adbService.getInspectionReport(bat);
       if (insp) setInspectionData(insp);
+      const ptr = await adbService.executeShell('settings get system pointer_location');
       if (ptr) setPointerActive(ptr.trim() === '1');
     } catch (e) {
       console.error(e);
