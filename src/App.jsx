@@ -291,7 +291,15 @@ export default function App() {
   };
 
   const handleLaunchScrcpy = async (params) => {
-    // 1. Try launching via local helper backend if running (at http://127.0.0.1:5050 or localhost)
+    // 1. If currently connected via WebUSB, temporarily release the raw USB interface
+    // so native ADB & Scrcpy can immediately claim the USB port on Desktop!
+    if (adbService.mode === 'webusb' && adbService.usbDevice?.raw) {
+      try {
+        await adbService.usbDevice.raw.close();
+      } catch (e) {}
+    }
+
+    // 2. Try launching via local helper backend (at http://127.0.0.1:5050 or localhost)
     try {
       const res = await adbService.launchScrcpy(params);
       if (res?.success) {
@@ -300,8 +308,8 @@ export default function App() {
       }
     } catch (e) {}
 
-    // 2. If local helper is not running yet:
-    // Keep web connection active and open modal to guide user to start local helper or use Web Mirror
+    // 3. If local helper is not running yet:
+    // Open modal to guide user to start local helper or use in-browser Web Mirror
     setShowScrcpyModal(true);
   };
 

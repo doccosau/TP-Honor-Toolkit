@@ -4,10 +4,11 @@ TP Honor Toolkit - Ultra-Lightweight Scrcpy Desktop Bridge
 100% Compatible with Windows (10/11), Linux (Ubuntu/Debian/Arch/Fedora), and macOS.
 
 Features:
-1. Automatically launches native Scrcpy 120 FPS window on Desktop immediately!
-2. Automatically starts local HTTP bridge at http://127.0.0.1:5050
-3. Automatically opens browser to https://tphntools.pages.dev/
-4. Stays running in background so the web app can re-trigger or control Scrcpy anytime.
+1. Keeps terminal / cmd window open with live status logs.
+2. Clearly explains how to stop/kill the server when done ([Ctrl + C]).
+3. Auto-detects ADB device & alerts if Chrome WebUSB is locking the port.
+4. Auto-launches native Scrcpy 120 FPS window on Desktop.
+5. Listens at http://127.0.0.1:5050 for web app communication.
 Zero dependencies - Standard Python 3 library only.
 """
 import http.server
@@ -26,12 +27,10 @@ HOST = '127.0.0.1'
 WEB_URL = 'https://tphntools.pages.dev/'
 
 def find_scrcpy():
-    # 1. Check in PATH
     found = shutil.which('scrcpy') or shutil.which('scrcpy.exe')
     if found:
         return found
 
-    # 2. Check Windows specific candidate paths
     if sys.platform == 'win32':
         candidates = [
             os.path.join(os.path.dirname(os.path.abspath(__file__)), 'scrcpy', 'scrcpy.exe'),
@@ -52,8 +51,6 @@ def find_scrcpy():
         for c in candidates:
             if os.path.isfile(c):
                 return c
-
-    # 3. Check Linux / macOS specific candidate paths
     else:
         candidates = [
             '/usr/local/bin/scrcpy',
@@ -68,39 +65,56 @@ def find_scrcpy():
 
     return 'scrcpy'
 
+def check_adb_devices():
+    adb_bin = shutil.which('adb') or 'adb'
+    try:
+        subprocess.run([adb_bin, 'start-server'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=4)
+        res = subprocess.run([adb_bin, 'devices'], capture_output=True, text=True, timeout=3)
+        lines = [line.strip() for line in res.stdout.strip().split('\n')[1:] if line.strip()]
+        devices = [l.split()[0] for l in lines if '\tdevice' in l or ' device' in l]
+        return devices
+    except Exception:
+        return []
+
 def launch_scrcpy_process(turn_off_screen=True, stay_awake=True):
     scrcpy_bin = find_scrcpy()
+    devices = check_adb_devices()
+
+    if not devices:
+        print("\n" + "=" * 66)
+        print(" [!] CHƯA PHÁT HIỆN THIẾT BỊ TRÊN ADB!")
+        print("=" * 66)
+        print(" 💡 NGUYÊN NHÂN CHÍNH:")
+        print(" 1. Nếu bạn đang mở web https://tphntools.pages.dev/ và đã bấm 'Kết nối WebUSB':")
+        print("    -> Trình duyệt Chrome đang chiếm giữ độc quyền cổng USB của điện thoại.")
+        print("    👉 HÃY BẤM NÚT [NGẮT KẾT NỐI] TRÊN THANH TIÊU ĐỀ WEB để nhả cổng USB cho Scrcpy!")
+        print(" 2. Hoặc trên điện thoại chưa bật 'Gỡ lỗi USB' (USB Debugging).")
+        print("=" * 66 + "\n")
+        return False
+
     cmd = [scrcpy_bin, '--max-fps=120', '--video-bit-rate=16M']
     if turn_off_screen:
         cmd.append('-S')
     if stay_awake:
         cmd.append('-w')
 
-    print(f"[Bridge] >> Đang mở cửa sổ Scrcpy 120Hz trên Desktop: {' '.join(cmd)}")
+    print(f"\n[Scrcpy] >> Đang mở cửa sổ 120 FPS cho thiết bị: {devices[0]}...")
+    print(f"[Scrcpy] Lệnh: {' '.join(cmd)}")
     try:
         if sys.platform == 'win32':
-            # Create detached process on Windows so it doesn't block the bridge
             subprocess.Popen(
                 cmd,
                 creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x00000008,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
             )
         else:
             subprocess.Popen(
                 cmd,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
                 start_new_session=True,
             )
-        print("[Bridge] [OK] Đã mở cửa sổ Scrcpy 120 FPS lên Desktop thành công!")
+        print("[Scrcpy] [OK] ĐÃ BẬT CỬA SỔ CHIẾU MÀN HÌNH 120 FPS LÊN DESKTOP THÀNH CÔNG!\n")
         return True
     except Exception as e:
-        print(f"[Bridge] [!] Lỗi khởi chạy Scrcpy: {e}")
-        if sys.platform == 'win32':
-            print("[Bridge] Gợi ý: Chạy lệnh cài đặt Scrcpy trên Windows: winget install Genymobile.scrcpy")
-        else:
-            print("[Bridge] Gợi ý: Chạy lệnh cài đặt Scrcpy trên Linux: sudo apt install -y scrcpy adb")
+        print(f"[Scrcpy] [!] Lỗi mở Scrcpy: {e}\n")
         return False
 
 class BridgeHandler(http.server.BaseHTTPRequestHandler):
@@ -117,11 +131,14 @@ class BridgeHandler(http.server.BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         if parsed.path in ('/api/env', '/api/bridge/status'):
             scrcpy_bin = find_scrcpy()
+            devices = check_adb_devices()
             data = {
                 'success': True,
                 'bridge': 'active',
                 'os': sys.platform,
                 'scrcpy_path': scrcpy_bin,
+                'devices': devices,
+                'has_device': len(devices) > 0,
             }
             self.send_json(data)
         else:
@@ -142,7 +159,7 @@ class BridgeHandler(http.server.BaseHTTPRequestHandler):
                     if ok:
                         self.send_json({'success': True, 'message': 'Đã mở Scrcpy 120Hz trên Desktop!'})
                     else:
-                        self.send_json({'success': False, 'message': 'Không tìm thấy Scrcpy trên máy.'})
+                        self.send_json({'success': False, 'message': 'Chưa nhận diện thiết bị qua ADB. Kiểm tra USB Debugging hoặc ngắt WebUSB.'})
                     return
             except Exception as e:
                 self.send_json({'success': False, 'error': str(e)}, status=500)
@@ -165,42 +182,36 @@ class BridgeHandler(http.server.BaseHTTPRequestHandler):
             pass
 
     def log_message(self, format, *args):
-        pass  # Quiet logging
+        # Clean formatted logging for API hits
+        pass
 
 if __name__ == '__main__':
-    os_name = "Windows" if sys.platform == "win32" else "macOS" if sys.platform == "darwin" else "Linux"
-    print("=" * 66)
+    os_name = "Windows (cmd/powershell)" if sys.platform == "win32" else "macOS" if sys.platform == "darwin" else "Linux (terminal)"
+    print("\n" + "=" * 66)
     print(f"  TP HONOR TOOLKIT - LOCAL SCRCPY BRIDGE ({os_name})")
-    print("  Tự động bật Scrcpy Desktop 120Hz & Kết nối với tphntools.pages.dev")
     print("=" * 66)
+    print(f"[+] Máy chủ cầu nối: http://{HOST}:{PORT}")
+    print(f"[+] Tên miền web liên kết: {WEB_URL}")
+    print("[+] Trạng thái: Cửa sổ Terminal này ĐANG CHẠY CẦU NỐI.")
+    print("-" * 66)
+    print("🛑 ĐỂ DỪNG MÁY CHỦ KHI DÙNG XONG:")
+    print("   Bấm tổ hợp phím [Ctrl + C] trong cửa sổ này, hoặc tắt cửa sổ này!")
+    print("=" * 66 + "\n")
 
-    # 1. Tự động bật luôn App chiếu màn hình Scrcpy trên Desktop ngay khi chạy!
+    # 1. Thử mở Scrcpy ngay khi khởi động
     threading.Thread(target=lambda: (time.sleep(0.4), launch_scrcpy_process()), daemon=True).start()
 
-    # 2. Tự động mở trình duyệt web lên tên miền tphntools.pages.dev
-    def open_web():
-        time.sleep(1.0)
-        print(f"[+] Đang mở trang web tại: {WEB_URL}")
-        try:
-            webbrowser.open(WEB_URL)
-        except Exception:
-            pass
-
-    threading.Thread(target=open_web, daemon=True).start()
-
-    # 3. Khởi động server cầu nối HTTP tại 127.0.0.1:5050
+    # 2. Khởi động server cầu nối HTTP tại 127.0.0.1:5050
     try:
         server = http.server.ThreadingHTTPServer((HOST, PORT), BridgeHandler)
-        print(f"[OK] Cầu nối đang chạy tại: http://{HOST}:{PORT}")
-        print("[*] Sẵn sàng kết nối 2 chiều với trang web https://tphntools.pages.dev/ !")
-        print("[*] Để đóng cầu nối, bấm Ctrl + C trong cửa sổ này.")
+        print(f"[OK] Cầu nối đang lắng nghe lệnh từ trang web tại cổng {PORT}...")
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\n[!] Đã dừng cầu nối.")
+        print("\n\n[!] Đã nhận tín hiệu dừng [Ctrl + C].")
+        print("[!] Đã tắt máy chủ cầu nối thành công. Tạm biệt!\n")
     except OSError as e:
         if 'Address already in use' in str(e) or 'address is already in use' in str(e).lower():
-            print(f"[i] Cổng {PORT} đã có tiến trình hoạt động sẵn.")
-            # Still launch scrcpy anyway
+            print(f"[i] Cổng {PORT} đã có tiến trình khác đang chạy.")
             launch_scrcpy_process()
         else:
             print(f"[!] Lỗi cổng {PORT}: {e}")
