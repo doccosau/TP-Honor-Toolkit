@@ -37,8 +37,24 @@ jobs:
           export CLOUDFLARE_API_TOKEN="$(echo -n "$RAW_TOKEN" | tr -d '[:space:]')"
           export CLOUDFLARE_ACCOUNT_ID="$(echo -n "$RAW_ACCOUNT_ID" | tr -d '[:space:]')"
           
-          echo "=== 1. Checking Wrangler Authentication ==="
+          echo "=== 1. Checking Token Verification ==="
+          curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/user/tokens/verify"
+          echo ""
+          
+          echo "=== 2. Resolving Account ID ==="
+          ACCOUNTS_JSON=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts")
+          echo "Accounts list response: $ACCOUNTS_JSON"
+          
+          DETECTED_ID=$(echo "$ACCOUNTS_JSON" | jq -r '.result[0].id // empty')
+          if [ -n "$DETECTED_ID" ] && [ "$DETECTED_ID" != "null" ]; then
+            echo "Successfully auto-detected Cloudflare Account ID: $DETECTED_ID"
+            export CLOUDFLARE_ACCOUNT_ID="$DETECTED_ID"
+          else
+            echo "Using configured Account ID from secret: $CLOUDFLARE_ACCOUNT_ID"
+          fi
+          
+          echo "=== 3. Checking Wrangler Authentication ==="
           npx wrangler whoami
           
-          echo "=== 2. Deploying dist to Cloudflare Pages project 'tphntools' ==="
+          echo "=== 4. Deploying dist to Cloudflare Pages project 'tphntools' ==="
           npx wrangler pages deploy dist --project-name=tphntools --branch=main --commit-dirty=true
