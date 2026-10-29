@@ -109,27 +109,39 @@ class AdbService {
   /**
    * Execute Shell Command via active transport
    */
-  async executeShell(cmd) {
+  async executeShell(cmd, timeoutMs = 8000) {
     if (this.mode === 'webusb' && this.adbInstance) {
-      const socket = await this.adbInstance.createSocketAndWait(`shell:${cmd}`);
-      const reader = socket.readable.getReader();
-      const decoder = new TextDecoder();
-      let output = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        output += decoder.decode(value, { stream: true });
+      try {
+        const runCmd = async () => {
+          if (this.adbInstance.subprocess?.noneProtocol?.spawnWaitText) {
+            return await this.adbInstance.subprocess.noneProtocol.spawnWaitText(cmd);
+          }
+          return await this.adbInstance.createSocketAndWait(`shell:${cmd}`);
+        };
+
+        const timeoutPromise = new Promise((resolve) =>
+          setTimeout(() => resolve(''), timeoutMs)
+        );
+
+        const result = await Promise.race([runCmd(), timeoutPromise]);
+        return (typeof result === 'string' ? result : '').trim();
+      } catch (e) {
+        console.warn(`[WebUSB Shell Error] ${cmd}:`, e);
+        return '';
       }
-      return output.trim();
     } else {
       // Local HTTP backend fallback
-      const resp = await fetch('/api/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'raw_cmd', cmd }),
-      });
-      const data = await resp.json();
-      return data.output || '';
+      try {
+        const resp = await fetch('/api/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'raw_cmd', cmd }),
+        });
+        const data = await resp.json();
+        return (data.output || '').trim();
+      } catch (e) {
+        return '';
+      }
     }
   }
 
