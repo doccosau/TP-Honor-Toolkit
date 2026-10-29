@@ -19,7 +19,7 @@ Có 2 cách để triển khai từ GitHub sang Cloudflare Pages:
    - Chọn tài khoản GitHub của bạn (`doccosau`).
    - Cấp quyền truy cập cho kho lưu trữ: **`doccosau/TP-Honor-Toolkit`** &rarr; Bấm **Begin setup**.
 4. **Cấu hình thông số Build (Build settings)**:
-   - **Project name:** `tp-honor-toolkit` (hoặc tên tuỳ chọn).
+   - **Project name:** `tphntools`.
    - **Production branch:** `main`.
    - **Framework preset:** Chọn `Vite` (hoặc `None`).
    - **Build command:** `npm run build`
@@ -28,7 +28,7 @@ Có 2 cách để triển khai từ GitHub sang Cloudflare Pages:
 5. **Hoàn tất**:
    - Bấm nút **Save and Deploy**.
    - Cloudflare sẽ tự động cài gói, build và cung cấp cho bạn một tên miền miễn phí dạng:  
-     👉 `https://tp-honor-toolkit.pages.dev`
+     👉 `https://tphntools.pages.dev`
    - Từ nay về sau, mỗi khi bạn `git push` code mới lên nhánh `main`, Cloudflare sẽ tự động build và cập nhật trang web tức thì!
 
 ---

@@ -34,4 +34,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=tp-honor-toolkit
+          preCommands: npx wrangler pages project create tphntools --production-branch=main || true
+          command: pages deploy dist --project-name=tphntools --branch=main
