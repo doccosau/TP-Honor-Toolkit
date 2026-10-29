@@ -1,14 +1,64 @@
 import React, { useState, useEffect } from 'react';
 
-export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, onOpenWebMirror, adbService }) {
-  const [env, setEnv] = useState(null);
+const OS_CONFIGS = {
+  windows: {
+    id: 'windows',
+    name: 'Windows 10 / 11',
+    icon: '🪟',
+    badge: 'PowerShell / Winget',
+    desc: 'Chạy 1 lần duy nhất trong PowerShell để cài Scrcpy chính hãng từ Microsoft Store & đăng ký protocol mở 1-chạm từ Web lên Desktop:',
+    command: 'winget install Genymobile.scrcpy ; reg add HKCU\\Software\\Classes\\scrcpy /ve /d "URL:Scrcpy" /f ; reg add HKCU\\Software\\Classes\\scrcpy /v "URL Protocol" /d "" /f ; reg add HKCU\\Software\\Classes\\scrcpy\\shell\\open\\command /ve /d "cmd.exe /c scrcpy -S" /f',
+    note: '🛡️ Chuẩn Windows Registry URL Protocol (User-space HKCU - Không cần quyền Admin, sạch 100%).',
+  },
+  linux_deb: {
+    id: 'linux_deb',
+    name: 'Ubuntu / Debian / Mint',
+    icon: '🐧',
+    badge: 'APT Package Manager',
+    desc: 'Chạy 1 lần trong Terminal Ubuntu/Debian để cài đặt qua APT & đăng ký chuẩn Freedesktop XDG Protocol:',
+    command: 'sudo apt update && sudo apt install -y scrcpy adb && mkdir -p ~/.local/share/applications && printf \'[Desktop Entry]\\nName=Scrcpy Protocol\\nExec=scrcpy -S\\nType=Application\\nTerminal=false\\nNoDisplay=true\\nMimeType=x-scheme-handler/scrcpy;\\n\' > ~/.local/share/applications/scrcpy.desktop && xdg-mime default scrcpy.desktop x-scheme-handler/scrcpy',
+    note: '🐧 Chuẩn Freedesktop.org XDG Desktop Entry Specification (Tương thích 100% mọi desktop GNOME, KDE, XFCE, Cinnamon).',
+  },
+  linux_arch: {
+    id: 'linux_arch',
+    name: 'Arch Linux / Manjaro',
+    icon: '🐧',
+    badge: 'Pacman Package Manager',
+    desc: 'Chạy 1 lần trong Terminal Arch để cài đặt qua Pacman & đăng ký giao thức XDG:',
+    command: 'sudo pacman -S --noconfirm scrcpy android-tools && mkdir -p ~/.local/share/applications && printf \'[Desktop Entry]\\nName=Scrcpy Protocol\\nExec=scrcpy -S\\nType=Application\\nTerminal=false\\nNoDisplay=true\\nMimeType=x-scheme-handler/scrcpy;\\n\' > ~/.local/share/applications/scrcpy.desktop && xdg-mime default scrcpy.desktop x-scheme-handler/scrcpy',
+    note: '⚡ Kho gói chính thức Arch Linux Pacman + Freedesktop Scheme Handler.',
+  },
+  linux_fedora: {
+    id: 'linux_fedora',
+    name: 'Fedora / RHEL',
+    icon: '🎩',
+    badge: 'DNF Package Manager',
+    desc: 'Chạy 1 lần trong Terminal Fedora để cài đặt qua DNF & đăng ký giao thức XDG:',
+    command: 'sudo dnf install -y scrcpy android-tools && mkdir -p ~/.local/share/applications && printf \'[Desktop Entry]\\nName=Scrcpy Protocol\\nExec=scrcpy -S\\nType=Application\\nTerminal=false\\nNoDisplay=true\\nMimeType=x-scheme-handler/scrcpy;\\n\' > ~/.local/share/applications/scrcpy.desktop && xdg-mime default scrcpy.desktop x-scheme-handler/scrcpy',
+    note: '🎩 Kho gói chính thức Fedora DNF + Freedesktop Scheme Handler.',
+  },
+  macos: {
+    id: 'macos',
+    name: 'macOS (MacBook/iMac)',
+    icon: '🍎',
+    badge: 'Homebrew',
+    desc: 'Chạy 1 lần trong Terminal macOS qua Homebrew:',
+    command: 'brew install scrcpy android-platform-tools',
+    note: '🍏 Quản lý gói Homebrew chính thức trên macOS (Apple Silicon M1/M2/M3/M4 & Intel).',
+  },
+};
+
+export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, adbService }) {
+  const [selectedOs, setSelectedOs] = useState('windows');
   const [copiedInstall, setCopiedInstall] = useState(false);
   const [copiedRun, setCopiedRun] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       adbService.getSystemEnv().then((data) => {
-        setEnv(data);
+        if (data?.os === 'windows') setSelectedOs('windows');
+        else if (data?.os === 'linux') setSelectedOs('linux_deb');
+        else if (data?.os === 'darwin') setSelectedOs('macos');
       });
       setCopiedInstall(false);
       setCopiedRun(false);
@@ -17,22 +67,11 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
 
   if (!isOpen) return null;
 
-  const isWin = env?.os === 'windows';
-  const isLinux = env?.os === 'linux';
-  const isMac = env?.os === 'darwin';
-
-  const installCmd = isWin
-    ? 'winget install Genymobile.scrcpy ; reg add HKCU\\Software\\Classes\\scrcpy /ve /d "URL:Scrcpy" /f ; reg add HKCU\\Software\\Classes\\scrcpy /v "URL Protocol" /d "" /f ; reg add HKCU\\Software\\Classes\\scrcpy\\shell\\open\\command /ve /d "cmd.exe /c scrcpy -S" /f'
-    : isLinux
-    ? 'sudo apt install -y scrcpy adb'
-    : isMac
-    ? 'brew install scrcpy'
-    : 'winget install Genymobile.scrcpy';
-
+  const currentConfig = OS_CONFIGS[selectedOs] || OS_CONFIGS.windows;
   const runCmd = 'scrcpy -S';
 
   const handleCopyInstall = () => {
-    navigator.clipboard.writeText(installCmd);
+    navigator.clipboard.writeText(currentConfig.command);
     setCopiedInstall(true);
     setTimeout(() => setCopiedInstall(false), 2500);
   };
@@ -49,8 +88,8 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
         className="modal-card"
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: '560px',
-          maxWidth: '94vw',
+          width: '640px',
+          maxWidth: '95vw',
           background: '#1c212d',
           border: '1px solid #2e3547',
           borderRadius: '10px',
@@ -95,7 +134,7 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
                 Chiếu Màn Hình Scrcpy 120Hz Siêu Mượt
               </div>
               <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                Chuẩn chính hãng Microsoft Package Manager &amp; Genymobile (Không tải file lạ)
+                Hệ thống liên kết 1-chạm chuẩn quốc tế Freedesktop &amp; Windows Protocol
               </div>
             </div>
           </div>
@@ -117,38 +156,47 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
 
         {/* Body */}
         <div style={{ padding: '18px', fontSize: '12.5px', color: '#cbd5e1', lineHeight: '1.6', maxHeight: '78vh', overflowY: 'auto' }}>
-          {/* OS Banner */}
-          <div
-            style={{
-              background: '#232938',
-              border: '1px solid #333d52',
-              borderRadius: '8px',
-              padding: '10px 14px',
-              marginBottom: '14px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '8px',
-            }}
-          >
-            <div>
-              <div style={{ fontSize: '11px', color: '#94a3b8' }}>Hệ điều hành nhận diện:</div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#38bdf8' }}>
-                {env?.display_os || (isWin ? 'Windows PC (10/11)' : isLinux ? 'Linux (Ubuntu/Debian/Arch)' : isMac ? 'Apple macOS' : env?.os_name || 'Máy Tính')}
-              </div>
+          
+          {/* OS Selector Tabs */}
+          <div style={{ marginBottom: '14px' }}>
+            <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '6px' }}>
+              Chọn hệ điều hành máy tính của bạn:
             </div>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <span className="badge-tag tag-safe">
-                ADB WebUSB: Sẵn sàng
-              </span>
-              <span className="badge-tag tag-neutral">
-                Chuẩn: 120 FPS Siêu Mượt
-              </span>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {Object.entries(OS_CONFIGS).map(([key, item]) => {
+                const active = selectedOs === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => {
+                      setSelectedOs(key);
+                      setCopiedInstall(false);
+                    }}
+                    style={{
+                      background: active ? '#2563eb' : '#222938',
+                      color: active ? '#fff' : '#94a3b8',
+                      border: active ? '1px solid #3b82f6' : '1px solid #333d52',
+                      borderRadius: '6px',
+                      padding: '6px 11px',
+                      fontSize: '11.5px',
+                      fontWeight: active ? 600 : 400,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span>{item.icon}</span>
+                    <span>{item.name}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Step 1: Official Package Manager Install */}
+          {/* Step 1: Official Package Manager & Protocol Setup */}
           <div
             style={{
               background: 'rgba(56, 189, 248, 0.06)',
@@ -158,15 +206,16 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
               marginBottom: '12px',
             }}
           >
-            <div style={{ fontWeight: 600, color: '#38bdf8', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>Bước 1: Kích hoạt 1-chạm mở Scrcpy từ Web lên Desktop (Chạy 1 lần duy nhất)</span>
+            <div style={{ fontWeight: 600, color: '#38bdf8', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>Bước 1: Kích hoạt 1-chạm từ Web lên Desktop (Chạy 1 lần duy nhất trên máy)</span>
+              </div>
+              <span className="badge-tag tag-safe" style={{ fontSize: '10px' }}>
+                {currentConfig.badge}
+              </span>
             </div>
             <div style={{ fontSize: '11.5px', color: '#94a3b8', marginBottom: '8px' }}>
-              {isWin
-                ? 'Mở PowerShell và dán 1 dòng lệnh chính thức Microsoft này (Vừa cài Scrcpy sạch, vừa cho phép bấm trên Web là tự bung cửa sổ 120Hz):'
-                : isLinux
-                ? 'Mở Terminal Linux và dán lệnh cài đặt gói apt/pacman chính thức:'
-                : 'Mở Terminal trên Mac và chạy lệnh Homebrew chính thức:'}
+              {currentConfig.desc}
             </div>
 
             <div
@@ -176,29 +225,30 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
                 borderRadius: '6px',
                 padding: '8px 12px',
                 fontFamily: 'monospace',
-                fontSize: '12px',
+                fontSize: '11.5px',
                 color: '#38bdf8',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                wordBreak: 'break-all',
               }}
             >
-              <span>{installCmd}</span>
+              <span style={{ marginRight: '8px' }}>{currentConfig.command}</span>
               <button
                 type="button"
                 className="btn-tool"
-                style={{ padding: '3px 8px', fontSize: '11px', marginLeft: '8px' }}
+                style={{ padding: '4px 10px', fontSize: '11px', flexShrink: 0, fontWeight: 600 }}
                 onClick={handleCopyInstall}
               >
                 {copiedInstall ? '✓ Đã chép' : 'Sao chép lệnh'}
               </button>
             </div>
-            <div style={{ fontSize: '10.5px', color: '#64748b', marginTop: '5px' }}>
-              🛡️ Nguồn chính thức từ Microsoft Windows Store / GitHub Genymobile. Đảm bảo sạch 100%, không cài file lạ.
+            <div style={{ fontSize: '10.5px', color: '#64748b', marginTop: '6px' }}>
+              {currentConfig.note}
             </div>
           </div>
 
-          {/* Step 2: Launch Command */}
+          {/* Step 2: How It Works & Fallback Run Command */}
           <div
             style={{
               background: 'rgba(16, 185, 129, 0.06)',
@@ -209,10 +259,10 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
             }}
           >
             <div style={{ fontWeight: 600, color: '#10b981', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>Bước 2: Lệnh khởi chạy Scrcpy 120Hz siêu mượt</span>
+              <span>Bước 2: Bấm nút trên Web là tự động bung màn hình Scrcpy 120Hz</span>
             </div>
             <div style={{ fontSize: '11.5px', color: '#94a3b8', marginBottom: '8px' }}>
-              Chạy lệnh sau để bật cửa sổ chiếu màn hình 120 FPS không độ trễ:
+              Sau khi đã chạy lệnh ở Bước 1, mỗi khi bạn vào <b>tphntools.pages.dev</b> và bấm nút <b>"Mở Scrcpy 120Hz"</b>, trình duyệt sẽ tự động kích hoạt cửa sổ Scrcpy Desktop 120 FPS ngay lập tức.
             </div>
 
             <div
@@ -236,7 +286,7 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
                 style={{ padding: '3px 8px', fontSize: '11px', marginLeft: '8px' }}
                 onClick={handleCopyRun}
               >
-                {copiedRun ? '✓ Đã chép' : 'Sao chép lệnh'}
+                {copiedRun ? '✓ Đã chép' : 'Sao chép lệnh chạy thủ công'}
               </button>
             </div>
             <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '6px' }}>
@@ -284,7 +334,7 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
                   📱 Lựa chọn: Xem nhanh trực tiếp trong trình duyệt
                 </div>
                 <div style={{ fontSize: '11px', color: '#64748b' }}>
-                  Xem và chạm thử màn hình ngay trên web mà không cần mở PowerShell
+                  Xem và chạm thử màn hình ngay trên web mà không cần mở Terminal/PowerShell
                 </div>
               </div>
               <button
@@ -309,30 +359,19 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
             background: '#161a24',
             borderTop: '1px solid #2e3547',
             display: 'flex',
-            justifyContent: 'flex-end',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             gap: '10px',
           }}
         >
-          <button
-            type="button"
-            className="btn-tool"
-            onClick={handleCopyRun}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <span className="svg-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-            </span>
-            <span>{copiedRun ? '✓ Đã sao chép scrcpy -S' : 'Sao chép lệnh: scrcpy -S'}</span>
-          </button>
-
+          <div style={{ fontSize: '11px', color: '#64748b' }}>
+            Hệ thống 100% mã nguồn mở &amp; package manager chính thức của hệ điều hành.
+          </div>
           <button
             type="button"
             className="btn-tool primary"
             onClick={onClose}
-            style={{ padding: '6px 18px', fontWeight: 600 }}
+            style={{ padding: '6px 20px', fontWeight: 600 }}
           >
             Đã Hiểu &amp; Đóng
           </button>
