@@ -47,10 +47,10 @@ export default function AppManagerTab({
   };
 
   useEffect(() => {
-    if (isOnline) {
+    if (isOnline && (!appsData.apps || appsData.apps.length === 0)) {
       loadAllApps();
     }
-  }, [device?.serial]);
+  }, [isOnline, device?.serial]);
 
   // Filtered Apps for All Apps table
   const filteredApps = useMemo(() => {

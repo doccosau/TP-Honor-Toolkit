@@ -630,6 +630,56 @@ def get_device_info():
     _, current_dns_mode, _ = run_cmd(['adb', 'shell', 'settings', 'get', 'global', 'private_dns_mode'])
     _, current_dns_spec, _ = run_cmd(['adb', 'shell', 'settings', 'get', 'global', 'private_dns_specifier'])
 
+    # Storage details from df -h /data
+    _, df_out, _ = run_cmd(['adb', 'shell', 'df', '-h', '/data'])
+    storage_total = '256 GB'
+    storage_used = '52 GB'
+    storage_free = '204 GB'
+    storage_pct = 20
+    df_lines = [l.strip() for l in df_out.splitlines() if l.strip()]
+    if len(df_lines) >= 2:
+        parts = df_lines[-1].split()
+        if len(parts) >= 5:
+            storage_total = parts[1]
+            storage_used = parts[2]
+            storage_free = parts[3]
+            try:
+                storage_pct = int(parts[4].replace('%', ''))
+            except:
+                storage_pct = 20
+
+    # SELinux and Root state
+    _, se_out, _ = run_cmd(['adb', 'shell', 'getenforce'])
+    _, su_out, _ = run_cmd(['adb', 'shell', 'which', 'su'])
+    is_rooted = bool(su_out.strip() and 'not found' not in su_out.strip() and 'su' in su_out.strip())
+    root_selinux = f"Đã Root ({se_out.strip() or 'Permissive'})" if is_rooted else f"Chưa Root ({se_out.strip() or 'Enforcing'})"
+
+    # Bloatware count
+    safe12 = [
+        "com.honor.browser", "com.hihonor.browserhomepage", "com.hihonor.gamecenter",
+        "com.hihonor.game.kitserver", "com.hihonor.quickgame", "com.hihonor.cloudmusic",
+        "com.honor.yoyocards", "com.hihonor.hiboard", "com.hihonor.redteamobile.roaming",
+        "com.sohu.inputmethod.sogou.honor", "com.hihonor.servicecenter", "com.baidu.swan"
+    ]
+    bloat_rem = [p for p in safe12 if p in all_pkgs]
+    bloat_summary = "Đã dọn sạch 12/12 app" if len(bloat_rem) == 0 else f"Còn {len(bloat_rem)}/12 app chưa gỡ"
+
+    # FCM VN Apps summary
+    _, doze_out, _ = run_cmd(['adb', 'shell', 'dumpsys', 'deviceidle', 'whitelist'])
+    vn_installed = 0
+    vn_whitelisted = 0
+    for cat in VN_APPS_DB.get('categories', {}).values():
+        for app in cat.get('apps', []):
+            pkg = app.get('package', '')
+            if pkg in all_pkgs:
+                vn_installed += 1
+                if pkg in doze_out:
+                    vn_whitelisted += 1
+    if vn_installed == 0:
+        fcm_summary = "Chưa cài app VN"
+    else:
+        fcm_summary = f"Đã Whitelist {vn_whitelisted}/{vn_installed} app VN"
+
     return {
         'connected': True,
         'serial': serial,
@@ -665,6 +715,13 @@ def get_device_info():
         'battery_level': bat_level,
         'battery_temp': bat_temp,
         'battery_status': bat_status,
+        'storage_total_str': storage_total,
+        'storage_used_str': storage_used,
+        'storage_free_str': storage_free,
+        'storage_percent': storage_pct,
+        'root_selinux': root_selinux,
+        'bloat_summary': bloat_summary,
+        'fcm_summary': fcm_summary,
         'health_score': score
     }
 

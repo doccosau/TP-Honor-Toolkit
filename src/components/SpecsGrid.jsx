@@ -99,7 +99,9 @@ export default function SpecsGrid({ device }) {
                 {isOnline ? device.durability : '--'}
               </td>
               <td className="label-col">Trạng thái Root / SELinux:</td>
-              <td className="val-col">Chưa Root (Enforcing)</td>
+              <td className="val-col">
+                {isOnline ? (device.root_selinux || 'Chưa Root (Enforcing)') : '--'}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -108,17 +110,33 @@ export default function SpecsGrid({ device }) {
         <div className="storage-progress-container">
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-dim)' }}>
             <span>
-              Bộ Nhớ Trong: <b id="txtStorageUsed" style={{ color: 'var(--text-bright)' }}>52.4 GB</b> / 256 GB (Đã dùng ~20%)
+              Bộ Nhớ Trong: <b id="txtStorageUsed" style={{ color: 'var(--text-bright)' }}>{isOnline ? (device.storage_used_str || '--') : '--'}</b> / {isOnline ? (device.storage_total_str || '--') : '--'} {isOnline && device.storage_percent ? `(Đã dùng ~${device.storage_percent}%)` : ''}
             </span>
             <span>
-              Khả dụng: <b id="txtStorageFree" style={{ color: '#10b981' }}>203.6 GB</b>
+              Khả dụng: <b id="txtStorageFree" style={{ color: '#10b981' }}>{isOnline ? (device.storage_free_str || '--') : '--'}</b>
             </span>
           </div>
           <div className="storage-bar">
-            <div className="storage-segment seg-apps" title="Ứng dụng"></div>
-            <div className="storage-segment seg-media" title="Ảnh & Video"></div>
-            <div className="storage-segment seg-system" title="Hệ thống MagicOS"></div>
-            <div className="storage-segment seg-free" title="Còn trống"></div>
+            <div
+              className="storage-segment seg-apps"
+              style={{ width: `${isOnline && device.storage_percent ? Math.round(device.storage_percent * 0.5) : 0}%` }}
+              title="Ứng dụng"
+            ></div>
+            <div
+              className="storage-segment seg-media"
+              style={{ width: `${isOnline && device.storage_percent ? Math.round(device.storage_percent * 0.3) : 0}%` }}
+              title="Ảnh & Video"
+            ></div>
+            <div
+              className="storage-segment seg-system"
+              style={{ width: `${isOnline && device.storage_percent ? Math.round(device.storage_percent * 0.2) : 0}%` }}
+              title="Hệ thống MagicOS"
+            ></div>
+            <div
+              className="storage-segment seg-free"
+              style={{ width: `${isOnline && device.storage_percent ? 100 - device.storage_percent : 100}%` }}
+              title="Còn trống"
+            ></div>
           </div>
         </div>
       </div>
@@ -134,27 +152,33 @@ export default function SpecsGrid({ device }) {
             </span>
             <span>Đánh Giá Độ Sạch & Tối Ưu Hệ Thống</span>
           </div>
-          <span id="txtHealthScoreBadge" className="badge-tag tag-safe" style={{ fontSize: '12px' }}>
-            {isOnline ? `${device.health_score || 90}/100 Điểm` : '--/100 Điểm'}
+          <span
+            id="txtHealthScoreBadge"
+            className={`badge-tag ${isOnline && device.health_score >= 80 ? 'tag-safe' : (isOnline && device.health_score >= 50 ? 'tag-warn' : 'tag-danger')}`}
+            style={{ fontSize: '12px' }}
+          >
+            {isOnline && typeof device.health_score === 'number' ? `${device.health_score}/100 Điểm` : '--/100 Điểm'}
           </span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '6px' }}>
           <div style={{ background: 'var(--panel-alt)', padding: '10px', borderRadius: '3px', border: '1px solid var(--border-light)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Dịch Vụ Rác TQ:</div>
             <div id="statBloatStatus" style={{ fontWeight: 600, color: '#10b981', marginTop: '4px' }}>
-              Đã dọn sạch 12 app
+              {isOnline ? (device.bloat_summary || 'Đã dọn sạch 12 app') : '--'}
             </div>
           </div>
           <div style={{ background: 'var(--panel-alt)', padding: '10px', borderRadius: '3px', border: '1px solid var(--border-light)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>FCM Thông Báo App VN:</div>
             <div id="statFcmStatus" style={{ fontWeight: 600, color: '#38bdf8', marginTop: '4px' }}>
-              Đã Whitelist Pin & Chạy nền
+              {isOnline ? (device.fcm_summary || 'Đang đồng bộ...') : '--'}
             </div>
           </div>
           <div style={{ background: 'var(--panel-alt)', padding: '10px', borderRadius: '3px', border: '1px solid var(--border-light)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Kết Nối Mạng & DNS:</div>
             <div id="statDnsStatus" style={{ fontWeight: 600, color: '#10b981', marginTop: '4px' }}>
-              {isOnline && device.current_dns_spec ? `${device.current_dns_spec}` : 'Cloudflare DoT (one.one.one.one)'}
+              {isOnline
+                ? (device.current_dns_spec || (device.current_dns_mode === 'off' ? 'Chưa cấu hình DoT (Đang tắt)' : 'Tự động (Opportunistic)'))
+                : '--'}
             </div>
           </div>
         </div>

@@ -331,6 +331,45 @@ export default function DebloatTab({
         </div>
       </div>
 
+      {/* Status banner when all bloatware is already removed */}
+      {counts.installed === 0 && counts.uninstalled > 0 && statusFilter === 'installed' && isOnline && (
+        <div style={{
+          background: 'rgba(16, 185, 129, 0.1)',
+          border: '1px solid rgba(16, 185, 129, 0.3)',
+          borderRadius: '4px',
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span className="svg-icon" style={{ color: '#10b981', width: '20px', height: '20px' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </span>
+            <div>
+              <div style={{ fontWeight: 600, color: '#10b981', fontSize: '13px' }}>
+                🎉 Thiết bị của bạn đã sạch hoàn toàn! Không có app rác nào đang tồn tại trên máy ({counts.uninstalled} ứng dụng đã được gỡ bỏ).
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
+                Bộ lọc hiện tại đang ẩn các ứng dụng đã gỡ. Bạn có thể bấm "Xem Tất Cả" bên cạnh để kiểm tra hoặc khôi phục bất kỳ lúc nào.
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn-tool"
+            onClick={() => setStatusFilter('all')}
+            style={{ whiteSpace: 'nowrap', padding: '5px 12px', fontSize: '11px' }}
+          >
+            Xem Tất Cả ({counts.total})
+          </button>
+        </div>
+      )}
+
       {/* Scanned Packages Table */}
       <div
         className="specs-card"
@@ -368,6 +407,8 @@ export default function DebloatTab({
                   <td colSpan="6" style={{ textAlign: 'center', padding: '40px 10px', color: 'var(--text-muted)' }}>
                     {isScanning
                       ? 'Đang đồng bộ danh sách ứng dụng từ điện thoại...'
+                      : counts.installed === 0 && counts.uninstalled > 0 && statusFilter === 'installed'
+                      ? '🎉 Toàn bộ ứng dụng rác nội địa đã được dọn sạch khỏi máy. Chuyển sang tab "Tất Cả" để xem danh sách hoặc khôi phục.'
                       : 'Không tìm thấy package nào phù hợp với bộ lọc.'}
                   </td>
                 </tr>
