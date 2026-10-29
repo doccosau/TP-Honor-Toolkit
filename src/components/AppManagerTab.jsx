@@ -782,7 +782,12 @@ export default function AppManagerTab({
               {vnCounts.installed > 0 && (
                 <button
                   className="btn-tool primary"
-                  onClick={() => onWhitelistAll?.()}
+                  onClick={() => {
+                    const installedPkgs = allVnApps.filter((a) => a.installed).map((a) => a.package);
+                    if (installedPkgs.length > 0) {
+                      onWhitelistAll?.(installedPkgs);
+                    }
+                  }}
                   disabled={!isOnline}
                   title="Cấp Whitelist Doze & toàn quyền chạy nền không trễ cho ứng dụng VN"
                 >

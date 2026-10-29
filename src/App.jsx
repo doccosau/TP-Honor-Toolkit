@@ -496,11 +496,20 @@ export default function App() {
   };
 
   const handleWhitelist = async (packages) => {
+    let list = Array.isArray(packages) ? packages : [];
+    if (list.length === 0) {
+      list = (scannedPackages?.vn_apps || []).filter((a) => a.installed).map((a) => a.package);
+    }
+    if (list.length === 0) {
+      addToast('warning', 'Không có app', 'Không tìm thấy ứng dụng Việt Nam nào đang cài đặt trên máy để cấp Doze.');
+      return;
+    }
+
     setIsExecuting(true);
-    setExecutingTask(`Whitelist ${packages.length} app`);
+    setExecutingTask(`Whitelist ${list.length} app VN`);
     try {
-      await adbService.whitelistApps(packages);
-      addToast('success', 'Doze Whitelist', `Đã cấp quyền chạy nền không trễ thông báo cho ${packages.length} ứng dụng!`);
+      await adbService.whitelistApps(list);
+      addToast('success', 'Doze Whitelist', `Đã cấp quyền chạy nền không trễ thông báo cho ${list.length} ứng dụng VN!`);
       await refreshScan();
       handleRefresh();
     } catch (e) {

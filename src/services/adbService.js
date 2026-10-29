@@ -577,17 +577,52 @@ class AdbService {
     try {
       const resp = await fetch('/api/env');
       if (resp.ok) {
-        return await resp.json();
+        const data = await resp.json();
+        if (data && data.os && data.os !== 'unknown') {
+          return data;
+        }
       }
     } catch (e) {}
+
+    // Precise client-side OS detection using browser navigator
+    const ua = (typeof navigator !== 'undefined' ? navigator.userAgent : '') || '';
+    const plat = (typeof navigator !== 'undefined' ? (navigator.userAgentData?.platform || navigator.platform) : '') || '';
+
+    let os = 'unknown';
+    let osName = 'Máy Tính';
+    let displayOs = 'Máy tính cá nhân';
+    let installCmd = 'winget install Genymobile.scrcpy';
+    let guide = 'Mở Command Prompt hoặc PowerShell rồi chạy lệnh trên.';
+
+    if (/Win/i.test(plat) || /Windows/i.test(ua)) {
+      os = 'windows';
+      osName = 'Windows';
+      displayOs = 'Windows PC (10/11)';
+      installCmd = 'winget install Genymobile.scrcpy';
+      guide = 'Mở PowerShell hoặc Command Prompt rồi dán lệnh trên.';
+    } else if (/Linux|X11/i.test(plat) || /Linux/i.test(ua)) {
+      os = 'linux';
+      osName = 'Linux';
+      displayOs = 'Linux (Ubuntu/Debian/Arch)';
+      installCmd = 'sudo apt install -y scrcpy adb';
+      guide = 'Mở Terminal Linux và chạy lệnh apt trên để cài đặt Scrcpy.';
+    } else if (/Mac/i.test(plat) || /Macintosh|Mac OS X/i.test(ua)) {
+      os = 'darwin';
+      osName = 'macOS';
+      displayOs = 'Apple macOS';
+      installCmd = 'brew install scrcpy';
+      guide = 'Mở Terminal trên Mac và chạy lệnh Homebrew trên.';
+    }
+
     return {
-      os: 'unknown',
-      os_name: 'Unknown OS',
-      adb_installed: false,
+      os,
+      os_name: osName,
+      display_os: displayOs,
+      adb_installed: this.mode === 'webusb' && !!this.adbInstance,
       scrcpy_installed: false,
-      install_cmd: 'winget install Genymobile.scrcpy',
-      manual_guide: 'Tải và cài đặt Scrcpy từ GitHub Genymobile.',
-      can_auto_install: true,
+      install_cmd: installCmd,
+      manual_guide: guide,
+      can_auto_install: false,
     };
   }
 
@@ -954,14 +989,26 @@ class AdbService {
   /**
    * Whitelist Vietnamese Apps for Background Notifications (Step 1)
    */
-  async whitelistApps(packages) {
-    this.addLog('info', `Đang cấp quyền chạy nền không bị ngắt Doze cho ${packages.length} ứng dụng Việt Nam...`);
+  async whitelistApps(packages = []) {
+    let list = Array.isArray(packages) ? packages : [];
+    if (list.length === 0) {
+      Object.values(vnAppsData.categories || {}).forEach((cat) => {
+        (cat.apps || []).forEach((a) => {
+          if (!list.includes(a.package)) list.push(a.package);
+        });
+      });
+    }
+
+    this.addLog('info', `Đang cấp quyền chạy nền không bị ngắt Doze cho ${list.length} ứng dụng Việt Nam...`);
     if (this.mode === 'webusb' && this.adbInstance) {
-      for (const pkg of packages) {
-        await this.executeShell(`dumpsys deviceidle whitelist +${pkg}`);
-        for (const op of ['RUN_IN_BACKGROUND', 'RUN_ANY_IN_BACKGROUND', 'POST_NOTIFICATION', 'WAKE_LOCK', 'SYSTEM_ALERT_WINDOW', 'START_FOREGROUND', 'SCHEDULE_EXACT_ALARM', 'ACCESS_RESTRICTED_SETTINGS']) {
-          await this.executeShell(`cmd appops set ${pkg} ${op} allow`);
-        }
+      let idx = 0;
+      for (const pkg of list) {
+        idx++;
+        this.addLog('cmd', `[${idx}/${list.length}] Cấp quyền chạy nền Doze + 8 AppOps cho ${pkg}...`);
+        const ops = ['RUN_IN_BACKGROUND', 'RUN_ANY_IN_BACKGROUND', 'POST_NOTIFICATION', 'WAKE_LOCK', 'SYSTEM_ALERT_WINDOW', 'START_FOREGROUND', 'SCHEDULE_EXACT_ALARM', 'ACCESS_RESTRICTED_SETTINGS'];
+        const appOpsCmds = ops.map((op) => `cmd appops set ${pkg} ${op} allow`).join('; ');
+        await this.executeShell(`dumpsys deviceidle whitelist +${pkg}; ${appOpsCmds}`);
+
         const uidOut = await this.executeShell(`pm list packages -U ${pkg}`);
         if (uidOut.includes('uid:')) {
           const uidsPart = uidOut.split('uid:').pop().trim().split(/\s+/)[0];
@@ -973,19 +1020,19 @@ class AdbService {
           }
         }
       }
-      this.addLog('success', `Đã cấp quyền Doze Whitelist & 8 AppOps thành công cho ${packages.length} ứng dụng.`);
-      return { success: true, count: packages.length };
+      this.addLog('success', `Đã cấp quyền Doze Whitelist & 8 AppOps thành công cho ${list.length} ứng dụng.`);
+      return { success: true, count: list.length };
     }
 
     try {
       const resp = await fetch('/api/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'whitelist_all_vn', packages }),
+        body: JSON.stringify({ action: 'whitelist_all_vn', packages: list }),
       });
       if (resp.ok) {
         const data = await resp.json();
-        this.addLog('success', `Đã cấp quyền Doze Whitelist & 8 AppOps thành công cho ${data.count || packages.length} ứng dụng.`);
+        this.addLog('success', `Đã cấp quyền Doze Whitelist & 8 AppOps thành công cho ${data.count || list.length} ứng dụng.`);
         return data;
       }
     } catch (e) {}

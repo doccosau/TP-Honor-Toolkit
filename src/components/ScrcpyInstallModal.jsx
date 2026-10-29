@@ -23,7 +23,7 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
   const isMac = env?.os === 'darwin';
 
   const handleCopy = () => {
-    const cmd = env?.install_cmd || (isWin ? 'winget install Genymobile.scrcpy' : 'sudo apt install -y scrcpy adb');
+    const cmd = env?.install_cmd || (isWin ? 'winget install Genymobile.scrcpy' : isLinux ? 'sudo apt install -y scrcpy adb' : isMac ? 'brew install scrcpy' : 'winget install Genymobile.scrcpy');
     navigator.clipboard.writeText(cmd);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
@@ -131,7 +131,7 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
             <div>
               <div style={{ fontSize: '11px', color: '#94a3b8' }}>Hệ điều hành máy tính:</div>
               <div style={{ fontSize: '13px', fontWeight: 600, color: '#38bdf8' }}>
-                {env?.os_name || 'Đang nhận diện...'} {isWin ? '(Windows PC)' : isLinux ? '(Linux)' : '(macOS)'}
+                {env?.display_os || (isWin ? 'Windows PC (10/11)' : isLinux ? 'Linux (Ubuntu/Debian)' : isMac ? 'Apple macOS' : env?.os_name || 'Máy Tính')}
               </div>
             </div>
             <div style={{ display: 'flex', gap: '6px' }}>
