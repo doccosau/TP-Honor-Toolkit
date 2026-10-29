@@ -291,22 +291,26 @@ export default function App() {
   };
 
   const handleLaunchScrcpy = async (params) => {
-    // If WebUSB (on website/domain), open in-browser Web Mirror directly!
-    if (adbService.mode === 'webusb') {
-      setShowWebMirrorModal(true);
-      return;
+    // 1. Try local server backend if running
+    if (adbService.mode !== 'webusb') {
+      try {
+        const res = await adbService.launchScrcpy(params);
+        if (res?.success) {
+          addToast('success', 'Scrcpy 120Hz', 'Đã mở cửa sổ điều khiển màn hình Scrcpy 120Hz!');
+          return;
+        }
+      } catch (e) {}
     }
 
-    try {
-      const res = await adbService.launchScrcpy(params);
-      if (res?.success) {
-        addToast('success', 'Scrcpy 120Hz', 'Đã mở cửa sổ điều khiển màn hình Scrcpy 120Hz!');
-      } else {
-        setShowScrcpyModal(true);
-      }
-    } catch (e) {
-      setShowScrcpyModal(true);
+    // 2. If on web domain (WebUSB):
+    // Release WebUSB so native ADB can immediately connect without USB conflict
+    if (adbService.mode === 'webusb') {
+      addToast('info', 'Scrcpy 120Hz', 'Đang giải phóng USB & tự động mở cửa sổ Scrcpy 120Hz ngầm...');
+      await adbService.disconnect();
     }
+
+    // 3. Trigger native desktop protocol launcher!
+    window.location.href = 'scrcpy://launch';
   };
 
   const handleSetAssistant = async () => {
@@ -664,6 +668,7 @@ export default function App() {
           <ToolboxTab
             device={device}
             onLaunchScrcpy={handleLaunchScrcpy}
+            onOpenWebMirror={() => setShowWebMirrorModal(true)}
             onSetAssistant={handleSetAssistant}
             onInstallGestureSearch={handleInstallGestureSearch}
             onInstallVxMAssistant={handleInstallVxMAssistant}

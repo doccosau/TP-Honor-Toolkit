@@ -212,10 +212,15 @@ class AdbService {
         console.error(e);
       }
       this.adbInstance = null;
+    }
+    if (this.usbDevice) {
+      try {
+        await this.usbDevice.raw?.close?.();
+      } catch (e) {}
       this.usbDevice = null;
     }
     this.mode = 'idle';
-    this.addLog('info', 'Đã ngắt kết nối thiết bị.');
+    this.addLog('info', 'Đã giải phóng kết nối thiết bị.');
     this.notify({ type: 'disconnected' });
   }
 

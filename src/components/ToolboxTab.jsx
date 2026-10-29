@@ -4,6 +4,7 @@ import { adbService } from '../services/adbService';
 export default function ToolboxTab({
   device,
   onLaunchScrcpy,
+  onOpenWebMirror,
   onSetAssistant,
   onInstallGestureSearch,
   onInstallVxMAssistant,
@@ -154,11 +155,9 @@ export default function ToolboxTab({
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-
-
             <button
               className="btn-tool primary"
-              style={{ width: '100%', justifyContent: 'center', padding: '8px' }}
+              style={{ width: '100%', justifyContent: 'center', padding: '9px 12px', fontWeight: 600 }}
               onClick={() => onLaunchScrcpy({ turnOffScreen, stayAwake })}
               disabled={!isOnline}
             >
@@ -167,7 +166,17 @@ export default function ToolboxTab({
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
               </span>
-              <span>{isWeb ? '📱 Chiếu & Điều Khiển Màn Hình Trực Tiếp (Web Mirror)' : 'Khởi Chạy Scrcpy 120Hz Ngay'}</span>
+              <span>🚀 Tự Động Mở Scrcpy 120Hz Siêu Mượt</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn-tool"
+              style={{ width: '100%', justifyContent: 'center', padding: '5px', fontSize: '11px', color: '#94a3b8' }}
+              onClick={onOpenWebMirror}
+              disabled={!isOnline}
+            >
+              <span>📱 Hoặc xem &amp; chụp nhanh trong Web (Web Mirror)</span>
             </button>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
