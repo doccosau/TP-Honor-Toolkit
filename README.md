@@ -3,74 +3,108 @@
   <h1>TP HONOR TOOLKIT</h1>
   <p><b>Bộ Tiện Ích Quản Trị, Chẩn Đoán &amp; Tối Ưu Hóa Chuyên Sâu Cho Điện Thoại Honor MagicOS</b></p>
   <p>
-    <a href="https://github.com/doccosau/TP-Honor-Toolkit/actions"><img src="https://github.com/doccosau/TP-Honor-Toolkit/workflows/Deploy%20to%20Cloudflare%20Pages/badge.svg" alt="Build & Deploy Status" /></a>
+    <i>Tối ưu hóa toàn diện dòng máy Honor nội địa Trung Quốc sang trải nghiệm mượt mà, ổn định tại Việt Nam</i>
   </p>
 </div>
 
 ---
 
-### 🌐 Triển Khai Lên Cloudflare Pages (Deploy via GitHub)
+## 🌟 Giới Thiệu Tổng Quan
 
-Dự án đã được tích hợp sẵn cấu hình tự động build và deploy lên Cloudflare Pages mỗi khi push code lên GitHub:
+**TP Honor Toolkit** là bộ giải pháp phần mềm chuyên sâu được thiết kế dành riêng cho các thiết bị Honor chạy hệ điều hành **MagicOS** (đặc biệt là các phiên bản máy nội địa Trung Quốc như Honor Magic 6 Pro, Magic 7 Pro, Magic V2/V3, Honor 100/200 series, X9b/X50...). 
 
-1. **Cách 1: Tự động qua GitHub Actions (`.github/workflows/deploy-cloudflare.yml`)**
-   - Vào Settings của Repository trên GitHub: **Settings** &rarr; **Secrets and variables** &rarr; **Actions**.
-   - Thêm 2 Secrets:
-     - `CLOUDFLARE_API_TOKEN`: Token API từ Cloudflare (Quyền: *Cloudflare Pages - Edit*).
-     - `CLOUDFLARE_ACCOUNT_ID`: Mã tài khoản Cloudflare của bạn.
-   - Mỗi lần bạn `git push` lên nhánh `main`, GitHub Actions sẽ tự động cài dependencies (`npm ci`), biên dịch Vite (`npm run build`) và đẩy thẳng lên Cloudflare Pages!
-
-2. **Cách 2: Kết nối trực tiếp trên Dashboard Cloudflare Pages (Khuyên dùng - Không cần Token)**
-   - Vào trang quản lý [Cloudflare Dashboard](https://dash.cloudflare.com/) &rarr; **Workers &amp; Pages** &rarr; **Create application** &rarr; **Pages** &rarr; **Connect to Git**.
-   - Chọn kho lưu trữ **`doccosau/TP-Honor-Toolkit`**.
-   - Thiết lập cấu hình Build:
-     - **Framework preset:** `Vite`
-     - **Build command:** `npm run build`
-     - **Build output directory:** `dist`
-   - Bấm **Save and Deploy**. Cloudflare sẽ tự động kết nối webhook và deploy mọi commit mới nhất!
+Công cụ giúp người dùng dễ dàng khắc phục triệt để các vấn đề thường gặp trên máy nội địa (trễ thông báo, bloatware tiếng Trung, rớt Wi-Fi, trợ lý YOYO không nhận diện tiếng Việt...), đồng thời cung cấp bảng chẩn đoán phần cứng và quản lý ứng dụng chuyên nghiệp theo tiêu chuẩn **Toolkit Standard**.
 
 ---
 
-## ⚡ CÁCH CHẠY TOOL TRÊN MÁY TÍNH (OFFLINE DESKTOP)
+## 🚀 Tính Năng Nổi Bật
 
-### Cách 1: Chạy Server WebUSB & Local Engine (Giao diện chuẩn)
+### 1. 🔍 Chẩn Đoán & Kiểm Định Phần Cứng Thật (Toolkit Standard)
+- **Kiểm định pin nâng cao**: Đo dung lượng pin thiết kế vs dung lượng pin thực tế, số chu kỳ sạc (Charge Cycle Count), nhiệt độ cell pin, điện áp BMS và đánh giá mức độ chai pin theo thời gian thực.
+- **Bóc tách cấu hình chi tiết**: Đọc trực tiếp phần cứng gồm chip SoC Snapdragon / Dimensity, xung nhịp CPU, GPU, RAM LPDDR, bộ nhớ UFS, thông số cảm biến Camera, Baseband modem và mã bo mạch chủ.
+- **Xuất báo cáo kiểm định**: Hỗ trợ tạo và in báo cáo tình trạng máy chuyên nghiệp (phục vụ kỹ thuật viên kiểm tra máy cũ / thu mua / test máy).
+
+### 2. ⚡ Playbook Tối Ưu Hóa 1-Click (Honor Magic Master)
+- **Fix triệt để trễ thông báo**: Tự động cấu hình `deviceidle whitelist` và cấp quyền `AppOps` (`POST_NOTIFICATION`, `RUN_IN_BACKGROUND`, `WAKE_LOCK`) cho Zalo, Messenger, Telegram, Gmail và toàn bộ app ngân hàng (TPBank, Vietcombank, VPBank, MB, MoMo...).
+- **Gỡ sạch Bloatware nội địa**: Tắt và gỡ 12+ ứng dụng rác tiếng Trung (Game Center, Quick Game, HiBoard tin tức TQ, Yoyo Cards, Redtea Roaming, Baidu Swan Mini-Apps...) an toàn 100%, không lo chạm góc quẹt nhầm.
+- **Tối ưu kết nối Wi-Fi & Mạng**:
+  - Chuyển máy chủ Captive Portal sang chuẩn `Google 204` (xóa thông báo "Mạng có thể bị giới hạn").
+  - Kích hoạt Private DNS Cloudflare `1.1.1.1` chống đầu độc DNS.
+  - Tắt Link Turbo và Wi-Fi Pro gây đứt socket UDP khi xem video Facebook/TikTok.
+  - Tắt tính năng tự ngủ của chip Wi-Fi sau 120s không hoạt động.
+- **Tắt Telemetry ngầm**: Chặn các tiến trình gửi log phân tích thói quen sử dụng về máy chủ Trung Quốc (`UEInfoCheck`, `hiviewtunnel`, `collectcenter`).
+- **Khóa cứng 120Hz & Mật độ hiển thị chuẩn**:
+  - Ép tần số quét cố định 120Hz mượt mà (giữ nguyên Animation 1.0x).
+  - Khóa mật độ hiển thị DPI 385dp chuẩn mắt (Density 532 trên màn hình 1.5K) và tắt Smart Resolution chống tự reset.
+- **Biên dịch AOT Native (dex2oat)**: Ép biên dịch mã máy trước (Ahead-Of-Time) cho Zalo, Messenger, ChatGPT, Nhạc Quán... mở ứng dụng tức thì không có độ trễ.
+
+### 3. 📦 Quản Trị Ứng Dụng Toàn Diện (App Manager)
+- **Phân loại thông minh**: Tự động lọc và hiển thị theo nhóm: *Bloatware nội địa*, *Google Ecosystem*, *Ứng dụng hệ thống*, *Ứng dụng người dùng*.
+- **Thao tác nhanh**: Đóng băng (Freeze/Disable), Gỡ cài đặt (Uninstall), Khôi phục (Re-enable/Install existing).
+- **Trích xuất APK**: Xuất trực tiếp file APK của bất kỳ ứng dụng nào trên máy về máy tính chỉ với 1 click.
+- **Kéo thả cài đặt**: Hỗ trợ kéo thả cài đặt hàng loạt file `.apk` vào điện thoại một cách tiện lợi.
+
+### 4. 🤖 Kích Hoạt Trợ Lý Ảo Google Gemini & Trợ Lý VXM
+- Vô hiệu hóa trợ lý YOYO tiếng Trung mặc định của Honor.
+- Phân quyền trợ lý toàn hệ thống cho **Google Assistant / Google Gemini** hoặc **Trợ lý VXM tiếng Việt**.
+- Hỗ trợ cử chỉ vuốt góc màn hình và phím nguồn để gọi trợ lý ảo nhanh chóng.
+
+### 5. 🖥️ Chiếu Màn Hình Scrcpy 120Hz Độ Trễ Siêu Thấp
+- Tích hợp sẵn bộ điều khiển Scrcpy qua Web/Desktop.
+- Điều khiển điện thoại bằng chuột, phím, bàn rê chuột trên máy tính với khung hình mượt mà lên tới 120fps.
+
+### 6. 📚 Kho Dữ Liệu Thiết Bị Honor (125+ Model)
+- Tra cứu tức thì thông số kỹ thuật, mã model nội địa và quốc tế (ví dụ: `BVL-AN00` = Magic 6 Pro), chipset, dung lượng pin và chuẩn sạc nhanh của toàn bộ hệ sinh thái smartphone Honor.
+
+---
+
+## 💻 Hướng Dẫn Sử Dụng Trên Máy Tính
+
+### Yêu Cầu Chuẩn Bị
+1. Cáp kết nối Type-C (khuyên dùng cáp truyền dữ liệu tốt).
+2. Trên điện thoại Honor:
+   - Vào **Cài đặt** > **Về điện thoại** > Bấm 7 lần vào **Số phiên bản (Build Number)** để mở *Tùy chọn nhà phát triển*.
+   - Vào **Cài đặt** > **Hệ thống & cập nhật** > **Tùy chọn nhà phát triển**.
+   - Bật **Gỡ lỗi qua USB (USB Debugging)**.
+
+---
+
+### Cách 1: Khởi Chạy Giao Diện Trực Quan (Khuyên Dùng)
+
+Khởi động giao diện quản trị đồ họa đầy đủ tính năng:
+
 ```bash
-# Trên Linux/macOS
+# Trên Linux / macOS
 ./run.sh
 
 # Hoặc trên Windows
 run.bat
 ```
-Truy cập trình duyệt tại: `http://localhost:5050`
+
+Sau khi chạy, giao diện sẽ tự động mở trên trình duyệt tại: `http://localhost:5050`
 
 ---
 
-## ⚡ CÁCH 1: CHẠY TOOL PYTHON 1-CLICK (NHANH NHẤT)
+### Cách 2: Tối Ưu Nhanh 1-Click Bằng Python CLI
 
-Nếu có máy tính Linux/Mac/Windows cài sẵn Python:
-Cắm cáp điện thoại, bật **Gỡ lỗi qua USB (USB Debugging)** và chạy 1 lệnh duy nhất:
+Nếu muốn tối ưu nhanh toàn bộ máy mà không cần mở giao diện web:
 
 ```bash
 python3 scripts/honor_magic_master.py --all
 ```
 
-*Lệnh trên sẽ tự động:*
-1. Chẩn đoán toàn diện thiết bị.
-2. Whitelist và cấp quyền `AppOps` (`POST_NOTIFICATION`, `WAKE_LOCK`, `SYSTEM_ALERT_WINDOW`) cho toàn bộ app liên lạc & ngân hàng.
-3. Gỡ sạch 10 app rác nội địa TQ (giữ nguyên My Honor, App Market, Music, Tạp chí màn hình khóa, Mẹo vặt, Bàn phím gốc, Trình sửa video).
-4. Đổi Captive Portal sang Google 204 và bật Private DNS Cloudflare 1.1.1.1.
-5. Tắt theo dõi Telemetry và gửi log về máy chủ TQ.
-6. Khóa cứng 120Hz (giữ nguyên Animation 1.0x).
-7. Biên dịch mã máy AOT Native (dex2oat) cho Zalo, Mi Browser, Nhạc Quán, Messenger, ChatGPT mở tức thì.
-8. Lưu bản ghi hoàn tác vào `honor_debloat_backup.json` (phục hồi bằng lệnh `python3 scripts/honor_magic_master.py --restore`).
+*Lệnh trên sẽ tự động thực thi chuỗi tác vụ tối ưu: Whitelist thông báo, gỡ bloatware, fix Wi-Fi, khóa 120Hz, tắt telemetry và lưu bản ghi sao lưu hoàn tác.*
 
 ---
 
-## 🛠️ CÁCH 2: CHẠY BẰNG TAY TỪNG LỆNH ADB (NẾU DÙNG WEBADB HOẶC CMD)
+## 🛠️ Danh Sách Lệnh ADB Tối Ưu Thủ Công (Dành Cho Kỹ Thuật Viên)
 
-### Bước 1: Fix thông báo (Doze Mode & AppOps)
+<details>
+<summary><b>Nhấn vào đây để xem chi tiết từng lệnh ADB</b></summary>
+
+### 1. Fix trễ thông báo (Doze Mode & AppOps)
 ```bash
-# Whitelist Doze Mode
+# Whitelist Doze Mode cho các app liên lạc & ngân hàng
 adb shell dumpsys deviceidle whitelist +com.zing.zalo
 adb shell dumpsys deviceidle whitelist +com.facebook.orca
 adb shell dumpsys deviceidle whitelist +com.facebook.katana
@@ -82,7 +116,6 @@ adb shell dumpsys deviceidle whitelist +com.vnpay.vpbankonline
 adb shell dumpsys deviceidle whitelist +vn.banvietbank.mobilebanking
 adb shell dumpsys deviceidle whitelist +com.mservice.momotransfer
 adb shell dumpsys deviceidle whitelist +xyz.be.cake
-adb shell dumpsys deviceidle whitelist +vn.io.nhacquan
 
 # Cấp quyền chạy nền & hiển thị thông báo
 adb shell cmd appops set com.zing.zalo RUN_IN_BACKGROUND allow
@@ -96,7 +129,7 @@ adb shell cmd appops set com.google.android.gm RUN_IN_BACKGROUND allow
 adb shell cmd appops set com.google.android.gm POST_NOTIFICATION allow
 ```
 
-### Bước 2: Gỡ 12 app rác nội địa TQ (An toàn 100% - Chống quẹt nhầm góc & Mini-Apps)
+### 2. Gỡ sạch ứng dụng rác nội địa Trung Quốc
 ```bash
 adb shell pm disable-user --user 0 com.honor.browser
 adb shell pm uninstall -k --user 0 com.honor.browser
@@ -124,37 +157,30 @@ adb shell pm disable-user --user 0 com.baidu.swan
 adb shell pm uninstall -k --user 0 com.baidu.swan
 ```
 
-### Bước 3: Tối ưu Wi-Fi Siêu Tốc & Fix Triệt Để Lag Mạng MagicOS (Facebook/TikTok)
+### 3. Tối ưu Wi-Fi & Fix lag socket mạng MagicOS
 ```bash
-# 1. Chuyển Captive Portal sang Google 204
+# 1. Đổi Captive Portal sang Google 204
 adb shell settings put global captive_portal_mode 1
 adb shell settings put global captive_portal_http_url http://connectivitycheck.gstatic.com/generate_204
 adb shell settings put global captive_portal_https_url https://connectivitycheck.gstatic.com/generate_204
 adb shell settings put global captive_portal_fallback_url http://www.google.com/gen_204
 
-# 2. Bật Private DNS mã hóa (DoT - Tránh modem nhà mạng VN đầu độc DNS)
-# Dùng Cloudflare (mặc định):
+# 2. Bật Private DNS Cloudflare
 adb shell settings put global private_dns_mode hostname
 adb shell settings put global private_dns_specifier 1dot1dot1dot1.cloudflare-dns.com
-# Hoặc Google DNS: dns.google
-# Hoặc NextDNS cá nhân: <ID>.dns.nextdns.io
 
-# 3. Tắt Wi-Fi Pro & Chuyển mạng thông minh (Tránh Link Turbo gây đứt socket video QUIC/UDP của FB/TikTok)
+# 3. Tắt Link Turbo và Wi-Fi Pro (chống khựng video)
 adb shell settings put global hn_wifipro_enable false
 adb shell settings put system smart_network_switch 0
 adb shell settings put secure settings_wlan_mt_axl 0
 
-# 4. Đổi máy chủ đo độ trễ mạng ngầm từ Baidu TQ sang Google (Tránh hệ thống hiểu nhầm Wi-Fi chập chờn)
+# 4. Đổi máy chủ kiểm tra RTT sang Google
 adb shell "settings put global wifi_hidata_rtt_url 'connectivitycheck.gstatic.com|www.google.com'"
-
-# 5. Tắt thẩm định an ninh Wi-Fi qua Cloud Honor Trung Quốc
 adb shell settings put global wifi_cloud_security_check 0
-
-# 6. Tắt chip Wi-Fi tự động ngủ ngắt quãng sau 120s (Chống khựng video)
 adb shell settings put global wifi_power_save 0
 ```
 
-### Bước 4: Tắt Telemetry theo dõi gửi log ngầm TQ
+### 4. Tắt Telemetry theo dõi gửi log
 ```bash
 adb shell settings put secure user_experience_involved 0
 adb shell dumpsys deviceidle whitelist -com.hihonor.hiviewtunnel
@@ -162,10 +188,8 @@ adb shell pm disable-user --user 0 com.hihonor.android.UEInfoCheck
 adb shell pm disable-user --user 0 com.hihonor.collectcenter
 ```
 
-### Bước 5: Khóa cứng 120Hz & Khóa Mật độ hiển thị (Chuẩn 385 dp)
-> **Lưu ý kỹ thuật về hiển thị**: Màn hình 1.5K của Honor có chiều rộng vật lý là 1280 px. Để đạt **Độ rộng nhỏ nhất 385 dp** chuẩn mắt (Sweet spot vừa vặn nhất, icon và chữ cân đối) trong Tùy chọn nhà phát triển, giá trị density quy đổi chính xác là **532** (`1280 * 160 / 385 ≈ 532`). Đồng thời tắt tính năng "Độ phân giải thông minh" (`low_resolution_switch = 0`) để hệ thống không tự ý ghi đè density về 560.
+### 5. Khóa 120Hz & Độ rộng hiển thị 385dp chuẩn mắt
 ```bash
-# 1. Khóa cứng 120Hz & Animation gốc 1.0x
 adb shell settings put system min_refresh_rate 120.0
 adb shell settings put system peak_refresh_rate 120.0
 adb shell settings put global window_animation_scale 1.0
@@ -174,35 +198,14 @@ adb shell settings put global animator_duration_scale 1.0
 adb shell settings put global wifi_scan_always_enabled 0
 adb shell settings put global ble_scan_always_enabled 0
 
-# 2. Khóa cứng Độ rộng nhỏ nhất 385 dp (Density 532 - Tắt Smart Resolution chống tự reset)
+# Khóa density 532 (tương đương 385 dp trên màn hình 1.5K Honor)
 adb shell settings put global low_resolution_switch 0
 adb shell settings put global aps_display_resolution 0
 adb shell wm density 532
 adb shell settings put secure display_density_forced 532
 ```
 
-### Bước 6: Tăng tốc mở app tức thì (Biên dịch Native ARM64)
-```bash
-adb shell cmd package compile -m speed -f com.zing.zalo
-adb shell cmd package compile -m speed -f com.mi.globalbrowser
-adb shell cmd package compile -m speed -f vn.io.nhacquan
-adb shell cmd package compile -m speed -f com.facebook.orca
-adb shell cmd package compile -m speed -f com.openai.chatgpt
-adb shell pm trim-caches 100G
-```
-
-
-### Bước 7: Chuyển ứng dụng Thời tiết mặc định sang Tiếng Anh (Độ C)
-> **Lưu ý kỹ thuật**: File APK Thời tiết nội địa (`com.hihonor.android.totemweather`) chỉ chứa gói ngôn ngữ Tiếng Trung (`zh`) và Tiếng Anh (`en`), không có Tiếng Việt. Nếu ép sang `vi-VN`, hệ thống sẽ tự fallback về Tiếng Trung. Lệnh sau chuyển app sang **Tiếng Anh chuẩn quốc tế (en-GB - hiển thị độ C)**:
-```bash
-adb shell cmd locale set-app-locales com.hihonor.android.totemweather --locales en-GB
-adb shell am force-stop com.hihonor.android.totemweather
-```
-*(Nếu muốn xem thời tiết 100% Tiếng Việt, khuyến nghị dùng Widget Google Thời tiết đã có sẵn trên máy hoặc app Weawow).*
-
-
-### Bước 8: Kích hoạt Google Gemini làm Trợ lý ảo toàn hệ thống (Thay thế YOYO)
-> **Lưu ý kỹ thuật**: Trên MagicOS nội địa, hệ điều hành mặc định gán cứng `voice_interaction_service` cho Honor MagicVoice (`com.hihonor.magicvoice`). Để cử chỉ vuốt góc và phím cứng mở thẳng Google/Gemini, ta đóng băng `com.hihonor.magicvoice` và phân quyền cho Google & Gemini:
+### 6. Kích hoạt Google Gemini làm trợ lý ảo
 ```bash
 adb shell pm disable-user --user 0 com.hihonor.magicvoice
 adb shell settings put secure assistant com.google.android.googlequicksearchbox/com.google.android.voiceinteraction.GsaVoiceInteractionService
@@ -213,27 +216,37 @@ adb shell cmd appops set com.google.android.apps.bard ASSIST_STRUCTURE allow
 adb shell cmd appops set com.google.android.apps.bard ASSIST_SCREENSHOT allow
 adb shell cmd appops set com.google.android.apps.bard SYSTEM_ALERT_WINDOW allow
 ```
+</details>
 
 ---
 
-## 📱 THAO TÁC QUAN TRỌNG TRÊN ĐIỆN THOẠI (BẰNG TAY)
+## 📱 Cài Đặt Khuyến Nghị Bằng Tay Trên Điện Thoại
+
+Để đảm bảo các ứng dụng nhắn tin nhận thông báo tức thì 100%:
 
 1. **Bật Khởi chạy liên kết (Secondary Launch)**:
-   * Vào **Cài đặt** > **Pin** > **Quản lý khởi động ứng dụng (App launch)**.
-   * Tìm: Zalo, Facebook, Gmail, TPBank, VPBank, MoMo...
-   * Chuyển sang **Quản lý thủ công** và **BẬT CẢ 3 CÔNG TẮC**:
+   - Vào **Cài đặt** > **Pin** > **Quản lý khởi động ứng dụng (App launch)**.
+   - Tìm ứng dụng (Zalo, Messenger, Gmail, Ngân hàng...).
+   - Chuyển sang **Quản lý thủ công** và **BẬT CẢ 3 MỤC**:
      - `[x]` Tự khởi chạy
-     - `[x]` **Khởi chạy liên kết** *(Cho phép Google FCM đánh thức app)*
+     - `[x]` **Khởi chạy liên kết** *(Cho phép nhận tín hiệu push FCM)*
      - `[x]` Chạy ngầm
-2. **Khóa đa nhiệm**:
-   * Mở Zalo, Messenger > Vuốt đa nhiệm > Vuốt nhẹ thẻ ứng dụng xuống để hiện **biểu tượng ổ khóa 🔒**.
-3. **Gmail**:
-   * Mở app Gmail > Cài đặt > Chọn tài khoản > Mục Thông báo: Đổi sang **Tất cả (All)**.
+2. **Khóa thẻ đa nhiệm**:
+   - Mở ứng dụng > Vào giao diện đa nhiệm > Vuốt nhẹ thẻ ứng dụng xuống để hiện **biểu tượng ổ khóa 🔒**.
+3. **Cài đặt Gmail**:
+   - Mở app Gmail > **Cài đặt** > Chọn tài khoản > Mục **Thông báo**: Chọn **Tất cả (All)**.
 
 ---
 
-## 🔄 LỆNH PHỤC HỒI / HOÀN TÁC NGUYÊN BẢN (KHI CẦN BÁN MÁY)
+## 🔄 Phục Hồi Về Trạng Thái Nguyên Bản (Khi Cần Bán Máy)
+
+Nếu muốn đưa máy về nguyên trạng xuất xưởng ban đầu:
+
 ```bash
+# Phục hồi nhanh qua script:
+python3 scripts/honor_magic_master.py --restore
+
+# Hoặc bằng lệnh ADB thủ công:
 adb shell cmd package install-existing com.honor.browser
 adb shell cmd package install-existing com.hihonor.browserhomepage
 adb shell cmd package install-existing com.hihonor.gamecenter
@@ -260,3 +273,9 @@ adb shell "settings put global wifi_hidata_rtt_url 'www.baidu.com|connectivitych
 adb shell settings put global wifi_power_save 120
 adb shell settings put global private_dns_mode off
 ```
+
+---
+
+<div align="center">
+  <sub>TP Honor Toolkit &copy; 2026. Phát triển vì cộng đồng người dùng Honor tại Việt Nam.</sub>
+</div>
