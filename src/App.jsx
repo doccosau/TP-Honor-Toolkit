@@ -15,6 +15,7 @@ import TerminalConsole from './components/TerminalConsole';
 import WebUsbGuideModal from './components/WebUsbGuideModal';
 import ToastContainer from './components/ToastContainer';
 import ScrcpyInstallModal from './components/ScrcpyInstallModal';
+import WebMirrorModal from './components/WebMirrorModal';
 import { adbService } from './services/adbService';
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
   const [logs, setLogs] = useState([]);
   const [showGuide, setShowGuide] = useState(false);
   const [showScrcpyModal, setShowScrcpyModal] = useState(false);
+  const [showWebMirrorModal, setShowWebMirrorModal] = useState(false);
   const [isDraggingApk, setIsDraggingApk] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [scannedPackages, setScannedPackages] = useState({ connected: false, vn_apps: [], bloatware: {} });
@@ -132,6 +134,18 @@ export default function App() {
       });
     } catch (e) {}
   };
+
+  // Auto connect paired USB device on mount
+  useEffect(() => {
+    let active = true;
+    adbService.autoConnectPairedDevice().then((dev) => {
+      if (dev && active) {
+        setDevice(dev);
+        addToast('success', 'Tự Động Kết Nối', `Đã đồng bộ thiết bị: ${dev.commercial_name}`);
+      }
+    });
+    return () => { active = false; };
+  }, [addToast]);
 
   // Auto scan when device connects
   useEffect(() => {
@@ -277,6 +291,12 @@ export default function App() {
   };
 
   const handleLaunchScrcpy = async (params) => {
+    // If WebUSB (on website/domain), open in-browser Web Mirror directly!
+    if (adbService.mode === 'webusb') {
+      setShowWebMirrorModal(true);
+      return;
+    }
+
     try {
       const res = await adbService.launchScrcpy(params);
       if (res?.success) {
@@ -697,6 +717,18 @@ export default function App() {
         isOpen={showGuide}
         onClose={() => setShowGuide(false)}
         onConnect={handleConnectWebUsb}
+      />
+
+      {/* Web Live Screen Mirror Modal */}
+      <WebMirrorModal
+        isOpen={showWebMirrorModal}
+        onClose={() => setShowWebMirrorModal(false)}
+        device={device}
+        adbService={adbService}
+        onOpenScrcpyModal={() => {
+          setShowWebMirrorModal(false);
+          setShowScrcpyModal(true);
+        }}
       />
 
       {/* Scrcpy Auto-Install & OS Guidance Modal */}

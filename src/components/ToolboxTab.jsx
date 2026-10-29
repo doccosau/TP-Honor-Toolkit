@@ -196,7 +196,7 @@ export default function ToolboxTab({
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
               </span>
-              <span>{isWeb ? 'Hướng Dẫn & Mở Scrcpy 120Hz' : 'Khởi Chạy Scrcpy 120Hz Ngay'}</span>
+              <span>{isWeb ? '📱 Chiếu & Điều Khiển Màn Hình Trực Tiếp (Web Mirror)' : 'Khởi Chạy Scrcpy 120Hz Ngay'}</span>
             </button>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>

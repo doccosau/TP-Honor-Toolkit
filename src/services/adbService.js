@@ -170,6 +170,38 @@ class AdbService {
   }
 
   /**
+   * Auto connect previously paired USB devices without prompting picker
+   */
+  async autoConnectPairedDevice() {
+    if (!this.isWebUsbSupported()) return null;
+    try {
+      const manager = AdbDaemonWebUsbDeviceManager.BROWSER;
+      const devices = await manager.getDevices();
+      if (devices && devices.length > 0) {
+        const device = devices[0];
+        this.addLog('info', `Phát hiện thiết bị đã ghép nối: ${device.raw.productName || 'Honor'}. Đang tự động kết nối...`);
+        const connection = await device.connect();
+        const credentialStore = new AdbWebCredentialStore();
+        const transport = await AdbDaemonTransport.authenticate({
+          serial: device.serial,
+          connection,
+          credentialStore,
+          authenticators: ADB_DEFAULT_AUTHENTICATORS,
+        });
+        this.adbInstance = new Adb(transport);
+        this.usbDevice = device;
+        this.mode = 'webusb';
+        this.addLog('success', `Tự động kết nối WebUSB thành công! Serial: ${device.serial}`);
+        this.notify({ type: 'connected', mode: 'webusb', serial: device.serial });
+        return await this.getDeviceInfo();
+      }
+    } catch (e) {
+      console.warn('[WebUSB AutoConnect failed]', e);
+    }
+    return null;
+  }
+
+  /**
    * Disconnect active session
    */
   async disconnect() {
@@ -1505,10 +1537,37 @@ class AdbService {
   }
 
   /**
-   * Lossless Screenshot via ADB
+   * Lossless Screenshot via ADB (WebUSB native + local daemon fallback)
    */
   async takeScreenshot() {
     this.addLog('info', 'Đang chụp ảnh màn hình điện thoại...');
+    if (this.mode === 'webusb' && this.adbInstance) {
+      try {
+        const socket = await this.adbInstance.createSocket('exec:screencap -p');
+        const reader = socket.readable.getReader();
+        const chunks = [];
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (value) chunks.push(value);
+        }
+        if (chunks.length > 0) {
+          const blob = new Blob(chunks, { type: 'image/png' });
+          const url = URL.createObjectURL(blob);
+          this.addLog('success', 'Chụp ảnh màn hình điện thoại thành công!');
+          return {
+            success: true,
+            url,
+            blob,
+            filename: `Honor_Screenshot_${Date.now()}.png`,
+            timestamp: new Date().toLocaleTimeString('vi-VN'),
+          };
+        }
+      } catch (e) {
+        console.warn('[WebUSB screencap failed]', e);
+      }
+    }
+
     try {
       const resp = await fetch('/api/action', {
         method: 'POST',
@@ -1517,7 +1576,22 @@ class AdbService {
       });
       if (resp.ok) return await resp.json();
     } catch (e) {}
-    return { success: false, error: 'Tính năng yêu cầu chạy qua máy chủ local' };
+
+    return { success: false, error: 'Không thể chụp ảnh màn hình.' };
+  }
+
+  /**
+   * Send Android Key Event (e.g. 3 Home, 4 Back, 187 Recents, 26 Power, 24/25 Volume)
+   */
+  async sendKeyEvent(keyCode) {
+    return await this.executeShell(`input keyevent ${keyCode}`);
+  }
+
+  /**
+   * Send touch tap at real coordinates
+   */
+  async inputTap(x, y) {
+    return await this.executeShell(`input tap ${Math.round(x)} ${Math.round(y)}`);
   }
 
   /**
