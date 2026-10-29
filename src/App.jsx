@@ -282,18 +282,7 @@ export default function App() {
       if (res?.success) {
         addToast('success', 'Scrcpy 120Hz', 'Đã mở cửa sổ điều khiển màn hình Scrcpy 120Hz!');
       } else {
-        const msg = res?.message || '';
-        if (
-          msg.includes('Chưa tìm thấy Scrcpy') ||
-          msg.includes('winget') ||
-          msg.includes('apt install') ||
-          msg.includes('No such file') ||
-          msg.includes('FileNotFoundError')
-        ) {
-          setShowScrcpyModal(true);
-        } else {
-          addToast('error', 'Lỗi Scrcpy', msg || 'Không thể mở Scrcpy.');
-        }
+        setShowScrcpyModal(true);
       }
     } catch (e) {
       setShowScrcpyModal(true);
