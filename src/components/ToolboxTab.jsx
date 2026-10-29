@@ -154,36 +154,7 @@ export default function ToolboxTab({
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {isWeb && (
-              <div
-                style={{
-                  background: 'rgba(56, 189, 248, 0.08)',
-                  border: '1px solid rgba(56, 189, 248, 0.25)',
-                  borderRadius: '6px',
-                  padding: '7px 10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '8px',
-                }}
-              >
-                <div style={{ fontSize: '11px', color: '#cbd5e1' }}>
-                  Lệnh Terminal: <code style={{ color: '#38bdf8', fontWeight: 600 }}>scrcpy {turnOffScreen ? '-S' : ''}</code>
-                </div>
-                <button
-                  type="button"
-                  className="btn-tool"
-                  style={{ padding: '2px 8px', fontSize: '10.5px' }}
-                  onClick={() => {
-                    navigator.clipboard.writeText(`scrcpy ${turnOffScreen ? '-S' : ''}`.trim());
-                    setCopiedQuickCmd(true);
-                    setTimeout(() => setCopiedQuickCmd(false), 2000);
-                  }}
-                >
-                  {copiedQuickCmd ? '✓ Đã chép' : 'Sao chép'}
-                </button>
-              </div>
-            )}
+
 
             <button
               className="btn-tool primary"
