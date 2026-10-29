@@ -29,10 +29,21 @@ jobs:
       - name: Build Web Application
         run: npm run build
 
+      - name: Ensure Pages Project Exists
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          echo "Checking / Creating Cloudflare Pages project 'tphntools'..."
+          RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"name":"tphntools","production_branch":"main"}')
+          echo "Cloudflare API response: $RESPONSE"
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          preCommands: npx wrangler pages project create tphntools --production-branch=main || true
           command: pages deploy dist --project-name=tphntools --branch=main
