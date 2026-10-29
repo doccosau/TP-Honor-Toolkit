@@ -1,0 +1,256 @@
+{
+  "version": "2.1.0",
+  "last_updated": "2026-10-28",
+  "description": "Danh mục rác nội địa Trung Quốc và ứng dụng đối tác bên thứ ba trên Rom Honor MagicOS (Tuyệt đối không đụng vào ứng dụng hệ thống cốt lõi)",
+  "safety_levels": {
+    "level_1_safe": {
+      "level": 1,
+      "name": "Dịch Vụ Rác & Telemetry Nội Địa TQ (Gỡ An Toàn 100%)",
+      "badge": "Khuyên Gỡ",
+      "color": "#10b981",
+      "description": "Các dịch vụ quảng cáo ngầm, Service Gallery vuốt góc khó chịu, mini-app Baidu, và telemetry gửi log về Trung Quốc. Gỡ sạch giúp máy mát hơn, tiết kiệm RAM/pin và hết popup phiền toái.",
+      "packages": [
+        {
+          "package": "com.hihonor.servicecenter",
+          "name": "Service Gallery (Bảng Tiện Ích Vuốt Góc)",
+          "desc": "Nguyên nhân gây popup chiếm màn hình khi vuốt chéo từ góc dưới. Cần gỡ để triệt tiêu popup vuốt góc.",
+          "recommended": true
+        },
+        {
+          "package": "com.parallelc.micts",
+          "name": "Parallel Assistant Engine",
+          "desc": "Tiến trình can thiệp phím nguồn và cử chỉ góc để gọi trợ lý ảo Trung Quốc. Cần gỡ để nhường phím cho Google Assistant.",
+          "recommended": true
+        },
+        {
+          "package": "com.baidu.swan",
+          "name": "Baidu Smart Mini Programs Engine",
+          "desc": "Khung chạy ứng dụng mini Baidu chạy ngầm ngốn RAM và gửi telemetry về máy chủ Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.gamecenter",
+          "name": "Trung Tâm Trò Chơi (Honor Game Center)",
+          "desc": "Kho game nội địa Trung Quốc thường xuyên đẩy thông báo quảng cáo nạp thẻ và chạy dịch vụ ngầm.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.game.kitserver",
+          "name": "Dịch Vụ Game Kit Nội Địa",
+          "desc": "Khung dịch vụ bổ trợ cho kho game Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.quickgame",
+          "name": "Quick Games (Kho Mini-Game TQ)",
+          "desc": "Kho mini game rác tiếng Trung tải sẵn.",
+          "recommended": true
+        },
+        {
+          "package": "com.honor.browser",
+          "name": "Honor Browser (Trình Duyệt Nội Địa TQ)",
+          "desc": "Trình duyệt nội địa chứa tin tức và quảng cáo tiếng Trung. Nên gỡ để dùng Chrome / Brave.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.baidu.browser",
+          "name": "Honor Browser Baidu (Trình Duyệt Nhân Baidu)",
+          "desc": "Biến thể trình duyệt tích hợp công cụ tìm kiếm Baidu nội địa.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.browserhomepage",
+          "name": "Trang Chủ Quảng Cáo Trình Duyệt TQ",
+          "desc": "Trang tin tức và cổng quảng cáo tự bật trong trình duyệt nội địa.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.cloudmusic",
+          "name": "Honor Cloud Music TQ",
+          "desc": "Dịch vụ nhạc đám mây nội địa TQ (Bị khóa bản quyền ngoài lãnh thổ Trung Quốc).",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.music",
+          "name": "Honor Music Trực Tuyến TQ",
+          "desc": "Kho nhạc trực tuyến Hoa ngữ, thường xuyên đẩy thông báo BXH nhạc Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.video",
+          "name": "Honor Video (Phim & Livestream TQ)",
+          "desc": "Kho phim ảnh và livestream nội địa bị chặn bản quyền tại Việt Nam.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.reader",
+          "name": "Honor Reader (Truyện Chữ & Sách TQ)",
+          "desc": "Kho tiểu thuyết tiếng Trung chứa nhiều module quảng cáo.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.live",
+          "name": "Honor Live Stream TQ",
+          "desc": "Nền tảng phát sóng trực tiếp Trung Quốc tải sẵn theo ROM.",
+          "recommended": true
+        },
+        {
+          "package": "com.honor.yoyocards",
+          "name": "Thẻ Gợi Ý YOYO Cards TQ",
+          "desc": "Thẻ tiện ích tiếng Trung bên trái màn hình chính.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.magickeyboard",
+          "name": "YOYO Suggestions & Smart Cards",
+          "desc": "Thành phần gợi ý sự kiện nội địa Trung Quốc của giao diện thông minh.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.hiboard",
+          "name": "Bảng Tin HiBoard (Vuốt Trái Màn Hình)",
+          "desc": "Bảng tin toàn tiếng Trung khi vuốt sang trang ngoài cùng bên trái của màn hình chính.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.redteamobile.roaming",
+          "name": "Chuyển Vùng eSIM Nội Địa TQ",
+          "desc": "Dịch vụ chuyển vùng dữ liệu Redtea Mobile nội địa, chạy ngầm ngốn pin.",
+          "recommended": true
+        },
+        {
+          "package": "com.sohu.inputmethod.sogou.honor",
+          "name": "Bàn Phím Sogou TQ",
+          "desc": "Bàn phím đối tác Sogou nội địa. Nên gỡ để dùng Gboard / Laban Key / Bàn phím Honor gốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.vmall",
+          "name": "Honor Mall (Cửa Hàng Thiết Bị TQ)",
+          "desc": "Ứng dụng mua sắm thiết bị Honor tại đại lục Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.vip",
+          "name": "Honor Club & Thành Viên VIP TQ",
+          "desc": "Cộng đồng thành viên Honor tích điểm đổi quà tại Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.findmyphone",
+          "name": "Tìm Điện Thoại Server TQ (Find My Phone)",
+          "desc": "Định vị qua server Trung Quốc. Người dùng tại VN nên dùng Tìm thiết bị Google (Find My Device).",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.youxuan",
+          "name": "Honor Youxuan (Sản Phẩm Chọn Lọc TQ)",
+          "desc": "Cổng thương mại điện tử phụ kiện nội địa Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.android.UEInfoCheck",
+          "name": "Telemetry Trải Nghiệm Người Dùng TQ",
+          "desc": "Tiến trình thu thập thống kê hành vi người dùng gửi về máy chủ TQ.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.collectcenter",
+          "name": "Trung Tâm Thu Thập Log Ngầm TQ",
+          "desc": "Ghi nhận log hệ thống và crash dump gửi về máy chủ đại lục.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.hiviewtunnel",
+          "name": "Kênh Gửi Dữ Liệu Ngầm HiView Tunnel",
+          "desc": "Socket truyền dữ liệu chẩn đoán về server Trung Quốc.",
+          "recommended": true
+        }
+      ]
+    },
+    "level_2_bloat": {
+      "level": 2,
+      "name": "Ứng Dụng Đối Tác Bên Thứ Ba Cài Sẵn (App TQ)",
+      "badge": "Rác Thứ 3",
+      "color": "#3b82f6",
+      "description": "Các app thương mại đối tác Trung Quốc được cài sẵn theo ROM như Weibo, Taobao, Bilibili, Alipay...",
+      "packages": [
+        {
+          "package": "com.sina.weibo",
+          "name": "Weibo (Mạng Xã Hội Weibo TQ)",
+          "desc": "Mạng xã hội microblog Trung Quốc cài sẵn.",
+          "recommended": true
+        },
+        {
+          "package": "tv.danmaku.bili",
+          "name": "Bilibili (Video B Trạm TQ)",
+          "desc": "Ứng dụng xem video anime và gaming Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.autonavi.minimap",
+          "name": "Amap / Gaode Maps (Bản Đồ Cao Đức TQ)",
+          "desc": "Bản đồ chỉ hỗ trợ tại đại lục, không có dữ liệu giao thông tại Việt Nam.",
+          "recommended": true
+        },
+        {
+          "package": "com.taobao.taobao",
+          "name": "Taobao (Mua Sắm Taobao TQ)",
+          "desc": "Ứng dụng mua hàng Taobao Trung Quốc cài sẵn.",
+          "recommended": true
+        },
+        {
+          "package": "com.eg.android.AlipayGphone",
+          "name": "Alipay (Ví Alipay Nội Địa)",
+          "desc": "Ví thanh toán Alipay Trung Quốc cài sẵn theo máy.",
+          "recommended": true
+        },
+        {
+          "package": "com.xunmeng.pinduoduo",
+          "name": "Pinduoduo (Mua Sắm Pinduoduo)",
+          "desc": "Sàn thương mại điện tử Pinduoduo nội địa.",
+          "recommended": true
+        },
+        {
+          "package": "com.kuaishou.nebula",
+          "name": "Kuaishou (Video Ngắn Kwai TQ)",
+          "desc": "Nền tảng video ngắn Kuaishou Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.ss.android.article.news",
+          "name": "Toutiao (Tin Tức Jinri Toutiao)",
+          "desc": "Cổng tổng hợp tin tức ByteDance nội địa.",
+          "recommended": true
+        },
+        {
+          "package": "com.tencent.mobileqq",
+          "name": "Tencent QQ (Nhắn Tin QQ TQ)",
+          "desc": "Ứng dụng nhắn tin QQ của Tencent cài sẵn.",
+          "recommended": true
+        },
+        {
+          "package": "com.netease.cloudmusic",
+          "name": "NetEase Cloud Music (Nhạc 163 TQ)",
+          "desc": "Trình phát nhạc NetEase Trung Quốc.",
+          "recommended": true
+        }
+      ]
+    },
+    "level_3_optional": {
+      "level": 3,
+      "name": "Trợ Lý Ảo YOYO Tiếng Trung (Tùy Chọn)",
+      "badge": "Tùy Chọn",
+      "color": "#f59e0b",
+      "description": "Trợ lý ảo giọng nói tiếng Trung của máy. Nếu bạn không sử dụng tiếng Trung và muốn gán phím nguồn cho Google Assistant thì có thể gỡ.",
+      "packages": [
+        {
+          "package": "com.hihonor.assistant",
+          "name": "Trợ Lý Ảo YOYO Assistant (Tiếng Trung)",
+          "desc": "Trợ lý giọng nói YOYO chỉ hỗ trợ tiếng Trung. Nếu bạn không nói tiếng Trung và muốn nhường phím cho Google Assistant thì có thể gỡ.",
+          "recommended": false
+        }
+      ]
+    }
+  }
+}

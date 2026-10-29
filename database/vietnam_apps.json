@@ -1,0 +1,374 @@
+{
+  "version": "2.0.0",
+  "last_updated": "2026-10-28",
+  "description": "Danh sách ứng dụng phổ biến tại Việt Nam cần tối ưu FCM, thông báo & chạy nền trên MagicOS nội địa",
+  "categories": {
+    "banking": {
+      "name": "Ngân Hàng & Tài Chính (Banking)",
+      "description": "Bắt buộc cấp quyền nhận biến động số dư OTP/FCM tức thì, không bị tắt chạy nền",
+      "apps": [
+        {
+          "name": "Vietcombank (VCB Digibank)",
+          "package": "com.VCB",
+          "priority": "critical"
+        },
+        {
+          "name": "Techcombank Mobile",
+          "package": "vn.com.techcombank.bb.app",
+          "priority": "critical"
+        },
+        {
+          "name": "MB Bank",
+          "package": "com.mbmobile",
+          "priority": "critical"
+        },
+        {
+          "name": "BIDV SmartBanking",
+          "package": "com.vnpay.bidv",
+          "priority": "critical"
+        },
+        {
+          "name": "VietinBank iPay",
+          "package": "com.vietinbank.ipay",
+          "priority": "critical"
+        },
+        {
+          "name": "ACB ONE",
+          "package": "mobile.acb.com.vn",
+          "priority": "critical"
+        },
+        {
+          "name": "TPBank Mobile",
+          "package": "com.tpb.mb.gprsandroid",
+          "priority": "critical"
+        },
+        {
+          "name": "VPBank NEO",
+          "package": "com.vnpay.vpbankonline",
+          "priority": "critical"
+        },
+        {
+          "name": "VIB MyVIB 2.0",
+          "package": "com.myvib.ng",
+          "priority": "critical"
+        },
+        {
+          "name": "Sacombank mBanking",
+          "package": "com.vnpay.msacombank",
+          "priority": "critical"
+        },
+        {
+          "name": "OCB OMNI Corp & Retail",
+          "package": "com.mbbank.retail.onboarding",
+          "priority": "high"
+        },
+        {
+          "name": "MSB mBank",
+          "package": "vn.com.msb.smartBanking",
+          "priority": "high"
+        },
+        {
+          "name": "HDBank Mobile",
+          "package": "com.vnpay.hdbank",
+          "priority": "high"
+        },
+        {
+          "name": "SHB Mobile",
+          "package": "vn.shb.mbanking",
+          "priority": "high"
+        },
+        {
+          "name": "SeABank (SeAMobile)",
+          "package": "vn.com.seabank.mb1",
+          "priority": "high"
+        },
+        {
+          "name": "LPBank (LienVietPostBank)",
+          "package": "vn.com.lpb.lienviet24h",
+          "priority": "high"
+        },
+        {
+          "name": "Nam A Bank Open Banking",
+          "package": "ops.namabank.com.vn",
+          "priority": "high"
+        },
+        {
+          "name": "BVBank (Digimi)",
+          "package": "vn.com.bvbank.digimi",
+          "priority": "high"
+        },
+        {
+          "name": "Cake by VPBank",
+          "package": "xyz.be.cake",
+          "priority": "critical"
+        },
+        {
+          "name": "TNEX by MSB",
+          "package": "com.tnex.consumer",
+          "priority": "high"
+        },
+        {
+          "name": "Timo Digital Bank",
+          "package": "vn.timo.app",
+          "priority": "high"
+        }
+      ]
+    },
+    "wallets": {
+      "name": "Ví Điện Tử & Cổng Thanh Toán",
+      "description": "Cần giữ kết nối để nhận thông báo chuyển tiền và mã xác thực giao dịch",
+      "apps": [
+        {
+          "name": "MoMo",
+          "package": "com.mservice.momotransfer",
+          "priority": "critical"
+        },
+        {
+          "name": "ZaloPay",
+          "package": "vn.com.vng.zalopay",
+          "priority": "critical"
+        },
+        {
+          "name": "ShopeePay",
+          "package": "com.airpay.merchants",
+          "priority": "high"
+        },
+        {
+          "name": "Viettel Money",
+          "package": "com.bplus.vtpay",
+          "priority": "critical"
+        },
+        {
+          "name": "VNPT Money",
+          "package": "com.vnpt.money",
+          "priority": "high"
+        },
+        {
+          "name": "VNPAY Taxi & Ví",
+          "package": "vidientu.vnpay.vn",
+          "priority": "high"
+        }
+      ]
+    },
+    "messaging": {
+      "name": "Liên Lạc, Nhắn Tin & Mạng Xã Hội",
+      "description": "Tối ưu độ trễ thông báo cuộc gọi đến và tin nhắn đến ngay lập tức",
+      "apps": [
+        {
+          "name": "Zalo",
+          "package": "com.zing.zalo",
+          "priority": "critical"
+        },
+        {
+          "name": "Facebook Messenger",
+          "package": "com.facebook.orca",
+          "priority": "critical"
+        },
+        {
+          "name": "Messenger Lite",
+          "package": "com.facebook.mlite",
+          "priority": "high"
+        },
+        {
+          "name": "Telegram",
+          "package": "org.telegram.messenger",
+          "priority": "critical"
+        },
+        {
+          "name": "Telegram X",
+          "package": "org.thunderdog.challegram",
+          "priority": "high"
+        },
+        {
+          "name": "Viber",
+          "package": "com.viber.voip",
+          "priority": "high"
+        },
+        {
+          "name": "WhatsApp",
+          "package": "com.whatsapp",
+          "priority": "critical"
+        },
+        {
+          "name": "WhatsApp Business",
+          "package": "com.whatsapp.w4b",
+          "priority": "high"
+        },
+        {
+          "name": "Facebook",
+          "package": "com.facebook.katana",
+          "priority": "medium"
+        },
+        {
+          "name": "TikTok",
+          "package": "com.ss.android.ugc.trill",
+          "priority": "medium"
+        },
+        {
+          "name": "Instagram",
+          "package": "com.instagram.android",
+          "priority": "high"
+        },
+        {
+          "name": "Threads",
+          "package": "com.instagram.barcelona",
+          "priority": "medium"
+        },
+        {
+          "name": "Skype",
+          "package": "com.skype.raider",
+          "priority": "medium"
+        },
+        {
+          "name": "Discord",
+          "package": "com.discord",
+          "priority": "medium"
+        }
+      ]
+    },
+    "public_services": {
+      "name": "Định Danh & Dịch Vụ Công Quốc Gia",
+      "description": "Ứng dụng định danh điện tử công dân và an sinh xã hội Việt Nam",
+      "apps": [
+        {
+          "name": "VNeID (Định danh điện tử)",
+          "package": "com.vnid",
+          "priority": "critical"
+        },
+        {
+          "name": "VssID (Bảo hiểm xã hội)",
+          "package": "com.vssid.bhxh",
+          "priority": "high"
+        },
+        {
+          "name": "eTax Mobile (Thuế điện tử)",
+          "package": "com.gdt.mobile",
+          "priority": "high"
+        },
+        {
+          "name": "Dịch Vụ Công Quốc Gia",
+          "package": "vn.gov.dichvucong",
+          "priority": "medium"
+        },
+        {
+          "name": "VnEdu Connect (Sổ liên lạc)",
+          "package": "vn.com.vnpt.edu.mobile",
+          "priority": "medium"
+        }
+      ]
+    },
+    "transportation": {
+      "name": "Giao Thông, Gọi Xe & Giao Hàng",
+      "description": "Cần định vị chính xác và nhận tín hiệu tài xế đến",
+      "apps": [
+        {
+          "name": "Grab",
+          "package": "com.grabtaxi.passenger",
+          "priority": "critical"
+        },
+        {
+          "name": "Be (Gọi xe & Giao hàng)",
+          "package": "xyz.be.customer",
+          "priority": "critical"
+        },
+        {
+          "name": "Xanh SM (Taxi Điện VinFast)",
+          "package": "com.gsm.customer",
+          "priority": "critical"
+        },
+        {
+          "name": "Ahamove",
+          "package": "com.ahamove",
+          "priority": "high"
+        },
+        {
+          "name": "Giao Hàng Tiết Kiệm (GHTK)",
+          "package": "vn.giaohangtietkiem",
+          "priority": "high"
+        },
+        {
+          "name": "Giao Hàng Nhanh (GHN Express)",
+          "package": "com.ghn.express",
+          "priority": "high"
+        },
+        {
+          "name": "Viettel Post",
+          "package": "com.viettel.post",
+          "priority": "high"
+        },
+        {
+          "name": "Vietnam Post (Bưu điện VN)",
+          "package": "com.vnpost.mypost",
+          "priority": "medium"
+        }
+      ]
+    },
+    "ecommerce": {
+      "name": "Thương Mại Điện Tử & Mua Sắm",
+      "description": "Theo dõi trạng thái đơn hàng và tin nhắn người bán",
+      "apps": [
+        {
+          "name": "Shopee",
+          "package": "com.shopee.vn",
+          "priority": "high"
+        },
+        {
+          "name": "Lazada",
+          "package": "com.lazada.android",
+          "priority": "high"
+        },
+        {
+          "name": "Tiki",
+          "package": "vn.tiki.app.tikiandroid",
+          "priority": "medium"
+        },
+        {
+          "name": "Sendo",
+          "package": "com.sendo",
+          "priority": "medium"
+        }
+      ]
+    },
+    "productivity": {
+      "name": "Email, Họp Trực Tuyến & Công Việc",
+      "description": "Nhận email và lời mời cuộc họp đúng giờ",
+      "apps": [
+        {
+          "name": "Gmail",
+          "package": "com.google.android.gm",
+          "priority": "critical"
+        },
+        {
+          "name": "Microsoft Outlook",
+          "package": "com.microsoft.office.outlook",
+          "priority": "critical"
+        },
+        {
+          "name": "Microsoft Teams",
+          "package": "com.microsoft.teams",
+          "priority": "high"
+        },
+        {
+          "name": "Slack",
+          "package": "com.Slack",
+          "priority": "high"
+        },
+        {
+          "name": "Lark Suite / Feishu",
+          "package": "com.ss.android.lark",
+          "priority": "high"
+        },
+        {
+          "name": "Google Meet",
+          "package": "com.google.android.apps.meetings",
+          "priority": "high"
+        },
+        {
+          "name": "Zoom Workplace",
+          "package": "us.zoom.videomeetings",
+          "priority": "high"
+        }
+      ]
+    }
+  }
+}

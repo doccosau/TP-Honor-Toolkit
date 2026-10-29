@@ -1,0 +1,654 @@
+/* ==========================================================================
+   TP HONOR TOOLKIT - Native Desktop Utility Theme
+   Pure Professional Hardware Management Tool UI
+   ========================================================================== */
+
+:root {
+  /* Desktop Tool Color System (IntelliJ / HiSuite Dark Style) */
+  --win-bg: #181b24;
+  --win-header: #1e222e;
+  --panel-bg: #212634;
+  --panel-alt: #1c202c;
+  --panel-card: #252b3b;
+  
+  --border-light: #2e3547;
+  --border-dark: #141720;
+  --border-highlight: #3d465d;
+  
+  --text-main: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-muted: #64748b;
+  --text-bright: #ffffff;
+  
+  /* Standard Functional Colors */
+  --tool-blue: #2563eb;
+  --tool-blue-hover: #1d4ed8;
+  --tool-green: #10b981;
+  --tool-green-hover: #059669;
+  --tool-amber: #f59e0b;
+  --tool-red: #ef4444;
+  --tool-red-hover: #dc2626;
+  
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--win-bg);
+  color: var(--text-main);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   Window Titlebar & Top Navigation (Standard Desktop Utility Tab-Bar)
+   ========================================================================== */
+.window-titlebar {
+  height: 38px;
+  background: var(--win-header);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  flex-shrink: 0;
+}
+
+.window-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-logo {
+  width: 22px;
+  height: 22px;
+  background: var(--tool-blue);
+  color: #fff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.app-title-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+  letter-spacing: 0.3px;
+}
+
+.app-version-badge {
+  font-size: 10px;
+  background: #2a3142;
+  color: var(--text-dim);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+}
+
+.connection-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.conn-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tool-red);
+}
+
+.conn-led.online {
+  background: var(--tool-green);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+/* Main Ribbon Navigation */
+.main-nav-ribbon {
+  height: 48px;
+  background: var(--panel-alt);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: stretch;
+  padding: 0 10px;
+  flex-shrink: 0;
+}
+
+.ribbon-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px;
+  cursor: pointer;
+  color: var(--text-dim);
+  font-weight: 500;
+  font-size: 13px;
+  border-bottom: 3px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.ribbon-tab:hover {
+  color: var(--text-bright);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ribbon-tab.active {
+  color: var(--text-bright);
+  background: var(--panel-bg);
+  border-bottom-color: var(--tool-blue);
+  font-weight: 600;
+}
+
+.ribbon-tab-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svg-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.svg-icon svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+}
+
+.ribbon-tab .svg-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ==========================================================================
+   Main Workspace Layout
+   ========================================================================== */
+.workspace-container {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  background: var(--win-bg);
+}
+
+.tab-pane {
+  display: none;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding: 14px;
+}
+
+.tab-pane.active {
+  display: flex;
+  gap: 14px;
+}
+
+/* ==========================================================================
+   Toolkit Left Device Pane (Realistic Phone View)
+   ========================================================================== */
+.device-sidebar-pane {
+  width: 280px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 14px;
+  flex-shrink: 0;
+}
+
+.device-render-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.device-view-switcher {
+  display: flex;
+  background: #181d29;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 3px;
+  gap: 3px;
+  margin-bottom: 10px;
+}
+
+.btn-view-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-view-toggle:hover:not(.active) {
+  color: var(--text-bright);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.btn-view-toggle.active {
+  background: #2b3347;
+  color: #38bdf8;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.device-render-stage {
+  width: 100%;
+  min-height: 350px;
+  max-height: 380px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px;
+  position: relative;
+}
+
+.device-render-img {
+  max-height: 360px;
+  max-width: 190px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.65));
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  user-select: none;
+}
+
+.device-render-img:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.device-name-heading {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-bright);
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.device-sku-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
+  font-family: var(--font-mono);
+  margin-bottom: 14px;
+}
+
+.device-quick-buttons {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+
+/* ==========================================================================
+   Right Detail Grid Pane (Specs Table Style)
+   ========================================================================== */
+.device-detail-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.specs-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  padding: 14px;
+}
+
+.specs-header-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.specs-table tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.specs-table td {
+  padding: 7px 8px;
+  font-size: 12px;
+}
+
+.specs-table td.label-col {
+  width: 180px;
+  color: var(--text-dim);
+}
+
+.specs-table td.val-col {
+  color: var(--text-bright);
+  font-weight: 500;
+}
+
+.specs-table td.val-col.highlight {
+  color: #38bdf8;
+  font-family: var(--font-mono);
+}
+
+/* Storage Bar */
+.storage-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.storage-bar {
+  height: 10px;
+  background: #141720;
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+}
+
+.storage-segment {
+  height: 100%;
+}
+
+.seg-apps { background: #3b82f6; width: 35%; }
+.seg-media { background: #f59e0b; width: 20%; }
+.seg-system { background: #64748b; width: 15%; }
+.seg-free { background: #1e293b; width: 30%; }
+
+/* ==========================================================================
+   Data Grids & Tables (Apps & Debloat Management)
+   ========================================================================== */
+.data-panel-card {
+  flex: 1;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-toolbar {
+  height: 42px;
+  background: var(--panel-alt);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-input {
+  background: #141720;
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  outline: none;
+}
+
+.tool-input:focus {
+  border-color: var(--tool-blue);
+}
+
+.tool-select {
+  background: #141720;
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  padding: 5px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  outline: none;
+}
+
+/* Standard Buttons (Solid, Crisp, No Neon Glow) */
+.btn-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: #2a3142;
+  color: var(--text-bright);
+  transition: all 0.1s ease;
+}
+
+.btn-tool:hover {
+  background: #353d52;
+}
+
+.btn-tool.primary {
+  background: var(--tool-blue);
+  border-color: #1d4ed8;
+  color: #fff;
+}
+
+.btn-tool.primary:hover {
+  background: var(--tool-blue-hover);
+}
+
+.btn-tool.success {
+  background: var(--tool-green);
+  border-color: #059669;
+  color: #fff;
+}
+
+.btn-tool.success:hover {
+  background: var(--tool-green-hover);
+}
+
+.btn-tool.danger {
+  background: var(--tool-red);
+  border-color: #dc2626;
+  color: #fff;
+}
+
+.btn-tool.danger:hover {
+  background: var(--tool-red-hover);
+}
+
+/* Data Table Component */
+.table-scroll-wrapper {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.data-grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.data-grid-table th {
+  background: var(--win-header);
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.data-grid-table td {
+  padding: 7px 10px;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.data-grid-table tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.badge-tag {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.badge-tag.tag-safe { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-tag.tag-warn { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-tag.tag-danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+.badge-tag.tag-neutral { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); }
+
+/* Bottom Status Bar */
+.window-statusbar {
+  height: 26px;
+  background: var(--win-header);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+.statusbar-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Console Drawer */
+.console-drawer {
+  height: 110px;
+  background: #11141c;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.console-header {
+  height: 24px;
+  background: #161922;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.console-output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.console-line {
+  color: var(--text-dim);
+}
+
+.console-line.log-success { color: #10b981; }
+.console-line.log-warning { color: #f59e0b; }
+.console-line.log-error { color: #ef4444; }
+.console-line.log-info { color: #94a3b8; }
+
+/* Custom Desktop Toast Notifications */
+.toast-container {
+  position: fixed;
+  bottom: 35px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+.toast-item {
+  min-width: 300px;
+  max-width: 420px;
+  background: #1e2433;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+  padding: 12px 14px;
+  display: flex;
+  gap: 10px;
+  pointer-events: auto;
+  animation: toastSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s ease;
+}
+
+.toast-item.toast-success { border-left: 4px solid var(--tool-green); }
+.toast-item.toast-error { border-left: 4px solid var(--tool-red); }
+.toast-item.toast-warning { border-left: 4px solid var(--tool-amber); }
+.toast-item.toast-info { border-left: 4px solid var(--tool-blue); }
+
+.toast-content { flex: 1; }
+.toast-title { font-size: 12px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+.toast-message { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+.toast-close { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 0 4px; font-size: 14px; line-height: 1; }
+.toast-close:hover { color: #fff; }
+
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
