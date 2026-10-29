@@ -556,18 +556,35 @@ class AdbService {
   /**
    * Launch Scrcpy Screen Mirroring
    */
-  async launchScrcpy({ turnOffScreen = true, stayAwake = true }) {
+  async launchScrcpy({ turnOffScreen = true, stayAwake = true } = {}) {
+    if (this.mode === 'webusb') {
+      return {
+        success: false,
+        is_webusb: true,
+        message: 'Trình duyệt Web (WebUSB) không thể tự động mở app máy tính do cơ chế bảo mật Sandbox. Bạn có thể mở Scrcpy từ Terminal.',
+      };
+    }
     this.addLog('info', 'Đang khởi chạy cửa sổ Scrcpy 120Hz...');
-    const resp = await fetch('/api/action', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'launch_scrcpy',
-        turn_off_screen: turnOffScreen,
-        stay_awake: stayAwake,
-      }),
-    });
-    return await resp.json();
+    try {
+      const resp = await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'launch_scrcpy',
+          turn_off_screen: turnOffScreen,
+          stay_awake: stayAwake,
+        }),
+      });
+      if (!resp.ok) {
+        throw new Error(`Server status ${resp.status}`);
+      }
+      return await resp.json();
+    } catch (e) {
+      return {
+        success: false,
+        message: 'Không thể kết nối đến máy chủ cục bộ: ' + e.message,
+      };
+    }
   }
 
   /**
@@ -579,7 +596,10 @@ class AdbService {
       if (resp.ok) {
         const data = await resp.json();
         if (data && data.os && data.os !== 'unknown') {
-          return data;
+          return {
+            ...data,
+            is_webusb: this.mode === 'webusb',
+          };
         }
       }
     } catch (e) {}
@@ -592,6 +612,7 @@ class AdbService {
     let osName = 'Máy Tính';
     let displayOs = 'Máy tính cá nhân';
     let installCmd = 'winget install Genymobile.scrcpy';
+    let runCmd = 'scrcpy -S';
     let guide = 'Mở Command Prompt hoặc PowerShell rồi chạy lệnh trên.';
 
     if (/Win/i.test(plat) || /Windows/i.test(ua)) {
@@ -599,18 +620,21 @@ class AdbService {
       osName = 'Windows';
       displayOs = 'Windows PC (10/11)';
       installCmd = 'winget install Genymobile.scrcpy';
+      runCmd = 'scrcpy -S';
       guide = 'Mở PowerShell hoặc Command Prompt rồi dán lệnh trên.';
     } else if (/Linux|X11/i.test(plat) || /Linux/i.test(ua)) {
       os = 'linux';
       osName = 'Linux';
       displayOs = 'Linux (Ubuntu/Debian/Arch)';
       installCmd = 'sudo apt install -y scrcpy adb';
+      runCmd = 'scrcpy -S';
       guide = 'Mở Terminal Linux và chạy lệnh apt trên để cài đặt Scrcpy.';
     } else if (/Mac/i.test(plat) || /Macintosh|Mac OS X/i.test(ua)) {
       os = 'darwin';
       osName = 'macOS';
       displayOs = 'Apple macOS';
       installCmd = 'brew install scrcpy';
+      runCmd = 'scrcpy -S';
       guide = 'Mở Terminal trên Mac và chạy lệnh Homebrew trên.';
     }
 
@@ -620,9 +644,11 @@ class AdbService {
       display_os: displayOs,
       adb_installed: this.mode === 'webusb' && !!this.adbInstance,
       scrcpy_installed: false,
+      is_webusb: this.mode === 'webusb',
       install_cmd: installCmd,
+      run_cmd: runCmd,
       manual_guide: guide,
-      can_auto_install: false,
+      can_auto_install: this.mode !== 'webusb',
     };
   }
 
@@ -630,13 +656,30 @@ class AdbService {
    * Auto Install Scrcpy & ADB
    */
   async autoInstallScrcpy() {
+    if (this.mode === 'webusb') {
+      return {
+        success: false,
+        is_webusb: true,
+        message: 'Trình duyệt Web (WebUSB) không thể tự tải phần mềm vào máy tính do bảo mật Sandbox. Vui lòng mở Terminal và chạy lệnh cài đặt.',
+      };
+    }
     this.addLog('info', 'Bắt đầu quy trình tự động tải và cài đặt Scrcpy...');
-    const resp = await fetch('/api/action', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'install_scrcpy' }),
-    });
-    return await resp.json();
+    try {
+      const resp = await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'install_scrcpy' }),
+      });
+      if (!resp.ok) {
+        throw new Error(`Server returned HTTP ${resp.status}`);
+      }
+      return await resp.json();
+    } catch (e) {
+      return {
+        success: false,
+        message: 'Lỗi kết nối máy chủ: ' + e.message,
+      };
+    }
   }
 
   /**
