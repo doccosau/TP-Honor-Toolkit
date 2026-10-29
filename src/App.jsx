@@ -302,15 +302,10 @@ export default function App() {
       } catch (e) {}
     }
 
-    // 2. If on web domain (WebUSB):
-    // Release WebUSB so native ADB can immediately connect without USB conflict
-    if (adbService.mode === 'webusb') {
-      addToast('info', 'Scrcpy 120Hz', 'Đang giải phóng USB & tự động mở cửa sổ Scrcpy 120Hz ngầm...');
-      await adbService.disconnect();
-    }
-
-    // 3. Trigger native desktop protocol launcher!
-    window.location.href = 'scrcpy://launch';
+    // 2. On WebUSB (Cloudflare Pages):
+    // DO NOT disconnect USB! Keep web connection active.
+    // Open the official Scrcpy guidance modal with 1-click winget commands and Web Mirror option.
+    setShowScrcpyModal(true);
   };
 
   const handleSetAssistant = async () => {

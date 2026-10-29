@@ -243,11 +243,25 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onInstallSuccess, 
               💡 Cờ <code>-S</code> giúp tự động tắt màn hình điện thoại khi chiếu để máy luôn mát và tiết kiệm pin tối đa.
             </div>
 
-            <div style={{ marginTop: '8px', fontSize: '11px', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>⚠️</span>
-              <span>
-                <b>Lưu ý:</b> Bấm nút <b>"Ngắt kết nối"</b> trên web trước khi chạy lệnh để nhường cổng USB cho lệnh <code>scrcpy</code>.
-              </span>
+            <div style={{ marginTop: '8px', padding: '8px 10px', background: 'rgba(245, 158, 11, 0.08)', borderRadius: '6px', border: '1px solid rgba(245, 158, 11, 0.25)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+              <div style={{ fontSize: '11px', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>⚠️</span>
+                <span>
+                  <b>Lưu ý:</b> Cổng USB đang kết nối trên Web. Khi bạn sẵn sàng chạy lệnh Scrcpy ngoài Terminal:
+                </span>
+              </div>
+              <button
+                type="button"
+                className="btn-tool"
+                style={{ padding: '3px 9px', fontSize: '11px', color: '#f87171', borderColor: 'rgba(248, 113, 113, 0.4)' }}
+                onClick={() => {
+                  adbService?.disconnect?.();
+                  onClose();
+                }}
+                title="Ngắt kết nối WebUSB để nhường cổng USB cho lệnh scrcpy trong Terminal/PowerShell"
+              >
+                🔌 Giải Phóng USB Ngay
+              </button>
             </div>
           </div>
 

@@ -26,7 +26,7 @@ from http.server import HTTPServer, ThreadingHTTPServer, SimpleHTTPRequestHandle
 PORT = 5050
 HOST = '0.0.0.0'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-WEB_DIR = os.path.join(BASE_DIR, 'web')
+WEB_DIR = os.path.join(BASE_DIR, 'dist') if os.path.isdir(os.path.join(BASE_DIR, 'dist')) else os.path.join(BASE_DIR, 'web')
 DB_DIR = os.path.join(BASE_DIR, 'database')
 BACKUP_FILE = os.path.join(BASE_DIR, 'honor_debloat_backup.json')
 DOWNLOADS_DIR = os.path.join(WEB_DIR, 'downloads')

@@ -166,17 +166,17 @@ export default function ToolboxTab({
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
               </span>
-              <span>🚀 Tự Động Mở Scrcpy 120Hz Siêu Mượt</span>
+              <span>{isWeb ? '🚀 Mở Scrcpy 120Hz (Lệnh Chuẩn Winget)' : '🚀 Khởi Chạy Scrcpy 120Hz Ngay'}</span>
             </button>
 
             <button
               type="button"
               className="btn-tool"
-              style={{ width: '100%', justifyContent: 'center', padding: '5px', fontSize: '11px', color: '#94a3b8' }}
+              style={{ width: '100%', justifyContent: 'center', padding: '6px', fontSize: '11.5px', color: '#38bdf8' }}
               onClick={onOpenWebMirror}
               disabled={!isOnline}
             >
-              <span>📱 Hoặc xem &amp; chụp nhanh trong Web (Web Mirror)</span>
+              <span>📱 Xem &amp; Điều Khiển Ngay Trong Web (Web Mirror)</span>
             </button>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
