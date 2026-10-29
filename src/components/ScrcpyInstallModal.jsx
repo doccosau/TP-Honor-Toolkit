@@ -1,68 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, adbService }) {
-  const [copiedInstall, setCopiedInstall] = useState(false);
-  const [copiedRun, setCopiedRun] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setCopiedInstall(false);
-      setCopiedRun(false);
-    }
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
-  // Auto-detect client operating system cleanly without user having to think or click tabs
+  // Client-side auto detection
   const ua = (typeof navigator !== 'undefined' ? navigator.userAgent : '') || '';
   const plat = (typeof navigator !== 'undefined' ? (navigator.userAgentData?.platform || navigator.platform) : '') || '';
 
   const isWin = /Win/i.test(plat) || /Windows/i.test(ua);
   const isMac = /Mac/i.test(plat) || /Macintosh/i.test(ua);
-  const isLinux = !isWin && !isMac;
 
-  let osTitle = 'Windows PC (10/11)';
-  let osIcon = '🪟';
-  let osTerminalName = 'PowerShell';
-  let installCmd = '';
-  let installDesc = '';
-  let osNote = '';
+  const osTitle = isWin ? 'Windows PC (10 / 11)' : isMac ? 'Apple macOS' : 'Linux (Ubuntu / Debian / Arch / Fedora)';
+  const osIcon = isWin ? '🪟' : isMac ? '🍎' : '🐧';
+  const helperFileName = isWin ? 'run.bat' : './run.sh';
 
-  if (isWin) {
-    osTitle = 'Windows PC (10 / 11)';
-    osIcon = '🪟';
-    osTerminalName = 'PowerShell';
-    installDesc = 'Mở PowerShell và dán 1 dòng lệnh chính thức Microsoft này (Chạy 1 lần duy nhất để vừa cài Scrcpy sạch, vừa cho phép bấm trên Web là tự bung cửa sổ 120Hz):';
-    installCmd = 'winget install Genymobile.scrcpy ; reg add HKCU\\Software\\Classes\\scrcpy /ve /d "URL:Scrcpy" /f ; reg add HKCU\\Software\\Classes\\scrcpy /v "URL Protocol" /d "" /f ; reg add HKCU\\Software\\Classes\\scrcpy\\shell\\open\\command /ve /d "cmd.exe /c scrcpy -S" /f';
-    osNote = '🛡️ Chuẩn Windows Registry URL Protocol (User-space HKCU - Không cần quyền Admin, an toàn 100%).';
-  } else if (isMac) {
-    osTitle = 'Apple macOS';
-    osIcon = '🍎';
-    osTerminalName = 'Terminal';
-    installDesc = 'Mở Terminal trên Mac và chạy lệnh cài đặt qua Homebrew chính thức:';
-    installCmd = 'brew install scrcpy android-platform-tools';
-    osNote = '🍏 Quản lý gói Homebrew chính hãng trên macOS (Hỗ trợ chip Apple M1/M2/M3/M4 & Intel).';
-  } else {
-    osTitle = 'Linux (Ubuntu / Debian / Mint / Zorin)';
-    osIcon = '🐧';
-    osTerminalName = 'Terminal';
-    installDesc = 'Mở Terminal và dán 1 dòng lệnh chuẩn này (Chạy 1 lần duy nhất để cài đặt & đăng ký mở 1-chạm từ Web lên Desktop):';
-    installCmd = 'sudo apt update && sudo apt install -y scrcpy adb && mkdir -p ~/.local/share/applications && printf \'[Desktop Entry]\\nName=Scrcpy Protocol\\nExec=scrcpy -S\\nType=Application\\nTerminal=false\\nNoDisplay=true\\nMimeType=x-scheme-handler/scrcpy;\\n\' > ~/.local/share/applications/scrcpy.desktop && xdg-mime default scrcpy.desktop x-scheme-handler/scrcpy';
-    osNote = '🐧 Chuẩn Freedesktop.org XDG Desktop Entry (Nếu dùng Arch: sudo pacman -S scrcpy | Fedora: sudo dnf install scrcpy).';
-  }
-
-  const runCmd = 'scrcpy -S';
-
-  const handleCopyInstall = () => {
-    navigator.clipboard.writeText(installCmd);
-    setCopiedInstall(true);
-    setTimeout(() => setCopiedInstall(false), 2500);
-  };
-
-  const handleCopyRun = () => {
-    navigator.clipboard.writeText(runCmd);
-    setCopiedRun(true);
-    setTimeout(() => setCopiedRun(false), 2500);
+  const handleCopyCmd = (cmd) => {
+    navigator.clipboard.writeText(cmd);
   };
 
   return (
@@ -71,7 +24,7 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
         className="modal-card"
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: '560px',
+          width: '580px',
           maxWidth: '94vw',
           background: '#1c212d',
           border: '1px solid #2e3547',
@@ -114,10 +67,10 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
             </span>
             <div>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>
-                Kích Hoạt Scrcpy 120Hz 1-Chạm Từ Web
+                Chiếu Màn Hình Scrcpy 120Hz Siêu Mượt
               </div>
               <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                Chuẩn hệ điều hành chính thức, không tải file lạ, sạch 100%
+                Kết hợp Web &amp; Local Helper cho trải nghiệm Native 120 FPS
               </div>
             </div>
           </div>
@@ -140,139 +93,116 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
         {/* Body */}
         <div style={{ padding: '16px 18px', fontSize: '12.5px', color: '#cbd5e1', lineHeight: '1.6', maxHeight: '78vh', overflowY: 'auto' }}>
           
-          {/* OS Auto-Detected Banner */}
+          {/* Architecture Concept Notice */}
           <div
             style={{
               background: '#232938',
               border: '1px solid #333d52',
               borderRadius: '8px',
-              padding: '9px 12px',
-              marginBottom: '12px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
+              padding: '10px 14px',
+              marginBottom: '14px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '16px' }}>{osIcon}</span>
-              <div>
-                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Hệ điều hành nhận diện: </span>
-                <b style={{ color: '#38bdf8' }}>{osTitle}</b>
-              </div>
+            <div style={{ fontSize: '12px', fontWeight: 600, color: '#38bdf8', marginBottom: '3px' }}>
+              🌐 Mọi tính năng khác đang chạy trực tiếp 100% trên Web:
             </div>
-            <span className="badge-tag tag-safe" style={{ fontSize: '10.5px' }}>
-              Tự Động Cấu Hình
-            </span>
+            <div style={{ fontSize: '11.5px', color: '#94a3b8' }}>
+              Tối ưu máy, gỡ app rác Trung Quốc, cài Zalo/MoMo, kiểm tra pin, gán trợ lý Google... đều hoạt động mượt mà ngay trên web mà không cần cài đặt bất kỳ file nào.
+            </div>
           </div>
 
-          {/* Step 1: 1-Click Setup Command */}
+          {/* Local Helper Guidance */}
           <div
             style={{
               background: 'rgba(56, 189, 248, 0.06)',
-              border: '1px solid rgba(56, 189, 248, 0.2)',
+              border: '1px solid rgba(56, 189, 248, 0.25)',
               borderRadius: '8px',
               padding: '12px 14px',
-              marginBottom: '12px',
+              marginBottom: '14px',
             }}
           >
-            <div style={{ fontWeight: 600, color: '#38bdf8', marginBottom: '4px' }}>
-              Bước 1: Chạy lệnh sau trong {osTerminalName} (Chỉ làm 1 lần duy nhất trên máy)
-            </div>
-            <div style={{ fontSize: '11.5px', color: '#94a3b8', marginBottom: '8px' }}>
-              {installDesc}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <div style={{ fontWeight: 600, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>🖥️ Riêng chiếu màn hình Native 120 FPS ngoài Desktop:</span>
+              </div>
+              <span className="badge-tag tag-safe" style={{ fontSize: '10.5px' }}>
+                {osIcon} {osTitle}
+              </span>
             </div>
 
+            <div style={{ fontSize: '11.5px', color: '#94a3b8', marginBottom: '10px' }}>
+              Do cơ chế bảo mật Sandbox của trình duyệt chặn web tự mở app ngoài màn hình máy tính, bạn chỉ cần bật <b>Local Helper</b> chạy ngầm trên máy:
+            </div>
+
+            {/* Action Card */}
+            <div
+              style={{
+                background: '#11141c',
+                border: '1px solid #2e3547',
+                borderRadius: '6px',
+                padding: '10px 12px',
+                marginBottom: '10px',
+              }}
+            >
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff', marginBottom: '4px' }}>
+                Cách 1: Chạy file Helper có sẵn trong thư mục công cụ
+              </div>
+              <div style={{ fontSize: '11.5px', color: '#94a3b8', marginBottom: '8px' }}>
+                {isWin ? (
+                  <>Mở thư mục tool và nhấp đúp vào file <code style={{ color: '#38bdf8' }}>run.bat</code></>
+                ) : (
+                  <>Mở Terminal trong thư mục tool và chạy: <code style={{ color: '#38bdf8' }}>./run.sh</code></>
+                )}
+              </div>
+
+              <div style={{ fontSize: '11px', color: '#10b981' }}>
+                ✓ Khi Local Helper chạy, trang web sẽ <b>tự động bắt sóng</b> và mở ngay cửa sổ Scrcpy 120Hz lên màn hình máy tính mỗi khi bạn bấm nút!
+              </div>
+            </div>
+
+            {/* Quick manual terminal command fallback */}
             <div
               style={{
                 background: '#11141c',
                 border: '1px solid #2e3547',
                 borderRadius: '6px',
                 padding: '8px 12px',
-                fontFamily: 'monospace',
-                fontSize: '11.5px',
-                color: '#38bdf8',
                 display: 'flex',
-                alignItems: 'center',
                 justifyContent: 'space-between',
-                wordBreak: 'break-all',
+                alignItems: 'center',
               }}
             >
-              <span style={{ marginRight: '8px' }}>{installCmd}</span>
-              <button
-                type="button"
-                className="btn-tool"
-                style={{ padding: '4px 10px', fontSize: '11px', flexShrink: 0, fontWeight: 600 }}
-                onClick={handleCopyInstall}
-              >
-                {copiedInstall ? '✓ Đã chép' : 'Sao chép lệnh'}
-              </button>
-            </div>
-            <div style={{ fontSize: '10.5px', color: '#64748b', marginTop: '6px' }}>
-              {osNote}
-            </div>
-          </div>
-
-          {/* Step 2: Confirmation & 1-Click Experience */}
-          <div
-            style={{
-              background: 'rgba(16, 185, 129, 0.06)',
-              border: '1px solid rgba(16, 185, 129, 0.2)',
-              borderRadius: '8px',
-              padding: '12px 14px',
-              marginBottom: '12px',
-            }}
-          >
-            <div style={{ fontWeight: 600, color: '#10b981', marginBottom: '4px' }}>
-              Bước 2: Bấm nút trên Web là tự động bung màn hình Scrcpy 120Hz
-            </div>
-            <div style={{ fontSize: '11.5px', color: '#94a3b8', marginBottom: '8px' }}>
-              Sau khi đã chạy lệnh ở Bước 1, mỗi khi bạn vào <b>tphntools.pages.dev</b> và bấm nút <b>"Mở Scrcpy 120Hz"</b>, cửa sổ Scrcpy Desktop 120 FPS sẽ tự động bung lên màn hình ngay lập tức!
-            </div>
-
-            <div
-              style={{
-                background: '#11141c',
-                border: '1px solid #2e3547',
-                borderRadius: '6px',
-                padding: '8px 12px',
-                fontFamily: 'monospace',
-                fontSize: '12px',
-                color: '#4ade80',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span>{runCmd}</span>
-              <button
-                type="button"
-                className="btn-tool"
-                style={{ padding: '3px 8px', fontSize: '11px', marginLeft: '8px' }}
-                onClick={handleCopyRun}
-              >
-                {copiedRun ? '✓ Đã chép' : 'Sao chép lệnh chạy thủ công'}
-              </button>
-            </div>
-
-            <div style={{ marginTop: '8px', padding: '8px 10px', background: 'rgba(245, 158, 11, 0.08)', borderRadius: '6px', border: '1px solid rgba(245, 158, 11, 0.25)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
-              <div style={{ fontSize: '11px', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>⚠️</span>
-                <span>
-                  <b>Lưu ý:</b> Cổng USB đang kết nối trên Web. Khi bạn sẵn sàng chạy lệnh Scrcpy ngoài Terminal:
-                </span>
+              <div>
+                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Cách 2: Hoặc gõ lệnh trực tiếp: </span>
+                <code style={{ color: '#4ade80', fontSize: '12px' }}>scrcpy -S</code>
               </div>
               <button
                 type="button"
                 className="btn-tool"
-                style={{ padding: '3px 9px', fontSize: '11px', color: '#f87171', borderColor: 'rgba(248, 113, 113, 0.4)' }}
-                onClick={() => {
-                  adbService?.disconnect?.();
-                  onClose();
-                }}
-                title="Ngắt kết nối WebUSB để nhường cổng USB cho lệnh scrcpy trong Terminal/PowerShell"
+                style={{ padding: '3px 8px', fontSize: '11px' }}
+                onClick={() => handleCopyCmd('scrcpy -S')}
               >
-                🔌 Giải Phóng USB Ngay
+                Sao chép lệnh
               </button>
+            </div>
+
+            {/* Download Link */}
+            <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end' }}>
+              <a
+                href="https://github.com/doccosau/TP-Honor-Toolkit/archive/refs/heads/main.zip"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  fontSize: '11.5px',
+                  color: '#38bdf8',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <span>⬇️ Tải gói Local Helper đầy đủ (.zip từ GitHub)</span>
+              </a>
             </div>
           </div>
 
@@ -283,25 +213,25 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
                 background: '#171d2b',
                 border: '1px dashed #283348',
                 borderRadius: '8px',
-                padding: '10px 14px',
+                padding: '12px 14px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '12px',
               }}
             >
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1' }}>
-                  📱 Lựa chọn: Xem nhanh trực tiếp trong trình duyệt
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '2px' }}>
+                  📱 Hoặc xem &amp; chạm trực tiếp ngay trên Web (Không cần tải file)
                 </div>
                 <div style={{ fontSize: '11px', color: '#64748b' }}>
-                  Xem và chạm thử màn hình ngay trên web mà không cần mở Terminal/PowerShell
+                  Nếu bạn không muốn tải hay bật Local Helper, hãy dùng Web Mirror để xem màn hình ngay trong trình duyệt.
                 </div>
               </div>
               <button
                 type="button"
-                className="btn-tool"
-                style={{ padding: '4px 10px', fontSize: '11px' }}
+                className="btn-tool primary"
+                style={{ padding: '6px 14px', fontSize: '11.5px', whiteSpace: 'nowrap' }}
                 onClick={() => {
                   onClose();
                   onOpenWebMirror();

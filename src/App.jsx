@@ -291,31 +291,17 @@ export default function App() {
   };
 
   const handleLaunchScrcpy = async (params) => {
-    // 1. Try local server backend if running
-    if (adbService.mode !== 'webusb') {
-      try {
-        const res = await adbService.launchScrcpy(params);
-        if (res?.success) {
-          addToast('success', 'Scrcpy 120Hz', 'Đã mở cửa sổ điều khiển màn hình Scrcpy 120Hz!');
-          return;
-        }
-      } catch (e) {}
-    }
-
-    // 2. On WebUSB (Cloudflare Pages):
-    // Trigger desktop native launcher via custom protocol handler (scrcpy://launch)
+    // 1. Try launching via local helper backend if running (at http://127.0.0.1:5050 or localhost)
     try {
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = 'scrcpy://launch';
-      document.body.appendChild(iframe);
-      setTimeout(() => {
-        try { iframe.remove(); } catch (e) {}
-      }, 2500);
-      addToast('info', 'Scrcpy Desktop', 'Đang gửi tín hiệu mở cửa sổ Scrcpy 120Hz lên màn hình máy tính...');
+      const res = await adbService.launchScrcpy(params);
+      if (res?.success) {
+        addToast('success', 'Scrcpy 120Hz', 'Đã kết nối Local Helper & mở cửa sổ Scrcpy 120Hz trên Desktop!');
+        return;
+      }
     } catch (e) {}
 
-    // Open guidance modal with 1-click Winget setup (if Windows hasn't registered the protocol yet)
+    // 2. If local helper is not running yet:
+    // Keep web connection active and open modal to guide user to start local helper or use Web Mirror
     setShowScrcpyModal(true);
   };
 

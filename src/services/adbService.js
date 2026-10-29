@@ -590,20 +590,20 @@ class AdbService {
     return { success: true };
   }
 
+  getLocalApiUrl(endpoint) {
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      return endpoint;
+    }
+    return `http://127.0.0.1:5050${endpoint}`;
+  }
+
   /**
-   * Launch Scrcpy Screen Mirroring
+   * Launch Scrcpy Screen Mirroring (via Local Helper)
    */
   async launchScrcpy({ turnOffScreen = true, stayAwake = true } = {}) {
-    if (this.mode === 'webusb') {
-      return {
-        success: false,
-        is_webusb: true,
-        message: 'Trình duyệt Web (WebUSB) không thể tự động mở app máy tính do cơ chế bảo mật Sandbox. Bạn có thể mở Scrcpy từ Terminal.',
-      };
-    }
-    this.addLog('info', 'Đang khởi chạy cửa sổ Scrcpy 120Hz...');
+    const localUrl = this.getLocalApiUrl('/api/action');
     try {
-      const resp = await fetch('/api/action', {
+      const resp = await fetch(localUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -612,16 +612,21 @@ class AdbService {
           stay_awake: stayAwake,
         }),
       });
-      if (!resp.ok) {
-        throw new Error(`Server status ${resp.status}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.success) {
+          this.addLog('success', 'Đã kết nối Local Helper & mở cửa sổ Scrcpy 120Hz trên Desktop!');
+          return data;
+        }
       }
-      return await resp.json();
-    } catch (e) {
-      return {
-        success: false,
-        message: 'Không thể kết nối đến máy chủ cục bộ: ' + e.message,
-      };
-    }
+    } catch (e) {}
+
+    return {
+      success: false,
+      is_webusb: this.mode === 'webusb',
+      need_local_helper: true,
+      message: 'Cần bật Local Helper để mở Scrcpy 120 FPS lên Desktop.',
+    };
   }
 
   /**
