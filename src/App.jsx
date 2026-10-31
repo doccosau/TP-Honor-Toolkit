@@ -473,14 +473,14 @@ export default function App() {
   };
 
   const handleRestore = async (packages) => {
+    const pkgsToRestore = Array.isArray(packages) ? packages.filter(Boolean) : [];
+    if (pkgsToRestore.length === 0) return;
+
     setIsExecuting(true);
-    setExecutingTask(`Khôi phục ${packages?.length || 0} app`);
+    setExecutingTask(`Khôi phục ${pkgsToRestore.length} app`);
     try {
-      const pkgsToRestore = Array.isArray(packages) && packages.length > 0
-        ? packages
-        : ['com.hihonor.servicecenter', 'com.baidu.swan', 'com.parallelc.micts'];
       await adbService.restorePackages(pkgsToRestore);
-      addToast('success', 'Khôi phục thành công', `Đã khôi phục ${pkgsToRestore.length} ứng dụng đã chọn!`);
+      addToast('success', 'Khôi phục thành công', `Đã khôi phục ${pkgsToRestore.length} ứng dụng đã chọn! (Không ảnh hưởng đến DPI/Màn hình)`);
       await refreshScan();
       handleRefresh();
     } catch (e) {
@@ -496,8 +496,8 @@ export default function App() {
     setIsExecuting(true);
     setExecutingTask('Khôi phục xuất xưởng');
     try {
-      const res = await adbService.restorePackages([]);
-      addToast('success', 'Khôi Phục Gốc', `Đã hoàn tất khôi phục ${res.count || 0} package về xuất xưởng!`);
+      await adbService.restoreAll();
+      addToast('success', 'Khôi Phục Gốc', 'Đã hoàn tất khôi phục toàn bộ ứng dụng & thiết lập về xuất xưởng!');
       await refreshScan();
       handleRefresh();
     } catch (e) {
@@ -646,6 +646,7 @@ export default function App() {
             isScanning={isScanning}
             onDebloat={handleDebloat}
             onRestore={handleRestore}
+            onRestoreAll={handleRestoreAll}
             onRefreshScan={refreshScan}
           />
         )}

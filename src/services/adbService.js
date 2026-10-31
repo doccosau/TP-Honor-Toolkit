@@ -1218,10 +1218,11 @@ class AdbService {
   }
 
   /**
-   * Restore packages and Full Rollback to Factory Defaults
+   * Restore specific packages ONLY (Does NOT touch DPI, refresh rate, Wi-Fi or system settings)
    */
   async restorePackages(packages = []) {
-    this.addLog('info', 'Đang khôi phục hệ thống về nguyên bản xuất xưởng...');
+    if (!packages || packages.length === 0) return { success: false, count: 0 };
+    this.addLog('info', `Đang khôi phục ${packages.length} ứng dụng đã chọn...`);
     if (this.mode === 'webusb' && this.adbInstance) {
       let count = 0;
       for (const pkg of packages) {
@@ -1229,6 +1230,32 @@ class AdbService {
         await this.executeShell(`pm enable ${pkg}`);
         count++;
       }
+      this.addLog('success', `Đã khôi phục thành công ${count} ứng dụng đã chọn!`);
+      return { success: true, count };
+    }
+
+    try {
+      const resp = await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'restore_packages', packages }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        this.addLog('success', `Đã khôi phục thành công ${data.count || 0} ứng dụng đã chọn.`);
+        return data;
+      }
+    } catch (e) {}
+    return { success: false, count: 0 };
+  }
+
+  /**
+   * Restore packages and Full Rollback to Factory Defaults
+   */
+  async restoreAll() {
+    this.addLog('info', 'Đang khôi phục hệ thống về nguyên bản xuất xưởng...');
+    if (this.mode === 'webusb' && this.adbInstance) {
+      // Re-enable core preinstalled services
       for (const pkg of ['com.hihonor.servicecenter', 'com.baidu.swan', 'com.hihonor.android.UEInfoCheck', 'com.hihonor.collectcenter', 'com.hihonor.magicvoice']) {
         await this.executeShell(`cmd package install-existing ${pkg}`);
         await this.executeShell(`pm enable ${pkg}`);
@@ -1252,18 +1279,18 @@ class AdbService {
       await this.executeShell('settings put global private_dns_mode off');
 
       this.addLog('success', 'Đã hoàn tác toàn bộ thiết lập về nguyên bản xuất xưởng thành công!');
-      return { success: true, count };
+      return { success: true };
     }
 
     try {
       const resp = await fetch('/api/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'restore_all', packages }),
+        body: JSON.stringify({ action: 'restore_all' }),
       });
       if (resp.ok) {
         const data = await resp.json();
-        this.addLog('success', `Đã khôi phục thành công ${data.count || 0} ứng dụng & toàn bộ thiết lập xuất xưởng.`);
+        this.addLog('success', `Đã khôi phục thành công toàn bộ thiết lập xuất xưởng.`);
         return data;
       }
     } catch (e) {}

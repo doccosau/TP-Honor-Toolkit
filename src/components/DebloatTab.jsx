@@ -7,6 +7,7 @@ export default function DebloatTab({
   isScanning,
   onDebloat,
   onRestore,
+  onRestoreAll,
   onRefreshScan,
 }) {
   const [statusFilter, setStatusFilter] = useState('installed'); // 'installed' | 'all' | 'uninstalled'
@@ -237,20 +238,22 @@ export default function DebloatTab({
               </button>
             )}
 
-            <button
-              className="btn-tool"
-              onClick={() => onRestore([])}
-              disabled={!isOnline}
-              title="Khôi phục toàn bộ các ứng dụng hệ thống đã gỡ về mặc định xuất xưởng"
-            >
-              <span className="svg-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="1 4 1 10 7 10"></polyline>
-                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                </svg>
-              </span>
-              <span>Khôi Phục Tất Cả</span>
-            </button>
+            {onRestoreAll && (
+              <button
+                className="btn-tool"
+                onClick={onRestoreAll}
+                disabled={!isOnline}
+                title="Khôi phục toàn bộ các ứng dụng hệ thống đã gỡ về mặc định xuất xưởng"
+              >
+                <span className="svg-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                  </svg>
+                </span>
+                <span>Khôi Phục Xuất Xưởng</span>
+              </button>
+            )}
           </div>
         </div>
 
