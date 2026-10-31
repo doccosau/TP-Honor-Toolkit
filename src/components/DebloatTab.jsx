@@ -89,19 +89,19 @@ export default function DebloatTab({
 
   // Selectable predicate: allows selecting packages based on current view/action
   const isSelectable = (pkg) => {
-    if (!isOnline || pkg.tierKey === 'level_5_critical_system') return false;
+    if (pkg.tierKey === 'level_5_critical_system') return false;
     if (statusFilter === 'uninstalled') {
       return pkg.status === 'uninstalled';
     }
     if (statusFilter === 'installed') {
-      return pkg.status === 'active' || pkg.status === 'disabled';
+      return pkg.status !== 'uninstalled';
     }
-    return true; // 'all' filter: allow selecting any package
+    return true; // 'all' filter: allow selecting any non-critical package
   };
 
   const selectableFiltered = useMemo(() => {
     return filteredPackages.filter(isSelectable);
-  }, [filteredPackages, isOnline, statusFilter]);
+  }, [filteredPackages, statusFilter]);
 
   const selectedList = useMemo(() => {
     return allPackages.filter((p) => selectedPackages.has(p.package));
@@ -117,10 +117,12 @@ export default function DebloatTab({
 
   const handleToggle = (pkgName, selectable) => {
     if (!selectable) return;
-    const next = new Set(selectedPackages);
-    if (next.has(pkgName)) next.delete(pkgName);
-    else next.add(pkgName);
-    setSelectedPackages(next);
+    setSelectedPackages((prev) => {
+      const next = new Set(prev);
+      if (next.has(pkgName)) next.delete(pkgName);
+      else next.add(pkgName);
+      return next;
+    });
   };
 
   const handleSelectAll = () => {
@@ -428,17 +430,23 @@ export default function DebloatTab({
                       style={{
                         cursor: selectable ? 'pointer' : 'default',
                         opacity: isUninstalled && statusFilter !== 'uninstalled' ? 0.6 : 1,
-                        background: isChecked ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
+                        background: isChecked ? 'rgba(37, 99, 235, 0.12)' : 'transparent',
                       }}
                       onClick={() => handleToggle(pkg.package, selectable)}
                     >
-                      <td style={{ textAlign: 'center', padding: '8px' }}>
+                      <td
+                        style={{ textAlign: 'center', padding: '8px', cursor: selectable ? 'pointer' : 'default' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggle(pkg.package, selectable);
+                        }}
+                      >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           disabled={!selectable}
-                          onChange={() => handleToggle(pkg.package, selectable)}
-                          onClick={(e) => e.stopPropagation()}
+                          readOnly
+                          style={{ cursor: selectable ? 'pointer' : 'not-allowed', pointerEvents: 'none' }}
                         />
                       </td>
 

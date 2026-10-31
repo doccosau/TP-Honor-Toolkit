@@ -117,9 +117,9 @@ class AdbService {
 
   addLog(level, msg) {
     const time = new Date().toLocaleTimeString('vi-VN', { hour12: false });
-    const logItem = { level, msg, time };
+    const logItem = { id: `${Date.now()}_${Math.random().toString(36).substr(2, 6)}`, level, msg, time };
     this.logs.push(logItem);
-    if (this.logs.length > 500) this.logs.shift();
+    if (this.logs.length > 2500) this.logs.shift();
     this.notify({ type: 'log', log: logItem, logs: [...this.logs] });
   }
 
@@ -261,6 +261,24 @@ class AdbService {
         return '';
       }
     }
+  }
+
+  /**
+   * Run an ADB shell command and log it clearly in the realtime console
+   */
+  async runAdbCommand(cmd, timeoutMs = 10000) {
+    this.addLog('cmd', `$ adb shell ${cmd}`);
+    const out = await this.executeShell(cmd, timeoutMs);
+    if (out && out.length > 0) {
+      const lines = out.split('\n').map((l) => l.trim()).filter(Boolean);
+      if (lines.length <= 3) {
+        lines.forEach((l) => this.addLog('output', `  ↳ ${l}`));
+      } else {
+        lines.slice(0, 2).forEach((l) => this.addLog('output', `  ↳ ${l}`));
+        this.addLog('output', `  ↳ ... (${lines.length - 2} dòng kết quả)`);
+      }
+    }
+    return out;
   }
 
   /**
@@ -424,9 +442,9 @@ class AdbService {
         battery_desc: matched?.battery || `${bat_level}%`,
         waterproof: matched?.waterproof || 'Tiêu chuẩn',
         durability: matched?.durability || 'Chuẩn độ bền Honor',
-        render_front: matched?.render_front || 'images/devices/BSN-AN00-front.png',
-        render_back: matched?.render_back || 'images/devices/BSN-AN00-back.png',
-        render_hero: matched?.render_hero || 'images/devices/BSN-AN00.png',
+        render_front: matched?.render_front || (model ? `images/devices/${model}-front.png` : null),
+        render_back: matched?.render_back || (model ? `images/devices/${model}-back.png` : null),
+        render_hero: matched?.render_hero || (model ? `images/devices/${model}-back.png` : null),
         android_version: android_ver || '14',
         magic_version: exact_rom,
         rom_build: display_id || build_incr || exact_rom,
@@ -468,13 +486,13 @@ class AdbService {
   async applyPrivateDns(hostname) {
     this.addLog('info', `Đang thiết lập Private DNS: ${hostname || '(Tắt DoT)'}...`);
     if (!hostname || hostname.trim() === '') {
-      await this.executeShell('settings put global private_dns_mode off');
-      await this.executeShell('settings delete global private_dns_specifier');
+      await this.runAdbCommand('settings put global private_dns_mode off');
+      await this.runAdbCommand('settings delete global private_dns_specifier');
       this.addLog('info', 'Đã tắt chế độ Private DNS.');
     } else {
       const cleanHost = hostname.trim();
-      await this.executeShell('settings put global private_dns_mode hostname');
-      await this.executeShell(`settings put global private_dns_specifier ${cleanHost}`);
+      await this.runAdbCommand('settings put global private_dns_mode hostname');
+      await this.runAdbCommand(`settings put global private_dns_specifier ${cleanHost}`);
       this.addLog('success', `Đã kích hoạt DoT thành công cho: ${cleanHost}`);
     }
   }
@@ -504,10 +522,10 @@ class AdbService {
 
     // WebUSB fallback
     if (captive === 'google') {
-      await this.executeShell('settings put global captive_portal_mode 1');
-      await this.executeShell('settings put global captive_portal_http_url http://connectivitycheck.gstatic.com/generate_204');
-      await this.executeShell('settings put global captive_portal_https_url https://connectivitycheck.gstatic.com/generate_204');
-      await this.executeShell('settings put global captive_portal_fallback_url http://www.google.com/gen_204');
+      await this.runAdbCommand('settings put global captive_portal_mode 1');
+      await this.runAdbCommand('settings put global captive_portal_http_url http://connectivitycheck.gstatic.com/generate_204');
+      await this.runAdbCommand('settings put global captive_portal_https_url https://connectivitycheck.gstatic.com/generate_204');
+      await this.runAdbCommand('settings put global captive_portal_fallback_url http://www.google.com/gen_204');
     }
     if (customDns && customDns.trim()) {
       await this.applyPrivateDns(customDns.trim());
@@ -515,13 +533,13 @@ class AdbService {
       await this.applyPrivateDns('1dot1dot1dot1.cloudflare-dns.com');
     }
     if (disableWifipro) {
-      await this.executeShell('settings put global hn_wifipro_enable false');
-      await this.executeShell('settings put system smart_network_switch 0');
-      await this.executeShell('settings put secure settings_wlan_mt_axl 0');
-      await this.executeShell('settings put global wifi_cloud_security_check 0');
-      await this.executeShell('settings put global wifi_power_save 0');
-      await this.executeShell('settings put global wifi_hidata_rtt_url connectivitycheck.gstatic.com|www.google.com');
-      await this.executeShell('settings put global wifi_sleep_policy 2');
+      await this.runAdbCommand('settings put global hn_wifipro_enable false');
+      await this.runAdbCommand('settings put system smart_network_switch 0');
+      await this.runAdbCommand('settings put secure settings_wlan_mt_axl 0');
+      await this.runAdbCommand('settings put global wifi_cloud_security_check 0');
+      await this.runAdbCommand('settings put global wifi_power_save 0');
+      await this.runAdbCommand('settings put global wifi_hidata_rtt_url connectivitycheck.gstatic.com|www.google.com');
+      await this.runAdbCommand('settings put global wifi_sleep_policy 2');
     }
     this.addLog('success', 'Đã lưu và áp dụng cấu hình Mạng & Private DNS thành công.');
     return { success: true };
@@ -551,44 +569,53 @@ class AdbService {
 
     // WebUSB fallback
     if (hz === 'auto') {
-      await this.executeShell('settings delete system min_refresh_rate');
-      await this.executeShell('settings delete system peak_refresh_rate');
+      await this.runAdbCommand('settings delete system min_refresh_rate');
+      await this.runAdbCommand('settings delete system peak_refresh_rate');
     } else {
       const val = parseFloat(hz);
-      await this.executeShell(`settings put system min_refresh_rate ${val}`);
-      await this.executeShell(`settings put system peak_refresh_rate ${val}`);
+      await this.runAdbCommand(`settings put system min_refresh_rate ${val}`);
+      await this.runAdbCommand(`settings put system peak_refresh_rate ${val}`);
     }
 
     if (anim) {
       const aVal = String(parseFloat(anim));
       for (const k of ['window_animation_scale', 'transition_animation_scale', 'animator_duration_scale']) {
-        await this.executeShell(`settings put global ${k} ${aVal}`);
+        await this.runAdbCommand(`settings put global ${k} ${aVal}`);
       }
-      await this.executeShell('settings put global wifi_scan_always_enabled 0');
-      await this.executeShell('settings put global ble_scan_always_enabled 0');
+      await this.runAdbCommand('settings put global wifi_scan_always_enabled 0');
+      await this.runAdbCommand('settings put global ble_scan_always_enabled 0');
     }
 
     let targetDpi = null;
     if (dpi === 'reset') {
-      await this.executeShell('wm density reset');
-      await this.executeShell('settings delete secure display_density_forced');
+      await this.runAdbCommand('wm density reset');
+      await this.runAdbCommand('settings delete secure display_density_forced');
     } else if (dpi === 'auto_sweet') {
-      targetDpi = 532;
-      await this.executeShell(`wm density ${targetDpi}`);
-      await this.executeShell(`settings put secure display_density_forced ${targetDpi}`);
+      // Dynamic computation for ANY Honor domestic screen width (1080p, 1.2K, 1.5K, 2K, Foldable)
+      const wmSizeOut = await this.executeShell('wm size');
+      let physicalWidth = 1080;
+      if (wmSizeOut.includes('Physical size:')) {
+        const parts = wmSizeOut.split('Physical size:').pop().trim().split('x');
+        if (parts.length === 2) {
+          physicalWidth = parseInt(parts[0], 10) || 1080;
+        }
+      }
+      targetDpi = Math.round((physicalWidth * 160) / 385);
+      await this.runAdbCommand(`wm density ${targetDpi}`);
+      await this.runAdbCommand(`settings put secure display_density_forced ${targetDpi}`);
     } else {
       targetDpi = parseInt(dpi, 10);
       if (targetDpi) {
-        await this.executeShell(`wm density ${targetDpi}`);
-        await this.executeShell(`settings put secure display_density_forced ${targetDpi}`);
+        await this.runAdbCommand(`wm density ${targetDpi}`);
+        await this.runAdbCommand(`settings put secure display_density_forced ${targetDpi}`);
       }
     }
 
     for (const k of ['low_resolution_switch', 'smart_resolution_mode', 'smart_screen_resolution_mode']) {
-      await this.executeShell(`settings put system ${k} 0`);
-      await this.executeShell(`settings put global ${k} 0`);
+      await this.runAdbCommand(`settings put system ${k} 0`);
+      await this.runAdbCommand(`settings put global ${k} 0`);
     }
-    await this.executeShell('settings put global aps_display_resolution 0');
+    await this.runAdbCommand('settings put global aps_display_resolution 0');
 
     this.addLog('success', 'Đã áp dụng độ phân giải và tần số quét màn hình thành công.');
     return { success: true };
@@ -745,10 +772,10 @@ class AdbService {
       }
     } catch (e) {}
 
-    await this.executeShell('settings put secure user_experience_involved 0');
-    await this.executeShell('dumpsys deviceidle whitelist -com.hihonor.hiviewtunnel');
-    await this.executeShell('pm disable-user --user 0 com.hihonor.android.UEInfoCheck');
-    await this.executeShell('pm disable-user --user 0 com.hihonor.collectcenter');
+    await this.runAdbCommand('settings put secure user_experience_involved 0');
+    await this.runAdbCommand('dumpsys deviceidle whitelist -com.hihonor.hiviewtunnel');
+    await this.runAdbCommand('pm disable-user --user 0 com.hihonor.android.UEInfoCheck');
+    await this.runAdbCommand('pm disable-user --user 0 com.hihonor.collectcenter');
     this.addLog('success', 'Đã tắt sạch Telemetry & thu thập log ngầm TQ thành công!');
     return { success: true };
   }
@@ -770,8 +797,8 @@ class AdbService {
       }
     } catch (e) {}
 
-    await this.executeShell('cmd locale set-app-locales com.hihonor.android.totemweather --locales en-GB');
-    await this.executeShell('am force-stop com.hihonor.android.totemweather');
+    await this.runAdbCommand('cmd locale set-app-locales com.hihonor.android.totemweather --locales en-GB');
+    await this.runAdbCommand('am force-stop com.hihonor.android.totemweather');
     this.addLog('success', 'Đã chuyển ứng dụng Thời tiết sang Tiếng Anh quốc tế en-GB (Độ C)!');
     return { success: true };
   }
@@ -793,15 +820,15 @@ class AdbService {
       }
     } catch (e) {}
 
-    await this.executeShell('pm disable-user --user 0 com.hihonor.magicvoice');
-    await this.executeShell('cmd package set-home-activity com.google.android.googlequicksearchbox/.SearchActivity');
-    await this.executeShell('settings put secure voice_interaction_service com.google.android.googlequicksearchbox/com.google.android.voiceinteraction.GsaVoiceInteractionService');
-    await this.executeShell('settings put secure assistant com.google.android.googlequicksearchbox/com.google.android.voiceinteraction.GsaVoiceInteractionService');
-    await this.executeShell('cmd appops set com.google.android.googlequicksearchbox ASSIST_STRUCTURE allow');
-    await this.executeShell('cmd appops set com.google.android.googlequicksearchbox ASSIST_SCREENSHOT allow');
-    await this.executeShell('cmd appops set com.google.android.apps.bard ASSIST_STRUCTURE allow');
-    await this.executeShell('cmd appops set com.google.android.apps.bard ASSIST_SCREENSHOT allow');
-    await this.executeShell('cmd appops set com.google.android.apps.bard SYSTEM_ALERT_WINDOW allow');
+    await this.runAdbCommand('pm disable-user --user 0 com.hihonor.magicvoice');
+    await this.runAdbCommand('cmd package set-home-activity com.google.android.googlequicksearchbox/.SearchActivity');
+    await this.runAdbCommand('settings put secure voice_interaction_service com.google.android.googlequicksearchbox/com.google.android.voiceinteraction.GsaVoiceInteractionService');
+    await this.runAdbCommand('settings put secure assistant com.google.android.googlequicksearchbox/com.google.android.voiceinteraction.GsaVoiceInteractionService');
+    await this.runAdbCommand('cmd appops set com.google.android.googlequicksearchbox ASSIST_STRUCTURE allow');
+    await this.runAdbCommand('cmd appops set com.google.android.googlequicksearchbox ASSIST_SCREENSHOT allow');
+    await this.runAdbCommand('cmd appops set com.google.android.apps.bard ASSIST_STRUCTURE allow');
+    await this.runAdbCommand('cmd appops set com.google.android.apps.bard ASSIST_SCREENSHOT allow');
+    await this.runAdbCommand('cmd appops set com.google.android.apps.bard SYSTEM_ALERT_WINDOW allow');
     this.addLog('success', 'Đã đóng băng YOYO Voice & gán Google Gemini / Assistant làm trợ lý toàn máy!');
     return { success: true };
   }
@@ -980,10 +1007,12 @@ class AdbService {
     });
 
     const targets = priorityPkgs.filter((p) => installedSet.has(p));
-    for (const p of targets) {
-      await this.executeShell(`cmd package compile -m speed-profile ${p}`);
+    for (let i = 0; i < targets.length; i++) {
+      const p = targets[i];
+      this.addLog('step', `[${i + 1}/${targets.length}] Đang biên dịch Native AOT cho: ${p}...`);
+      await this.runAdbCommand(`cmd package compile -m speed-profile ${p}`);
     }
-    await this.executeShell('pm trim-caches 100G');
+    await this.runAdbCommand('pm trim-caches 100G');
     this.addLog('success', `Đã hoàn tất tăng tốc biên dịch Native ARM64 AOT cho ${targets.length} ứng dụng & dọn dẹp cache!`);
     return { success: true, count: targets.length };
   }
@@ -1093,10 +1122,12 @@ class AdbService {
       let idx = 0;
       for (const pkg of list) {
         idx++;
-        this.addLog('cmd', `[${idx}/${list.length}] Cấp quyền chạy nền Doze + 8 AppOps cho ${pkg}...`);
+        this.addLog('step', `[${idx}/${list.length}] Cấp quyền chạy nền Doze + 8 AppOps cho ${pkg}...`);
+        await this.runAdbCommand(`dumpsys deviceidle whitelist +${pkg}`);
         const ops = ['RUN_IN_BACKGROUND', 'RUN_ANY_IN_BACKGROUND', 'POST_NOTIFICATION', 'WAKE_LOCK', 'SYSTEM_ALERT_WINDOW', 'START_FOREGROUND', 'SCHEDULE_EXACT_ALARM', 'ACCESS_RESTRICTED_SETTINGS'];
-        const appOpsCmds = ops.map((op) => `cmd appops set ${pkg} ${op} allow`).join('; ');
-        await this.executeShell(`dumpsys deviceidle whitelist +${pkg}; ${appOpsCmds}`);
+        for (const op of ops) {
+          await this.runAdbCommand(`cmd appops set ${pkg} ${op} allow`);
+        }
 
         const uidOut = await this.executeShell(`pm list packages -U ${pkg}`);
         if (uidOut.includes('uid:')) {
@@ -1104,7 +1135,7 @@ class AdbService {
           for (const uid of uidsPart.split(',')) {
             const cleanUid = uid.trim();
             if (/^\d+$/.test(cleanUid)) {
-              await this.executeShell(`cmd netpolicy add restrict-background-whitelist ${cleanUid}`);
+              await this.runAdbCommand(`cmd netpolicy add restrict-background-whitelist ${cleanUid}`);
             }
           }
         }
@@ -1135,9 +1166,11 @@ class AdbService {
     this.addLog('warning', `Bắt đầu gỡ ${packages.length} ứng dụng rác nội địa...`);
     if (this.mode === 'webusb' && this.adbInstance) {
       let count = 0;
-      for (const pkg of packages) {
-        await this.executeShell(`pm disable-user --user 0 ${pkg}`);
-        await this.executeShell(`pm uninstall -k --user 0 ${pkg}`);
+      for (let i = 0; i < packages.length; i++) {
+        const pkg = packages[i];
+        this.addLog('step', `[${i + 1}/${packages.length}] Gỡ bỏ ứng dụng: ${pkg}...`);
+        await this.runAdbCommand(`pm disable-user --user 0 ${pkg}`);
+        await this.runAdbCommand(`pm uninstall -k --user 0 ${pkg}`);
         count++;
       }
       this.addLog('success', `Đã hoàn tất gỡ ${count} ứng dụng hệ thống an toàn.`);
@@ -1166,13 +1199,17 @@ class AdbService {
     this.addLog('info', '=== BẮT ĐẦU TỐI ƯU HÓA TOÀN DIỆN 1-CLICK THEO PLAYBOOK CHUẨN ===');
     if (this.mode === 'webusb' && this.adbInstance) {
       // Bước 1: Fix thông báo
+      this.addLog('step', '▶ [BƯỚC 1/8] Tự động cấp quyền Doze Whitelist & AppOps chống miss thông báo...');
       const scan = await this.scanPackages();
       const installedVn = (scan.vn_apps || []).filter(a => a.installed).map(a => a.package);
       if (installedVn.length > 0) {
         await this.whitelistApps(installedVn);
+      } else {
+        this.addLog('info', '  ↳ Chưa phát hiện ứng dụng VN cần Whitelist, tiếp tục bước sau.');
       }
 
       // Bước 2: Debloat 12 app rác TQ
+      this.addLog('step', '▶ [BƯỚC 2/8] Dọn dẹp Debloat an toàn 12 ứng dụng rác, quảng cáo nội địa...');
       const safe12 = [
         "com.honor.browser", "com.hihonor.browserhomepage", "com.hihonor.gamecenter",
         "com.hihonor.game.kitserver", "com.hihonor.quickgame", "com.hihonor.cloudmusic",
@@ -1182,21 +1219,27 @@ class AdbService {
       await this.debloatPackages(safe12);
 
       // Bước 3: Wi-Fi Siêu Tốc & DNS Cloudflare DoT
+      this.addLog('step', '▶ [BƯỚC 3/8] Tối ưu hóa Wi-Fi Siêu Tốc & Kích hoạt Private DNS Cloudflare DoT...');
       await this.applyNetworkSettings({ captive: 'google', dns: 'cloudflare', disableWifipro: true });
 
       // Bước 4: Tắt Telemetry TQ
+      this.addLog('step', '▶ [BƯỚC 4/8] Vô hiệu hóa Telemetry và chặn gửi log máy chủ Trung Quốc...');
       await this.disableTelemetry();
 
-      // Bước 5: Khóa 120Hz & Khóa Density 385 dp (532)
+      // Bước 5: Khóa 120Hz & Tự động cân chỉnh Density 385 dp
+      this.addLog('step', '▶ [BƯỚC 5/8] Tối ưu Màn Hình & Tự động cân chỉnh tỷ lệ hiển thị Sweet Spot DPI...');
       await this.applyDisplaySettings({ hz: '120', anim: '1.0', dpi: 'auto_sweet' });
 
       // Bước 6: Biên dịch Native ARM64 AOT
+      this.addLog('step', '▶ [BƯỚC 6/8] Tăng tốc Native ARM64 AOT (dex2oat) cho toàn bộ ứng dụng...');
       await this.compileApps();
 
       // Bước 7: Fix thời tiết en-GB
+      this.addLog('step', '▶ [BƯỚC 7/8] Chuyển đổi Thời Tiết Honor sang Tiếng Anh chuẩn Quốc Tế (Độ C)...');
       await this.fixWeatherLocale();
 
       // Bước 8: Google Assistant / Gemini
+      this.addLog('step', '▶ [BƯỚC 8/8] Gán Google Assistant / Gemini làm trợ lý mặc định toàn máy...');
       await this.setAssistantGoogle();
 
       this.addLog('success', '=== HOÀN TẤT TẤT CẢ 8 BƯỚC TỐI ƯU HÓA PLAYBOOK THÀNH CÔNG 100%! ===');
@@ -1225,9 +1268,11 @@ class AdbService {
     this.addLog('info', `Đang khôi phục ${packages.length} ứng dụng đã chọn...`);
     if (this.mode === 'webusb' && this.adbInstance) {
       let count = 0;
-      for (const pkg of packages) {
-        await this.executeShell(`cmd package install-existing ${pkg}`);
-        await this.executeShell(`pm enable ${pkg}`);
+      for (let i = 0; i < packages.length; i++) {
+        const pkg = packages[i];
+        this.addLog('step', `[${i + 1}/${packages.length}] Khôi phục ứng dụng: ${pkg}...`);
+        await this.runAdbCommand(`cmd package install-existing ${pkg}`);
+        await this.runAdbCommand(`pm enable ${pkg}`);
         count++;
       }
       this.addLog('success', `Đã khôi phục thành công ${count} ứng dụng đã chọn!`);
@@ -1257,26 +1302,26 @@ class AdbService {
     if (this.mode === 'webusb' && this.adbInstance) {
       // Re-enable core preinstalled services
       for (const pkg of ['com.hihonor.servicecenter', 'com.baidu.swan', 'com.hihonor.android.UEInfoCheck', 'com.hihonor.collectcenter', 'com.hihonor.magicvoice']) {
-        await this.executeShell(`cmd package install-existing ${pkg}`);
-        await this.executeShell(`pm enable ${pkg}`);
+        await this.runAdbCommand(`cmd package install-existing ${pkg}`);
+        await this.runAdbCommand(`pm enable ${pkg}`);
       }
 
       // Reset Display & Density
-      await this.executeShell('settings delete system min_refresh_rate');
-      await this.executeShell('settings delete system peak_refresh_rate');
-      await this.executeShell('wm density reset');
-      await this.executeShell('settings delete secure display_density_forced');
-      await this.executeShell('settings put global low_resolution_switch 1');
-      await this.executeShell('settings put global aps_display_resolution 2');
+      await this.runAdbCommand('settings delete system min_refresh_rate');
+      await this.runAdbCommand('settings delete system peak_refresh_rate');
+      await this.runAdbCommand('wm density reset');
+      await this.runAdbCommand('settings delete secure display_density_forced');
+      await this.runAdbCommand('settings put global low_resolution_switch 1');
+      await this.runAdbCommand('settings put global aps_display_resolution 2');
 
       // Reset Wi-Fi
-      await this.executeShell('settings put global hn_wifipro_enable true');
-      await this.executeShell('settings put system smart_network_switch 1');
-      await this.executeShell('settings put secure settings_wlan_mt_axl 1');
-      await this.executeShell('settings put global wifi_cloud_security_check 1');
-      await this.executeShell('settings put global wifi_hidata_rtt_url www.baidu.com|connectivitycheck.gstatic.com|www.google.com');
-      await this.executeShell('settings put global wifi_power_save 120');
-      await this.executeShell('settings put global private_dns_mode off');
+      await this.runAdbCommand('settings put global hn_wifipro_enable true');
+      await this.runAdbCommand('settings put system smart_network_switch 1');
+      await this.runAdbCommand('settings put secure settings_wlan_mt_axl 1');
+      await this.runAdbCommand('settings put global wifi_cloud_security_check 1');
+      await this.runAdbCommand('settings put global wifi_hidata_rtt_url www.baidu.com|connectivitycheck.gstatic.com|www.google.com');
+      await this.runAdbCommand('settings put global wifi_power_save 120');
+      await this.runAdbCommand('settings put global private_dns_mode off');
 
       this.addLog('success', 'Đã hoàn tác toàn bộ thiết lập về nguyên bản xuất xưởng thành công!');
       return { success: true };
@@ -1440,7 +1485,7 @@ class AdbService {
       const socManu = getProp('ro.soc.manufacturer') || 'QTI';
       const socModel = getProp('ro.soc.model') || 'SM7550';
       const boardName = getProp('ro.board.platform') || 'crow';
-      const model = getProp('ro.product.model') || this.deviceInfo?.model || 'BSN-AN00';
+      const model = getProp('ro.product.model') || this.deviceInfo?.model || 'Thiết bị Honor';
       const serial = this.usbDevice?.serial || this.deviceInfo?.serial || '';
 
       // Bootloader lock state: Honor devices have permanently locked bootloaders.
@@ -1846,8 +1891,8 @@ class AdbService {
     this.addLog('info', `Gỡ cài đặt ${pkg}...`);
     if (this.mode === 'webusb' && this.adbInstance) {
       try {
-        await this.executeShell(`pm disable-user --user 0 ${pkg}`);
-        const res = await this.executeShell(`pm uninstall -k --user 0 ${pkg}`);
+        await this.runAdbCommand(`pm disable-user --user 0 ${pkg}`);
+        const res = await this.runAdbCommand(`pm uninstall -k --user 0 ${pkg}`);
         const success = res.toLowerCase().includes('success');
         this.addLog(success ? 'success' : 'warning', `Kết quả gỡ ${pkg}: ${res || 'Đã gửi lệnh'}`);
         return { success: true, output: res };
@@ -1870,7 +1915,7 @@ class AdbService {
     this.addLog('info', `Đóng băng (vô hiệu hóa) ${pkg}...`);
     if (this.mode === 'webusb' && this.adbInstance) {
       try {
-        const res = await this.executeShell(`pm disable-user --user 0 ${pkg}`);
+        const res = await this.runAdbCommand(`pm disable-user --user 0 ${pkg}`);
         this.addLog('success', `Đã đóng băng ${pkg}`);
         return { success: true, output: res };
       } catch (e) {
@@ -1892,7 +1937,7 @@ class AdbService {
     this.addLog('info', `Kích hoạt lại ${pkg}...`);
     if (this.mode === 'webusb' && this.adbInstance) {
       try {
-        const res = await this.executeShell(`pm enable ${pkg}`);
+        const res = await this.runAdbCommand(`pm enable ${pkg}`);
         this.addLog('success', `Đã kích hoạt lại ${pkg}`);
         return { success: true, output: res };
       } catch (e) {
@@ -1914,7 +1959,7 @@ class AdbService {
     this.addLog('info', `Xóa dữ liệu & cache của ${pkg}...`);
     if (this.mode === 'webusb' && this.adbInstance) {
       try {
-        const res = await this.executeShell(`pm clear ${pkg}`);
+        const res = await this.runAdbCommand(`pm clear ${pkg}`);
         this.addLog('success', `Đã xóa dữ liệu ${pkg}`);
         return { success: true, output: res };
       } catch (e) {

@@ -80,10 +80,12 @@ export default function AppManagerTab({
   };
 
   const handleToggleSelect = (pkg) => {
-    const next = new Set(selectedPkgs);
-    if (next.has(pkg)) next.delete(pkg);
-    else next.add(pkg);
-    setSelectedPkgs(next);
+    setSelectedPkgs((prev) => {
+      const next = new Set(prev);
+      if (next.has(pkg)) next.delete(pkg);
+      else next.add(pkg);
+      return next;
+    });
   };
 
   const handleUninstall = async (pkg, isUser) => {
@@ -317,10 +319,12 @@ export default function AppManagerTab({
   }, [allVnApps, vnStatusFilter, vnSelectedCat, vnSearch]);
 
   const handleVnToggle = (pkg) => {
-    const next = new Set(vnSelectedPackages);
-    if (next.has(pkg)) next.delete(pkg);
-    else next.add(pkg);
-    setVnSelectedPackages(next);
+    setVnSelectedPackages((prev) => {
+      const next = new Set(prev);
+      if (next.has(pkg)) next.delete(pkg);
+      else next.add(pkg);
+      return next;
+    });
   };
 
   const handleVnSelectAll = () => {
@@ -622,12 +626,26 @@ export default function AppManagerTab({
                   </tr>
                 ) : filteredApps.length > 0 ? (
                   filteredApps.map((app) => (
-                    <tr key={app.package} style={{ background: selectedPkgs.has(app.package) ? 'rgba(56, 189, 248, 0.05)' : undefined }}>
-                      <td style={{ textAlign: 'center' }}>
+                    <tr
+                      key={app.package}
+                      style={{
+                        cursor: 'pointer',
+                        background: selectedPkgs.has(app.package) ? 'rgba(56, 189, 248, 0.1)' : undefined,
+                      }}
+                      onClick={() => handleToggleSelect(app.package)}
+                    >
+                      <td
+                        style={{ textAlign: 'center', cursor: 'pointer' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleSelect(app.package);
+                        }}
+                      >
                         <input
                           type="checkbox"
                           checked={selectedPkgs.has(app.package)}
-                          onChange={() => handleToggleSelect(app.package)}
+                          readOnly
+                          style={{ pointerEvents: 'none', cursor: 'pointer' }}
                         />
                       </td>
                       <td>
@@ -664,7 +682,7 @@ export default function AppManagerTab({
                           {app.status}
                         </span>
                       </td>
-                      <td style={{ textAlign: 'right' }}>
+                      <td style={{ textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
                         <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
                           <button
                             type="button"
@@ -900,13 +918,29 @@ export default function AppManagerTab({
             <tbody>
               {filteredVnApps.length > 0 ? (
                 filteredVnApps.map((app) => (
-                  <tr key={app.package}>
-                    <td style={{ textAlign: 'center' }}>
+                  <tr
+                    key={app.package}
+                    style={{
+                      cursor: app.installed ? 'pointer' : 'default',
+                      background: vnSelectedPackages.has(app.package) ? 'rgba(56, 189, 248, 0.1)' : undefined,
+                    }}
+                    onClick={() => {
+                      if (app.installed) handleVnToggle(app.package);
+                    }}
+                  >
+                    <td
+                      style={{ textAlign: 'center', cursor: app.installed ? 'pointer' : 'default' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (app.installed) handleVnToggle(app.package);
+                      }}
+                    >
                       <input
                         type="checkbox"
                         checked={vnSelectedPackages.has(app.package)}
-                        onChange={() => handleVnToggle(app.package)}
                         disabled={!app.installed}
+                        readOnly
+                        style={{ pointerEvents: 'none', cursor: app.installed ? 'pointer' : 'not-allowed' }}
                       />
                     </td>
                     <td>
