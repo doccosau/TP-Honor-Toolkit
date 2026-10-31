@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import vnAppsData from '../data/vietnamApps.json';
 import { adbService } from '../services/adbService';
+import AppIcon from './AppIcon';
 
 export default function AppManagerTab({
   device,
@@ -650,28 +651,22 @@ export default function AppManagerTab({
                       </td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '8px',
-                            background: app.is_user ? 'rgba(56, 189, 248, 0.15)' : 'rgba(148, 163, 184, 0.15)',
-                            color: app.is_user ? '#38bdf8' : '#94a3b8',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontWeight: 700,
-                            fontSize: '13px',
-                            flexShrink: 0
-                          }}>
-                            {app.name ? app.name[0].toUpperCase() : 'A'}
-                          </div>
+                          <AppIcon pkg={app.package} name={app.name} isUser={app.is_user} size={36} />
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                             <strong style={{ color: 'var(--text-bright)', fontSize: '13px' }}>{app.name}</strong>
                             <code style={{ fontSize: '11px', color: 'var(--text-dim)' }}>{app.package}</code>
                           </div>
                         </div>
                       </td>
-                      <td style={{ color: 'var(--text-dim)' }}>{app.version || '--'}</td>
+                      <td style={{ color: app.version && app.version !== '--' ? '#38bdf8' : 'var(--text-dim)', fontSize: '12px' }}>
+                        {app.version && app.version !== '--' ? (
+                          <span className="badge-tag tag-neutral" style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '2px 8px' }}>
+                            {app.version}
+                          </span>
+                        ) : (
+                          <span style={{ opacity: 0.4 }}>--</span>
+                        )}
+                      </td>
                       <td>
                         <span className={`status-pill ${app.is_user ? 'pill-pass' : ''}`} style={{ fontSize: '11px', padding: '2px 8px' }}>
                           {app.type}
@@ -944,9 +939,12 @@ export default function AppManagerTab({
                       />
                     </td>
                     <td>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <strong style={{ color: 'var(--text-bright)' }}>{app.name}</strong>
-                        <code style={{ fontSize: '10.5px', color: 'var(--text-dim)' }}>{app.package}</code>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <AppIcon pkg={app.package} name={app.name} isUser={true} size={30} />
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <strong style={{ color: 'var(--text-bright)' }}>{app.name}</strong>
+                          <code style={{ fontSize: '10.5px', color: 'var(--text-dim)' }}>{app.package}</code>
+                        </div>
                       </div>
                     </td>
                     <td>{app.category}</td>

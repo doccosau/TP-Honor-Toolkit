@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import vnAppsData from '../data/vietnamApps.json';
 import { adbService } from '../services/adbService';
+import AppIcon from './AppIcon';
 
 export default function VietnamAppsTab({
   device,
@@ -367,18 +368,27 @@ export default function VietnamAppsTab({
                       }}
                       onClick={() => isInstalled && handleToggle(app.package)}
                     >
-                      <td style={{ textAlign: 'center', padding: '8px' }}>
+                      <td
+                        style={{ textAlign: 'center', padding: '8px', cursor: isInstalled ? 'pointer' : 'default' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isInstalled) handleToggle(app.package);
+                        }}
+                      >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           disabled={!isInstalled || !isOnline}
-                          onChange={() => handleToggle(app.package)}
-                          onClick={(e) => e.stopPropagation()}
+                          readOnly
+                          style={{ cursor: isInstalled ? 'pointer' : 'not-allowed', pointerEvents: 'none' }}
                         />
                       </td>
 
                       <td style={{ padding: '8px 10px', fontWeight: 600, color: isInstalled ? 'var(--text-bright)' : 'var(--text-muted)' }}>
-                        {app.name}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <AppIcon pkg={app.package} name={app.name} isUser={true} size={28} />
+                          <span>{app.name}</span>
+                        </div>
                       </td>
 
                       <td className="font-mono" style={{ padding: '8px 10px', fontSize: '11px', color: 'var(--text-dim)' }}>

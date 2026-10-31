@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import bloatData from '../data/bloatware.json';
+import AppIcon from './AppIcon';
 
 export default function DebloatTab({
   device,
@@ -451,7 +452,8 @@ export default function DebloatTab({
                       </td>
 
                       <td style={{ padding: '8px 10px', fontWeight: 600, color: isUninstalled ? 'var(--text-muted)' : 'var(--text-bright)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <AppIcon pkg={pkg.package} name={pkg.name} isUser={false} size={28} />
                           <span>{pkg.name}</span>
                         </div>
                       </td>

@@ -1842,12 +1842,54 @@ class AdbService {
           outDis.split('\n').map((l) => l.replace('package:', '').trim()).filter(Boolean)
         );
 
+        // Retrieve real application versions from device via dumpsys package
+        const versionMap = {};
+        try {
+          const versionDump = await this.executeShell("dumpsys package packages | grep -E 'Package \\[|versionName='", 8000);
+          if (versionDump) {
+            let currentPkg = null;
+            versionDump.split('\n').forEach((line) => {
+              const l = line.trim();
+              if (l.startsWith('Package [') && l.includes(']')) {
+                currentPkg = l.split('[')[1].split(']')[0].trim();
+              } else if (currentPkg && l.startsWith('versionName=')) {
+                const v = l.replace('versionName=', '').trim().split(' ')[0];
+                if (v && v !== 'null') {
+                  versionMap[currentPkg] = v.startsWith('v') ? v : `v${v}`;
+                }
+                currentPkg = null;
+              }
+            });
+          }
+        } catch (e) {
+          console.warn('versionDump error:', e);
+        }
+
+        // Fast fallback with pm list packages --show-versioncode if versions are missing
+        if (Object.keys(versionMap).length === 0) {
+          try {
+            const verCodeDump = await this.executeShell('pm list packages --show-versioncode', 5000);
+            verCodeDump.split('\n').forEach((line) => {
+              const l = line.trim();
+              if (l.startsWith('package:')) {
+                const parts = l.split(/\s+/);
+                const pName = parts[0].replace('package:', '').trim();
+                const vCode = parts.find((p) => p.startsWith('versionCode:'))?.replace('versionCode:', '');
+                if (pName && vCode) {
+                  versionMap[pName] = `v${vCode}`;
+                }
+              }
+            });
+          } catch (e) {}
+        }
+
         const allPkgs = Array.from(new Set([...Object.keys(userMap), ...Object.keys(sysMap)]));
         const allApps = allPkgs.map((pkg) => {
           const isUser = !!userMap[pkg];
           const apkPath = userMap[pkg] || sysMap[pkg] || '';
           const isDisabled = disabledSet.has(pkg);
           const label = this.getFriendlyAppName(pkg);
+          const version = versionMap[pkg] || '--';
 
           return {
             package: pkg,
@@ -1855,7 +1897,7 @@ class AdbService {
             is_user: isUser,
             type: isUser ? 'Người dùng' : 'Hệ thống',
             apk_path: apkPath,
-            version: '--',
+            version: version,
             disabled: isDisabled,
             status: isDisabled ? 'Đã đóng băng' : 'Đang hoạt động',
           };
