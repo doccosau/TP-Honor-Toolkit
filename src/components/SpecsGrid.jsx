@@ -17,7 +17,7 @@ export default function SpecsGrid({ device }) {
       <div className="magicos-metric-grid">
         {/* Metric 1: SoC */}
         <div className="metric-capsule">
-          <div className="metric-capsule-icon" style={{ background: 'rgba(37, 99, 235, 0.15)', color: '#38bdf8' }}>
+          <div className="metric-capsule-icon icon-soc">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="4" y="4" width="16" height="16" rx="2"></rect>
               <rect x="9" y="9" width="6" height="6"></rect>
@@ -44,7 +44,7 @@ export default function SpecsGrid({ device }) {
 
         {/* Metric 2: Battery */}
         <div className="metric-capsule">
-          <div className="metric-capsule-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+          <div className="metric-capsule-icon icon-battery">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect>
               <line x1="22" y1="11" x2="22" y2="13"></line>
@@ -53,7 +53,7 @@ export default function SpecsGrid({ device }) {
           </div>
           <div className="metric-capsule-content">
             <span className="metric-capsule-label">Pin & Năng Lượng</span>
-            <span className="metric-capsule-val" style={{ color: isOnline && device.battery_level <= 20 ? '#f59e0b' : 'var(--text-bright)' }}>
+            <span className="metric-capsule-val" style={{ color: isOnline && device.battery_level <= 20 ? '#d97706' : 'var(--text-bright)' }}>
               {isOnline ? `${device.battery_level}% • ${device.battery_temp}°C` : '--'}
             </span>
             <span className="metric-capsule-sub">
@@ -64,7 +64,7 @@ export default function SpecsGrid({ device }) {
 
         {/* Metric 3: Display */}
         <div className="metric-capsule">
-          <div className="metric-capsule-icon" style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#c084fc' }}>
+          <div className="metric-capsule-icon icon-display">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
               <line x1="8" y1="21" x2="16" y2="21"></line>
@@ -76,7 +76,7 @@ export default function SpecsGrid({ device }) {
             <span className="metric-capsule-val">
               {isOnline ? `${device.screen_width} × ${device.screen_height}` : '--'}
             </span>
-            <span className="metric-capsule-sub" style={{ color: '#c084fc' }}>
+            <span className="metric-capsule-sub" style={{ color: isOnline ? 'var(--magicos-purple)' : 'var(--text-muted)' }}>
               {isOnline ? `${device.max_hz || 120}Hz • Chuẩn: ${device.sweet_spot_dpi || 385} DPI` : 'Chờ thiết bị'}
             </span>
           </div>
@@ -84,7 +84,7 @@ export default function SpecsGrid({ device }) {
 
         {/* Metric 4: OS & ROM */}
         <div className="metric-capsule">
-          <div className="metric-capsule-icon" style={{ background: 'rgba(6, 182, 212, 0.15)', color: '#06b6d4' }}>
+          <div className="metric-capsule-icon icon-os">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               <polyline points="9 12 11 14 15 10"></polyline>
@@ -92,7 +92,7 @@ export default function SpecsGrid({ device }) {
           </div>
           <div className="metric-capsule-content">
             <span className="metric-capsule-label">Hệ Điều Hành MagicOS</span>
-            <span className="metric-capsule-val" style={{ color: '#38bdf8' }}>
+            <span className="metric-capsule-val" style={{ color: isOnline ? 'var(--magicos-blue)' : 'var(--text-bright)' }}>
               {isOnline ? device.magic_version : '--'}
             </span>
             <span className="metric-capsule-sub">
@@ -106,7 +106,7 @@ export default function SpecsGrid({ device }) {
       <div className="specs-card">
         <div className="specs-header-title">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="svg-icon" style={{ color: '#38bdf8' }}>
+            <span className="svg-icon" style={{ color: 'var(--magicos-blue)' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="3" y1="9" x2="21" y2="9"></line>
@@ -200,7 +200,7 @@ export default function SpecsGrid({ device }) {
                 {isOnline ? `${device.current_dpi} DPI` : '--'}
               </td>
               <td className="label-col">DPI Chuẩn Mắt (Sweet Spot):</td>
-              <td id="specSweetDpi" className="val-col highlight" style={{ color: '#10b981' }}>
+              <td id="specSweetDpi" className="val-col highlight" style={{ color: '#059669' }}>
                 {isOnline ? `${device.sweet_spot_dpi} DPI (Chuẩn 385 dp)` : '--'}
               </td>
             </tr>
@@ -236,7 +236,7 @@ export default function SpecsGrid({ device }) {
               Bộ Nhớ Trong: <b id="txtStorageUsed" style={{ color: 'var(--text-bright)' }}>{isOnline ? (device.storage_used_str || '--') : '--'}</b> / {isOnline ? (device.storage_total_str || '--') : '--'} {isOnline && device.storage_percent ? `(Đã dùng ~${device.storage_percent}%)` : ''}
             </span>
             <span>
-              Khả dụng: <b id="txtStorageFree" style={{ color: '#10b981' }}>{isOnline ? (device.storage_free_str || '--') : '--'}</b>
+              Khả dụng: <b id="txtStorageFree" style={{ color: '#059669' }}>{isOnline ? (device.storage_free_str || '--') : '--'}</b>
             </span>
           </div>
           <div className="storage-bar">
@@ -286,22 +286,22 @@ export default function SpecsGrid({ device }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginTop: '6px' }}>
           <div style={{ background: 'var(--panel-alt)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '4px' }}>Dịch Vụ Rác Nội Địa TQ:</div>
-            <div id="statBloatStatus" style={{ fontWeight: 600, color: '#10b981', fontSize: '13px' }}>
-              {isOnline ? (device.bloat_summary || 'Đã dọn sạch bloatware') : '--'}
+            <div id="statBloatStatus" style={{ fontWeight: 600, color: isOnline ? '#059669' : 'var(--text-muted)', fontSize: '13px' }}>
+              {isOnline ? (device.bloat_summary || 'Đã dọn sạch bloatware') : 'Chờ thiết bị'}
             </div>
           </div>
           <div style={{ background: 'var(--panel-alt)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '4px' }}>FCM Thông Báo App VN:</div>
-            <div id="statFcmStatus" style={{ fontWeight: 600, color: '#38bdf8', fontSize: '13px' }}>
-              {isOnline ? (device.fcm_summary || 'Đang đồng bộ...') : '--'}
+            <div id="statFcmStatus" style={{ fontWeight: 600, color: isOnline ? 'var(--magicos-blue)' : 'var(--text-muted)', fontSize: '13px' }}>
+              {isOnline ? (device.fcm_summary || 'Đang đồng bộ...') : 'Chờ thiết bị'}
             </div>
           </div>
           <div style={{ background: 'var(--panel-alt)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '4px' }}>Bảo Mật DNS DoT:</div>
-            <div id="statDnsStatus" style={{ fontWeight: 600, color: '#10b981', fontSize: '13px' }}>
+            <div id="statDnsStatus" style={{ fontWeight: 600, color: isOnline ? '#059669' : 'var(--text-muted)', fontSize: '13px' }}>
               {isOnline
                 ? (device.current_dns_spec || (device.current_dns_mode === 'off' ? 'Chưa bật DoT' : 'Tự động (Opportunistic)'))
-                : '--'}
+                : 'Chờ thiết bị'}
             </div>
           </div>
         </div>

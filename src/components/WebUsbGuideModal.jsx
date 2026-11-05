@@ -10,17 +10,17 @@ export default function WebUsbGuideModal({ isOpen, onClose, onConnect }) {
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'rgba(0, 0, 0, 0.75)',
-      backdropFilter: 'blur(4px)',
+      background: 'var(--drawer-backdrop)',
+      backdropFilter: 'blur(6px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 9999,
       padding: '20px'
     }}>
-      <div className="specs-card" style={{ maxWidth: '560px', width: '100%', padding: '20px', boxShadow: '0 20px 40px rgba(0,0,0,0.8)', border: '1px solid #3b82f6' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
-          <div style={{ fontSize: '15px', fontWeight: 700, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div className="specs-card" style={{ maxWidth: '560px', width: '100%', padding: '20px', boxShadow: 'var(--card-shadow)', border: '1px solid var(--border-light)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid var(--border-light)', paddingBottom: '10px' }}>
+          <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--magicos-blue)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="svg-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <circle cx="12" cy="12" r="10"></circle>
@@ -32,7 +32,7 @@ export default function WebUsbGuideModal({ isOpen, onClose, onConnect }) {
           </div>
           <button
             onClick={onClose}
-            style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             title="Đóng"
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

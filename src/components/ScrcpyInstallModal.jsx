@@ -39,10 +39,10 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
         style={{
           width: '580px',
           maxWidth: '94vw',
-          background: '#1c212d',
-          border: '1px solid #2e3547',
-          borderRadius: '10px',
-          boxShadow: '0 24px 48px rgba(0,0,0,0.75)',
+          background: 'var(--panel-card)',
+          border: '1px solid var(--border-light)',
+          borderRadius: '12px',
+          boxShadow: 'var(--card-shadow)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
@@ -52,8 +52,8 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
         <div
           style={{
             padding: '14px 18px',
-            background: '#161a24',
-            borderBottom: '1px solid #2e3547',
+            background: 'var(--panel-alt)',
+            borderBottom: '1px solid var(--border-light)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -160,29 +160,29 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
             {/* Option A: Direct 1-Line Command */}
             <div
               style={{
-                background: '#11141c',
-                border: '1px solid #2e3547',
-                borderRadius: '6px',
+                background: 'var(--panel-alt)',
+                border: '1px solid var(--border-light)',
+                borderRadius: '8px',
                 padding: '10px 12px',
                 marginBottom: '10px',
               }}
             >
-              <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff', marginBottom: '4px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-bright)', marginBottom: '4px' }}>
                 Cách 1: Chạy trực tiếp 1 dòng lệnh (Không cần tải file về máy)
               </div>
-              <div style={{ fontSize: '11.5px', color: '#94a3b8', marginBottom: '8px' }}>
+              <div style={{ fontSize: '11.5px', color: 'var(--text-dim)', marginBottom: '8px' }}>
                 Mở {isWin ? 'PowerShell' : 'Terminal'} và dán lệnh sau để bật cầu nối ngay:
               </div>
 
               <div
                 style={{
-                  background: '#0c0e14',
-                  border: '1px solid #262e3d',
-                  borderRadius: '5px',
+                  background: 'var(--panel-card)',
+                  border: '1px solid var(--border-dark)',
+                  borderRadius: '6px',
                   padding: '7px 10px',
-                  fontFamily: 'monospace',
+                  fontFamily: 'var(--font-mono)',
                   fontSize: '11px',
-                  color: '#38bdf8',
+                  color: 'var(--magicos-blue)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -213,9 +213,9 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
             {/* Option B: Download single-file scrcpy_bridge.py */}
             <div
               style={{
-                background: '#11141c',
-                border: '1px solid #2e3547',
-                borderRadius: '6px',
+                background: 'var(--panel-alt)',
+                border: '1px solid var(--border-light)',
+                borderRadius: '8px',
                 padding: '10px 12px',
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -225,10 +225,10 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
               }}
             >
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-bright)' }}>
                   Cách 2: Hoặc tải file đơn <code>scrcpy_bridge.py</code> (2 KB)
                 </div>
-                <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>
                   Sau khi tải về, chỉ cần nhấp đúp hoặc gõ: <code>python scrcpy_bridge.py</code>
                 </div>
               </div>
@@ -267,8 +267,8 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
           {onOpenWebMirror && (
             <div
               style={{
-                background: '#171d2b',
-                border: '1px dashed #283348',
+                background: 'var(--panel-alt)',
+                border: '1px dashed var(--border-dark)',
                 borderRadius: '8px',
                 padding: '12px 14px',
                 display: 'flex',
@@ -308,8 +308,8 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
         <div
           style={{
             padding: '12px 18px',
-            background: '#161a24',
-            borderTop: '1px solid #2e3547',
+            background: 'var(--panel-alt)',
+            borderTop: '1px solid var(--border-light)',
             display: 'flex',
             justifyContent: 'flex-end',
             gap: '10px',

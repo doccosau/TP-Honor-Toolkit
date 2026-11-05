@@ -100,7 +100,7 @@ export default function TerminalConsole({ logs = [], isExecuting = false, execut
       <div className="console-header">
         {/* Left: Title & Status */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="svg-icon" style={{ color: '#38bdf8' }}>
+          <span className="svg-icon" style={{ color: 'var(--magicos-blue)' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <polyline points="4 17 10 11 4 5"></polyline>
               <line x1="12" y1="19" x2="20" y2="19"></line>
@@ -136,7 +136,7 @@ export default function TerminalConsole({ logs = [], isExecuting = false, execut
               onClick={() => setActiveFilter('cmd')}
               title="Chỉ hiện các câu lệnh ADB shell ($ adb shell ...) và kết quả trả về"
             >
-              <span style={{ color: '#38bdf8' }}>$ ADB Shell</span>
+              <span style={{ color: 'var(--magicos-blue)' }}>$ ADB Shell</span>
               <span style={{ opacity: 0.7 }}>({counts.cmd})</span>
             </button>
             <button
