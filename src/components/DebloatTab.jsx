@@ -358,7 +358,7 @@ export default function DebloatTab({
             </span>
             <div>
               <div style={{ fontWeight: 600, color: '#10b981', fontSize: '13px' }}>
-                🎉 Thiết bị của bạn đã sạch hoàn toàn! Không có app rác nào đang tồn tại trên máy ({counts.uninstalled} ứng dụng đã được gỡ bỏ).
+                Thiết bị của bạn đã sạch hoàn toàn! Không có app rác nào đang tồn tại trên máy ({counts.uninstalled} ứng dụng đã được gỡ bỏ).
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
                 Bộ lọc hiện tại đang ẩn các ứng dụng đã gỡ. Bạn có thể bấm "Xem Tất Cả" bên cạnh để kiểm tra hoặc khôi phục bất kỳ lúc nào.
@@ -414,7 +414,7 @@ export default function DebloatTab({
                     {isScanning
                       ? 'Đang đồng bộ danh sách ứng dụng từ điện thoại...'
                       : counts.installed === 0 && counts.uninstalled > 0 && statusFilter === 'installed'
-                      ? '🎉 Toàn bộ ứng dụng rác nội địa đã được dọn sạch khỏi máy. Chuyển sang tab "Tất Cả" để xem danh sách hoặc khôi phục.'
+                      ? 'Toàn bộ ứng dụng rác nội địa đã được dọn sạch khỏi máy. Chuyển sang tab "Tất Cả" để xem danh sách hoặc khôi phục.'
                       : 'Không tìm thấy package nào phù hợp với bộ lọc.'}
                   </td>
                 </tr>

@@ -12,7 +12,13 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
   const isMac = /Mac/i.test(plat) || /Macintosh/i.test(ua);
 
   const osTitle = isWin ? 'Windows PC' : isMac ? 'Apple macOS' : 'Linux (Ubuntu / Debian / Arch / Fedora)';
-  const osIcon = isWin ? '🪟' : isMac ? '🍎' : '🐧';
+  const OsIcon = () => (
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
+      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+      <line x1="8" y1="21" x2="16" y2="21"></line>
+      <line x1="12" y1="17" x2="12" y2="21"></line>
+    </svg>
+  );
 
   // 1-line command to run bridge directly without manually saving file
   const oneLineCmd = isWin
@@ -110,8 +116,13 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
               marginBottom: '14px',
             }}
           >
-            <div style={{ fontSize: '12px', fontWeight: 600, color: '#38bdf8', marginBottom: '2px' }}>
-              🌐 Mọi tính năng khác đang chạy trực tiếp 100% trên Web:
+            <div style={{ fontSize: '12px', fontWeight: 600, color: '#38bdf8', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+              <span>Mọi tính năng khác đang chạy trực tiếp 100% trên Web:</span>
             </div>
             <div style={{ fontSize: '11.5px', color: '#94a3b8' }}>
               Tối ưu máy, gỡ app rác, cài Zalo/MoMo, kiểm tra pin, gán trợ lý Google... đều chạy trực tiếp trên web mà không cần tải bất kỳ file nào.
@@ -130,10 +141,15 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <div style={{ fontWeight: 600, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>🖥️ Bật cầu nối nhẹ (2 KB) để mở Scrcpy Desktop:</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                <span>Bật cầu nối nhẹ (2 KB) để mở Scrcpy Desktop:</span>
               </div>
-              <span className="badge-tag tag-safe" style={{ fontSize: '10.5px' }}>
-                {osIcon} {osTitle}
+              <span className="badge-tag tag-safe" style={{ fontSize: '10.5px', display: 'inline-flex', alignItems: 'center' }}>
+                <OsIcon /> {osTitle}
               </span>
             </div>
 
@@ -177,10 +193,19 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
                 <button
                   type="button"
                   className="btn-tool"
-                  style={{ padding: '3px 9px', fontSize: '11px', flexShrink: 0, fontWeight: 600 }}
+                  style={{ padding: '3px 9px', fontSize: '11px', flexShrink: 0, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                   onClick={handleCopyCmd}
                 >
-                  {copiedCmd ? '✓ Đã chép' : 'Sao chép lệnh'}
+                  {copiedCmd ? (
+                    <>
+                      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      Đã chép
+                    </>
+                  ) : (
+                    'Sao chép lệnh'
+                  )}
                 </button>
               </div>
             </div>
@@ -221,12 +246,20 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
                   fontWeight: 600,
                 }}
               >
-                <span>⬇️ Tải file (2 KB)</span>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Tải file (2 KB)</span>
               </a>
             </div>
 
-            <div style={{ marginTop: '10px', fontSize: '11px', color: '#10b981' }}>
-              ✓ Khi cầu nối đang chạy ở cổng 5050, trang web sẽ <b>tự động bắt sóng</b> và mở Scrcpy 120 FPS lên màn hình máy tính mỗi khi bạn bấm nút!
+            <div style={{ marginTop: '10px', fontSize: '11px', color: '#10b981', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>Khi cầu nối đang chạy ở cổng 5050, trang web sẽ <b>tự động bắt sóng</b> và mở Scrcpy 120 FPS lên màn hình máy tính mỗi khi bạn bấm nút!</span>
             </div>
           </div>
 
@@ -245,8 +278,12 @@ export default function ScrcpyInstallModal({ isOpen, onClose, onOpenWebMirror, a
               }}
             >
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '2px' }}>
-                  📱 Không muốn tải hay bật cầu nối? Xem ngay trên Web:
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                  </svg>
+                  <span>Không muốn tải hay bật cầu nối? Xem ngay trên Web:</span>
                 </div>
                 <div style={{ fontSize: '11px', color: '#64748b' }}>
                   Bạn có thể dùng Web Mirror để xem và chạm màn hình trực tiếp trong tab trình duyệt mà không cần bất kỳ file nào.

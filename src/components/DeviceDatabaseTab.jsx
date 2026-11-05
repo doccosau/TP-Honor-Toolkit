@@ -199,8 +199,12 @@ export default function DeviceDatabaseTab() {
                 }}
               >
                 <span style={{ color: '#94a3b8' }}>Pin: {dev.battery}</span>
-                <span style={{ color: '#38bdf8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
-                  Chi Tiết ➔
+                <span style={{ color: '#38bdf8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  Chi Tiết
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
                 </span>
               </div>
             </div>

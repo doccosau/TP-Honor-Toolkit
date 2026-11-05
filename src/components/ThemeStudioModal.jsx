@@ -121,22 +121,31 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '22px' }}>🎨</span>
+            <span className="svg-icon" style={{ color: 'var(--primary)', display: 'inline-flex' }}>
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83m13.79-4l-5.74 9.94"></path>
+              </svg>
+            </span>
             <div>
               <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--text-bright)' }}>
-                TP Theme Studio - Quản Lý & Trích Xuất Theme MagicOS (.hnt)
+                TP Theme Studio - Quản Lý &amp; Trích Xuất Theme MagicOS (.hnt)
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
-                Chuẩn hóa tệp .hnt, nạp trực tiếp vào thư mục hệ thống & không lưu rác bộ nhớ máy
+                Chuẩn hóa tệp .hnt, nạp trực tiếp vào thư mục hệ thống &amp; không lưu rác bộ nhớ máy
               </div>
             </div>
           </div>
           <button
             onClick={onClose}
             className="btn-tool"
-            style={{ padding: '6px 10px', fontSize: '14px', borderRadius: '4px' }}
+            style={{ padding: '6px 10px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Đóng"
           >
-            ✕
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
           </button>
         </div>
 
@@ -165,7 +174,11 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
               gap: '6px',
             }}
           >
-            <span>⚡</span>
+            <span className="svg-icon" style={{ display: 'inline-flex' }}>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+            </span>
             <span>Trích Xuất Theme VIP Đang Thử (1-Click)</span>
           </button>
           <button
@@ -184,7 +197,13 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
               gap: '6px',
             }}
           >
-            <span>📥</span>
+            <span className="svg-icon" style={{ display: 'inline-flex' }}>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </span>
             <span>Nạp File .hnt Có Sẵn Vào Máy</span>
           </button>
         </div>
@@ -206,12 +225,18 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
                 }}
               >
                 <div style={{ fontWeight: 600, color: '#3b82f6', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>💡</span>
+                  <span className="svg-icon" style={{ display: 'inline-flex' }}>
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                  </span>
                   <span>Cơ chế trích xuất Theme VIP độc quyền:</span>
                 </div>
                 <ol style={{ margin: 0, paddingLeft: '18px' }}>
                   <li>Trên điện thoại Honor: Mở app <b>Chủ Đề (Theme Store)</b> chính hãng.</li>
-                  <li>Chọn bất kỳ <b>Theme VIP hoặc Trả phí</b> nào bạn thích ➔ Bấm <b>Dùng thử (5 phút)</b>.</li>
+                  <li>Chọn bất kỳ <b>Theme VIP hoặc Trả phí</b> nào bạn thích → Bấm <b>Dùng thử (5 phút)</b>.</li>
                   <li>Quay lại màn hình này và bấm nút <b>"Bắt Đầu Trích Xuất Theme"</b> bên dưới.</li>
                   <li>Toolkit sẽ tự động trích xuất toàn bộ tài nguyên đã giải mã, loại bỏ cờ trial, đóng gói lại chuẩn ZIP Deflate <b>.hnt</b> và nạp vĩnh viễn vào máy!</li>
                 </ol>
@@ -236,10 +261,15 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
                   {isExtracting ? (
                     <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span className="spinner" style={{ width: '14px', height: '14px' }}></span>
-                      <span>Đang trích xuất & đóng gói .hnt...</span>
+                      <span>Đang trích xuất &amp; đóng gói .hnt...</span>
                     </span>
                   ) : (
-                    <span>🚀 Bắt Đầu Trích Xuất Theme Vĩnh Viễn</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                      </svg>
+                      <span>Bắt Đầu Trích Xuất Theme Vĩnh Viễn</span>
+                    </span>
                   )}
                 </button>
                 {!isOnline && (
@@ -259,9 +289,17 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
                     padding: '12px 14px',
                     color: '#ef4444',
                     fontSize: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
                   }}
                 >
-                  <b>⚠️ Lỗi:</b> {extractError}
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  <span><b>Lỗi:</b> {extractError}</span>
                 </div>
               )}
 
@@ -280,7 +318,10 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
                   }}
                 >
                   <div style={{ fontWeight: 600, color: '#10b981', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>🎉</span>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
                     <span>ĐÃ TRÍCH XUẤT THÀNH CÔNG THEME: {extractResult.title}</span>
                   </div>
                   <div style={{ color: 'var(--text)' }}>
@@ -300,9 +341,16 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
                       borderRadius: '4px',
                       color: 'var(--text-bright)',
                       fontWeight: 500,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
                     }}
                   >
-                    👉 <b>Cách áp dụng ngay:</b> Mở app Chủ Đề trên điện thoại ➔ Tab <b>"Tôi"</b> ➔ <b>"Chủ đề của tôi"</b> ➔ Chọn theme và bấm <b>Áp dụng</b> để dùng vĩnh viễn!
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                    <span><b>Cách áp dụng ngay:</b> Mở app Chủ Đề trên điện thoại → Tab <b>"Tôi"</b> → <b>"Chủ đề của tôi"</b> → Chọn theme và bấm <b>Áp dụng</b> để dùng vĩnh viễn!</span>
                   </div>
                 </div>
               )}
@@ -334,7 +382,13 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
                   style={{ display: 'none' }}
                   onChange={handleFileSelect}
                 />
-                <div style={{ fontSize: '36px', marginBottom: '10px' }}>📦</div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+                  <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--primary)" strokeWidth="1.5">
+                    <path d="M16.5 9.4 7.55 4.24a1.78 1.78 0 0 0-1.78 0L2 6.35v11.3a1.78 1.78 0 0 0 .89 1.54l3.78 2.18a1.78 1.78 0 0 0 1.78 0l13.66-7.89a1.78 1.78 0 0 0 .89-1.54V6.35l-3.78-2.18a1.78 1.78 0 0 0-1.78 0z"></path>
+                    <polyline points="3.29 7 12 12 20.71 7"></polyline>
+                    <line x1="12" y1="22" x2="12" y2="12"></line>
+                  </svg>
+                </div>
                 <div style={{ fontWeight: 600, color: 'var(--text-bright)', marginBottom: '4px' }}>
                   Kéo thả file .hnt vào đây hoặc bấm để chọn file
                 </div>
@@ -358,9 +412,17 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
                     padding: '12px 14px',
                     color: '#ef4444',
                     fontSize: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
                   }}
                 >
-                  <b>⚠️ Lỗi nạp theme:</b> {uploadError}
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  <span><b>Lỗi nạp theme:</b> {uploadError}</span>
                 </div>
               )}
 
@@ -373,9 +435,16 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
                     padding: '14px',
                     color: '#10b981',
                     fontSize: '12.5px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
                   }}
                 >
-                  🎉 <b>Đã nạp thành công:</b> {uploadResult.filename} vào ứng dụng Chủ Đề! Hãy mở app Chủ Đề trên điện thoại để áp dụng.
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  <span><b>Đã nạp thành công:</b> {uploadResult.filename} vào ứng dụng Chủ Đề! Hãy mở app Chủ Đề trên điện thoại để áp dụng.</span>
                 </div>
               )}
 

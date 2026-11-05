@@ -32,9 +32,13 @@ export default function WebUsbGuideModal({ isOpen, onClose, onConnect }) {
           </div>
           <button
             onClick={onClose}
-            style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '16px' }}
+            style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Đóng"
           >
-            ✕
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
           </button>
         </div>
 
@@ -42,28 +46,28 @@ export default function WebUsbGuideModal({ isOpen, onClose, onConnect }) {
           <div>
             <b>Bước 1: Mở chế độ Nhà phát triển</b>
             <div style={{ color: 'var(--text-dim)', marginLeft: '12px' }}>
-              Vào <code>Cài đặt (Settings)</code> ➔ <code>Về điện thoại (About Phone)</code> ➔ Nhấp liên tục <b>7 lần</b> vào <code>Số bản dựng (Build Number)</code>.
+              Vào <code>Cài đặt (Settings)</code> → <code>Về điện thoại (About Phone)</code> → Nhấp liên tục <b>7 lần</b> vào <code>Số bản dựng (Build Number)</code>.
             </div>
           </div>
 
           <div>
             <b>Bước 2: Bật Gỡ lỗi USB</b>
             <div style={{ color: 'var(--text-dim)', marginLeft: '12px' }}>
-              Quay lại <code>Cài đặt</code> ➔ <code>Hệ thống & Cập nhật</code> ➔ <code>Tùy chọn nhà phát triển (Developer Options)</code> ➔ Gạt bật <b>Gỡ lỗi USB (USB Debugging)</b>.
+              Quay lại <code>Cài đặt</code> → <code>Hệ thống & Cập nhật</code> → <code>Tùy chọn nhà phát triển (Developer Options)</code> → Gạt bật <b>Gỡ lỗi USB (USB Debugging)</b>.
             </div>
           </div>
 
           <div>
             <b>Bước 3: Cắm cáp & Cấp quyền RSA</b>
             <div style={{ color: 'var(--text-dim)', marginLeft: '12px' }}>
-              Cắm cáp Type-C nối điện thoại với máy tính. Khi màn hình điện thoại hiện bảng hỏi <i>"Cho phép gỡ lỗi USB từ máy tính này?"</i> ➔ Hãy tích vào ô <b>"Luôn cho phép"</b> rồi bấm <b>OK</b>.
+              Cắm cáp Type-C nối điện thoại với máy tính. Khi màn hình điện thoại hiện bảng hỏi <i>"Cho phép gỡ lỗi USB từ máy tính này?"</i> → Hãy tích vào ô <b>"Luôn cho phép"</b> rồi bấm <b>OK</b>.
             </div>
           </div>
 
           <div>
             <b>Bước 4: Bấm nút Kết Nối trên Web</b>
             <div style={{ color: 'var(--text-dim)', marginLeft: '12px' }}>
-              Dùng trình duyệt <b>Google Chrome</b> hoặc <b>Microsoft Edge</b> ➔ Bấm nút <b>"Kết Nối WebUSB"</b> màu xanh ở thanh tiêu đề phía trên và chọn thiết bị Honor của bạn!
+              Dùng trình duyệt <b>Google Chrome</b> hoặc <b>Microsoft Edge</b> → Bấm nút <b>"Kết Nối WebUSB"</b> màu xanh ở thanh tiêu đề phía trên và chọn thiết bị Honor của bạn!
             </div>
           </div>
         </div>

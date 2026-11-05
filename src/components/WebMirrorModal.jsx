@@ -183,11 +183,17 @@ export default function WebMirrorModal({ isOpen, onClose, device, adbService, on
             <button
               type="button"
               className="btn-tool"
-              style={{ fontSize: '11px', padding: '4px 8px' }}
+              style={{ fontSize: '11px', padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
               onClick={() => onOpenScrcpyModal?.()}
               title="Mở hướng dẫn chạy Scrcpy 120Hz ngoài Desktop"
             >
-              🚀 Scrcpy 120Hz Desktop
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path>
+                <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path>
+                <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path>
+                <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path>
+              </svg>
+              Scrcpy 120Hz Desktop
             </button>
             <button
               onClick={onClose}
@@ -287,7 +293,12 @@ export default function WebMirrorModal({ isOpen, onClose, device, adbService, on
               />
             ) : (
               <div style={{ textAlign: 'center', color: '#94a3b8', padding: '20px' }}>
-                <div style={{ fontSize: '28px', marginBottom: '10px' }}>📱</div>
+                <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'center' }}>
+                  <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                  </svg>
+                </div>
                 <div style={{ fontSize: '12px' }}>{isLoadingFrame ? 'Đang truyền hình ảnh từ điện thoại...' : statusText}</div>
               </div>
             )}
@@ -310,29 +321,39 @@ export default function WebMirrorModal({ isOpen, onClose, device, adbService, on
             <button
               type="button"
               className="btn-tool"
-              style={{ padding: '6px 14px', borderRadius: '12px' }}
+              style={{ padding: '6px 14px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               onClick={() => handleSendKey(4)}
               title="Quay lại (Back)"
             >
-              ◀ Quay lại
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+              Quay lại
             </button>
             <button
               type="button"
               className="btn-tool"
-              style={{ padding: '6px 14px', borderRadius: '12px' }}
+              style={{ padding: '6px 14px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               onClick={() => handleSendKey(3)}
               title="Màn hình chính (Home)"
             >
-              ⌂ Home
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              Home
             </button>
             <button
               type="button"
               className="btn-tool"
-              style={{ padding: '6px 14px', borderRadius: '12px' }}
+              style={{ padding: '6px 14px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               onClick={() => handleSendKey(187)}
               title="Ứng dụng gần đây (Recent Apps)"
             >
-              ▢ Đa nhiệm
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              </svg>
+              Đa nhiệm
             </button>
           </div>
 
@@ -349,59 +370,94 @@ export default function WebMirrorModal({ isOpen, onClose, device, adbService, on
             <button
               type="button"
               className={`btn-tool ${isStreaming ? 'primary' : ''}`}
-              style={{ fontSize: '11px', padding: '5px 12px' }}
+              style={{ fontSize: '11px', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
               onClick={() => setIsStreaming(!isStreaming)}
             >
-              {isStreaming ? '⏸ Tạm dừng phát' : '▶ Bật phát trực tiếp'}
+              {isStreaming ? (
+                <>
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                  </svg>
+                  Tạm dừng phát
+                </>
+              ) : (
+                <>
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                  Bật phát trực tiếp
+                </>
+              )}
             </button>
 
             <button
               type="button"
               className="btn-tool"
-              style={{ fontSize: '11px', padding: '5px 12px' }}
+              style={{ fontSize: '11px', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
               onClick={() => fetchFrame()}
               disabled={isLoadingFrame}
             >
-              🔄 Làm mới khung hình
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+              Làm mới khung hình
             </button>
 
             <button
               type="button"
               className="btn-tool"
-              style={{ fontSize: '11px', padding: '5px 12px' }}
+              style={{ fontSize: '11px', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
               onClick={handleDownload}
               disabled={!frameUrl}
               title="Tải ảnh màn hình về máy tính"
             >
-              📸 Tải ảnh (PNG)
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+              Tải ảnh (PNG)
             </button>
 
             <button
               type="button"
               className="btn-tool"
-              style={{ fontSize: '11px', padding: '5px 10px' }}
+              style={{ fontSize: '11px', padding: '5px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               onClick={() => handleSendKey(25)}
               title="Giảm âm lượng"
             >
-              🔉 Vol -
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              </svg>
+              Vol -
             </button>
             <button
               type="button"
               className="btn-tool"
-              style={{ fontSize: '11px', padding: '5px 10px' }}
+              style={{ fontSize: '11px', padding: '5px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               onClick={() => handleSendKey(24)}
               title="Tăng âm lượng"
             >
-              🔊 Vol +
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              </svg>
+              Vol +
             </button>
             <button
               type="button"
               className="btn-tool"
-              style={{ fontSize: '11px', padding: '5px 10px' }}
+              style={{ fontSize: '11px', padding: '5px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               onClick={() => handleSendKey(26)}
               title="Khóa / Mở sáng màn hình"
             >
-              ⚡ Nguồn
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+              Nguồn
             </button>
           </div>
 

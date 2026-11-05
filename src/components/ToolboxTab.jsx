@@ -110,7 +110,7 @@ export default function ToolboxTab({
     try {
       const res = await adbService.extractTrialTheme();
       if (res && res.success) {
-        setQuickExtractMsg(`🎉 Đã trích xuất thành công: ${res.title} (${res.size_mb} MB)! Đã nạp vào app Chủ Đề.`);
+        setQuickExtractMsg(`Đã trích xuất thành công: ${res.title} (${res.size_mb} MB)! Đã nạp vào app Chủ Đề.`);
       } else {
         alert(res?.message || 'Chưa phát hiện theme dùng thử tại /data/themes/0. Vui lòng vào app Chủ Đề và bấm Dùng thử (5 phút) trước.');
       }
@@ -235,7 +235,7 @@ export default function ToolboxTab({
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
               </span>
-              <span>{isWeb ? '🚀 Mở Scrcpy 120Hz (Lệnh Chuẩn Winget)' : '🚀 Khởi Chạy Scrcpy 120Hz Ngay'}</span>
+              <span>{isWeb ? 'Mở Scrcpy 120Hz (Lệnh Chuẩn Winget)' : 'Khởi Chạy Scrcpy 120Hz Ngay'}</span>
             </button>
 
             <button
@@ -245,7 +245,13 @@ export default function ToolboxTab({
               onClick={onOpenWebMirror}
               disabled={!isOnline}
             >
-              <span>📱 Xem &amp; Điều Khiển Ngay Trong Web (Web Mirror)</span>
+              <span className="svg-icon" style={{ marginRight: '6px' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                  <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                </svg>
+              </span>
+              <span>Xem &amp; Điều Khiển Ngay Trong Web (Web Mirror)</span>
             </button>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
@@ -413,15 +419,15 @@ export default function ToolboxTab({
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginBottom: '14px' }}>
               <div style={{ background: 'rgba(0,0,0,0.25)', padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#38bdf8', marginBottom: '4px' }}>✦ Lõi Android System</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#38bdf8', marginBottom: '4px' }}>Lõi Android System</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Gán default assistant, voice interaction và cấp quyền chụp màn hình trợ lý.</div>
               </div>
               <div style={{ background: 'rgba(0,0,0,0.25)', padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#c084fc', marginBottom: '4px' }}>✦ Gesture Search (2.3 MB)</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#c084fc', marginBottom: '4px' }}>Gesture Search (2.3 MB)</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Thanh vuốt đáy màn hình & Tile Quick Settings gọi nhanh Gemini Floaty.</div>
               </div>
               <div style={{ background: 'rgba(0,0,0,0.25)', padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#34d399', marginBottom: '4px' }}>✦ Trợ Lý VXM (52 MB)</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#34d399', marginBottom: '4px' }}>Trợ Lý VXM (52 MB)</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Engine nhận diện giọng nói Vosk offline 24/7 cho lệnh &quot;OK Google&quot;.</div>
               </div>
             </div>
@@ -503,7 +509,7 @@ export default function ToolboxTab({
             <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '8px 0 12px 0', lineHeight: '1.6' }}>
               Hệ thống MagicOS đã tích hợp sẵn khung GMS/GSF nhưng mặc định bị khóa ngầm.
               <br />
-              ✦ <b>Cơ chế Tự Động 100%:</b> Công cụ tự động kiểm tra phần cứng thiết bị (CPU ABI, phiên bản Android & màn hình), truy cập nguồn chính thức <b>APKMirror Google Play Store</b> để cào lấy phiên bản mới nhất tương thích tuyệt đối, tải về máy với tiến trình trực tiếp và cài đặt hoàn tất qua ADB.
+              <b>Cơ chế Tự Động 100%:</b> Công cụ tự động kiểm tra phần cứng thiết bị (CPU ABI, phiên bản Android & màn hình), truy cập nguồn chính thức <b>APKMirror Google Play Store</b> để cào lấy phiên bản mới nhất tương thích tuyệt đối, tải về máy với tiến trình trực tiếp và cài đặt hoàn tất qua ADB.
             </p>
 
             {/* Custom URL Input (Optional) */}
@@ -669,15 +675,18 @@ export default function ToolboxTab({
                     <path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83m13.79-4l-5.74 9.94"></path>
                   </svg>
                 </span>
-                <span>🎨 TP Theme Studio (Trích Xuất Theme VIP .hnt)</span>
+                <span>TP Theme Studio (Trích Xuất Theme VIP .hnt)</span>
               </div>
             </div>
             <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '10px 0 12px 0', lineHeight: '1.5' }}>
               Trích xuất 1-Click theme VIP đang dùng thử thành file <b>.hnt</b> vĩnh viễn, nạp vào thư mục hệ thống và sao lưu chia sẻ, không để lại rác trên điện thoại.
             </p>
             {quickExtractMsg && (
-              <div style={{ padding: '8px 10px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '4px', fontSize: '11.5px', color: '#10b981', marginBottom: '10px' }}>
-                {quickExtractMsg}
+              <div style={{ padding: '8px 10px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '4px', fontSize: '11.5px', color: '#10b981', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>{quickExtractMsg}</span>
               </div>
             )}
           </div>
@@ -688,7 +697,12 @@ export default function ToolboxTab({
               onClick={handleQuickExtract}
               disabled={!isOnline || quickExtracting}
             >
-              {quickExtracting ? 'Đang trích xuất sang .hnt...' : '⚡ Trích Xuất Nhanh Theme VIP Đang Thử'}
+              <span className="svg-icon" style={{ display: 'inline-flex', marginRight: '6px' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+              </span>
+              <span>{quickExtracting ? 'Đang trích xuất sang .hnt...' : 'Trích Xuất Nhanh Theme VIP Đang Thử'}</span>
             </button>
             <button
               type="button"
@@ -697,7 +711,12 @@ export default function ToolboxTab({
               onClick={() => setIsThemeStudioOpen(true)}
               disabled={!isOnline}
             >
-              <span>📂 Mở Studio Quản Lý & Nạp File .hnt</span>
+              <span className="svg-icon" style={{ display: 'inline-flex', marginRight: '6px' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </span>
+              <span>Mở Studio Quản Lý &amp; Nạp File .hnt</span>
             </button>
           </div>
         </div>
@@ -708,14 +727,17 @@ export default function ToolboxTab({
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="svg-icon" style={{ color: '#f59e0b' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                 </svg>
               </span>
-              <span>⚡ Tinh Chỉnh Cài Đặt Ẩn MagicOS (Magic Tweaks - Kế thừa từ HonorHook)</span>
+              <span>Tinh Chỉnh Cài Đặt Ẩn MagicOS (Magic Tweaks - Kế thừa từ HonorHook)</span>
             </div>
             {rootStatus?.has_root && (
-              <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                🛡️ Thiết bị Đã Root {rootStatus?.has_lsposed ? '(Có LSPosed)' : ''}
+              <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <span>Thiết bị Đã Root {rootStatus?.has_lsposed ? '(Có LSPosed)' : ''}</span>
               </span>
             )}
           </div>
@@ -727,7 +749,7 @@ export default function ToolboxTab({
             {/* Tweak 1: SuperCharge Turbo */}
             <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>⚡ Siêu Sạc Nhanh Khi Sáng Màn Hình</div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Siêu Sạc Nhanh Khi Sáng Màn Hình</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Giữ công suất sạc Turbo tối đa lúc đang sử dụng</div>
               </div>
               <button
@@ -743,7 +765,7 @@ export default function ToolboxTab({
             {/* Tweak 2: Infinite Bluetooth Volume */}
             <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>🔊 Âm Lượng Bluetooth Vô Cực</div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Âm Lượng Bluetooth Vô Cực</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Phá vỡ trần giới hạn âm lượng tai nghe Bluetooth</div>
               </div>
               <button
@@ -759,7 +781,7 @@ export default function ToolboxTab({
             {/* Tweak 3: Lock Max Refresh Rate */}
             <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>🚀 Khóa Cứng Tần Số Quét Không Tụt</div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Khóa Cứng Tần Số Quét Không Tụt</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Chống tự hạ Hz khi màn hình tĩnh, giữ mượt 120Hz</div>
               </div>
               <button
@@ -775,7 +797,7 @@ export default function ToolboxTab({
             {/* Tweak 4: Tianshan Display */}
             <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>🏔️ Hiển Thị Thiên Sơn (Tianshan)</div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Hiển Thị Thiên Sơn (Tianshan)</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Kích hoạt thuật toán hiển thị Oasis/Tianshan cao cấp</div>
               </div>
               <button
@@ -791,7 +813,7 @@ export default function ToolboxTab({
             {/* Tweak 5: SDR to HDR */}
             <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>✨ Nâng Cấp SDR Sang HDR</div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Nâng Cấp SDR Sang HDR</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Tự động tăng cường độ sáng và tương phản HDR</div>
               </div>
               <button
@@ -807,7 +829,7 @@ export default function ToolboxTab({
             {/* Tweak 6: Knuckle Gesture */}
             <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>✍️ Cử Chỉ Khớp Ngón Tay (Knuckle)</div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Cử Chỉ Khớp Ngón Tay (Knuckle)</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Vẽ chữ bằng khớp ngón tay để mở nhanh ứng dụng</div>
               </div>
               <button
@@ -823,7 +845,7 @@ export default function ToolboxTab({
             {/* Tweak 7: Fingerprint Slide */}
             <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>👆 Trượt Vân Tay Xem Thông Báo</div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Trượt Vân Tay Xem Thông Báo</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Vuốt lên/xuống tại cảm biến vân tay để kéo bảng tin</div>
               </div>
               <button
@@ -839,7 +861,7 @@ export default function ToolboxTab({
             {/* Tweak 8: Network Speed */}
             <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>📶 Hiện Tốc Độ Mạng Thời Gian Thực</div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Hiện Tốc Độ Mạng Thời Gian Thực</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Hiển thị tốc độ download KB/s trên thanh trạng thái</div>
               </div>
               <button
@@ -856,8 +878,12 @@ export default function ToolboxTab({
           {/* Marketing 11 Keys 1-Click Action */}
           <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
             <div>
-              <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-bright)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>🛡️</span>
+              <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-bright)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="svg-icon" style={{ color: '#38bdf8' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  </svg>
+                </span>
                 <span>Bộ 11 Khóa Dập Tắt Quảng Cáo &amp; Thu Thập Vị Trí Ngầm MagicOS</span>
               </div>
               <div style={{ fontSize: '11.5px', color: 'var(--text-dim)', marginTop: '2px' }}>
@@ -870,9 +896,22 @@ export default function ToolboxTab({
               onClick={handleToggleMarketing}
               disabled={!isOnline || loadingTweakKey === 'marketing'}
             >
-              {magicTweaks?.marketing_all_disabled?.enabled
-                ? '✅ ĐÃ TẮT SẠCH 11 KHÓA (Bấm để khôi phục)'
-                : '🚫 1-Click Dập Tắt Sạch 11 Khóa'}
+              {magicTweaks?.marketing_all_disabled?.enabled ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>ĐÃ TẮT SẠCH 11 KHÓA (Bấm để khôi phục)</span>
+                </span>
+              ) : (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                  </svg>
+                  <span>1-Click Dập Tắt Sạch 11 Khóa</span>
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -903,10 +942,14 @@ export default function ToolboxTab({
               <button
                 type="button"
                 className="btn-tool"
-                style={{ padding: '2px 8px' }}
+                style={{ padding: '4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 onClick={() => setScreenshotResult(null)}
+                title="Đóng"
               >
-                ✕
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
               </button>
             </div>
 

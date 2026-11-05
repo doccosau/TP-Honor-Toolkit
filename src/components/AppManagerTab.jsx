@@ -693,8 +693,13 @@ export default function AppManagerTab({
                           }}
                         >
                           {isProtected ? (
-                            <span title="Ứng dụng hệ thống cốt lõi (Bảo vệ chống xoá nhầm)" style={{ fontSize: '13px', cursor: 'not-allowed', opacity: 0.7 }}>
-                              🛡️
+                            <span
+                              title="Ứng dụng hệ thống cốt lõi (Bảo vệ chống xoá nhầm)"
+                              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'not-allowed', color: '#ef4444' }}
+                            >
+                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                              </svg>
                             </span>
                           ) : (
                             <input
@@ -769,11 +774,17 @@ export default function AppManagerTab({
                                 color: '#ef4444',
                                 border: '1px solid rgba(239, 68, 68, 0.25)',
                                 borderRadius: '4px',
-                                fontWeight: 500
+                                fontWeight: 500,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
                               }}
                               title="Ứng dụng hệ thống cốt lõi - Được bảo vệ an toàn chống bootloop"
                             >
-                              🛡️ Cốt lõi
+                              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                              </svg>
+                              Cốt lõi
                             </span>
                           ) : (
                             <>
