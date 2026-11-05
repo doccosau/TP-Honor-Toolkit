@@ -158,6 +158,17 @@ export default function ToolboxTab({
   );
   const [telemetryFilterCat, setTelemetryFilterCat] = useState('all');
   const [isApplyingTelemetry, setIsApplyingTelemetry] = useState(false);
+  const [inspectTelemetry, setInspectTelemetry] = useState(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && inspectTelemetry) {
+        setInspectTelemetry(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [inspectTelemetry]);
 
   const isWeb = adbService.mode === 'webusb';
 
@@ -880,8 +891,8 @@ export default function ToolboxTab({
               </div>
             </div>
 
-            {/* List of 11 Telemetry Keys with Detailed Explanations */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* Grid of 11 Telemetry Keys with Compact Matrix Layout */}
+            <div className="crm-grid-matrix">
               {filteredTelemetry.map((item) => {
                 const currentVal = magicTweaks?.marketing_all_disabled?.details?.[item.key];
                 const isBlocked = currentVal === '0';
@@ -890,76 +901,80 @@ export default function ToolboxTab({
                 return (
                   <div
                     key={item.key}
-                    className={`telemetry-row-card ${isSelected ? 'selected' : ''}`}
-                    onClick={() => handleToggleSelectTelemetry(item.key)}
-                    style={{ cursor: 'pointer' }}
+                    className={`crm-card ${inspectTelemetry?.key === item.key ? 'active-selected' : ''}`}
+                    onClick={() => setInspectTelemetry(item)}
                   >
-                    {/* Checkbox */}
-                    <div style={{ paddingTop: '2px' }} onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => handleToggleSelectTelemetry(item.key)}
-                        style={{ cursor: 'pointer', width: '15px', height: '15px' }}
-                      />
-                    </div>
-
-                    {/* Main Content */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '3px' }}>
-                        <span style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>
-                          {item.title}
-                        </span>
-                        <code
-                          style={{
-                            fontSize: '10.5px',
-                            background: 'rgba(0, 0, 0, 0.4)',
-                            padding: '1px 6px',
-                            borderRadius: '4px',
-                            color: '#38bdf8',
-                            fontFamily: 'var(--font-mono)',
+                    <div className="crm-card-header">
+                      <div className="crm-card-title-group">
+                        <div
+                          style={{ paddingTop: '2px' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleSelectTelemetry(item.key);
                           }}
                         >
-                          {item.key}
-                        </code>
-                        <span className="badge-tag tag-neutral" style={{ fontSize: '10px' }}>
-                          {item.categoryLabel}
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleToggleSelectTelemetry(item.key)}
+                            style={{ cursor: 'pointer', width: '15px', height: '15px' }}
+                          />
+                        </div>
+
+                        <div>
+                          <div className="crm-card-title">{item.title}</div>
+                          <div className="crm-card-meta">
+                            <span className="badge-tag tag-neutral" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                              {item.categoryLabel}
+                            </span>
+                            <span className="badge-tag tag-safe" style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', padding: '1px 5px' }}>
+                              {item.key}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}
+                      >
+                        <span
+                          className={`badge-tag ${isBlocked ? 'tag-safe' : 'tag-warn'}`}
+                          style={{ fontSize: '9px', padding: '1px 5px' }}
+                        >
+                          {isBlocked ? 'Đã Chặn' : 'Đang Mở'}
                         </span>
-                      </div>
-
-                      {/* Explanation */}
-                      <div style={{ fontSize: '11.5px', color: 'var(--text-dim)', lineHeight: '1.4', marginBottom: '4px' }}>
-                        {item.desc}
-                      </div>
-
-                      {/* Practical Impact */}
-                      <div style={{ fontSize: '11px', color: isBlocked ? '#10b981' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <span style={{ opacity: 0.7 }}>Tác động:</span>
-                        <span>{item.impact}</span>
+                        <label className="magicos-switch">
+                          <input
+                            type="checkbox"
+                            checked={!isBlocked}
+                            onChange={() => handleToggleSingleTelemetry(item.key)}
+                            disabled={!isOnline || loadingTweakKey === item.key}
+                          />
+                          <span className="magicos-slider"></span>
+                        </label>
                       </div>
                     </div>
 
-                    {/* Status & Switch Controls */}
-                    <div
-                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <span
-                        className={`badge-tag ${isBlocked ? 'tag-safe' : 'tag-warn'}`}
-                        style={{ fontSize: '10.5px' }}
-                      >
-                        {isBlocked ? 'Đã Chặn (= 0)' : `Đang Mở (= ${currentVal || '1'})`}
-                      </span>
+                    <div className="crm-card-desc">{item.desc}</div>
 
-                      <label className="magicos-switch" title={isBlocked ? 'Khóa đang tắt (Bảo vệ). Bấm để Bật lại.' : 'Khóa đang mở. Bấm để Chặn.'}>
-                        <input
-                          type="checkbox"
-                          checked={!isBlocked}
-                          onChange={() => handleToggleSingleTelemetry(item.key)}
-                          disabled={!isOnline || loadingTweakKey === item.key}
-                        />
-                        <span className="magicos-slider"></span>
-                      </label>
+                    <div className="crm-card-footer">
+                      <span style={{ color: isBlocked ? '#10b981' : '#94a3b8' }}>
+                        {item.impact}
+                      </span>
+                      <button
+                        type="button"
+                        className="crm-inspect-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setInspectTelemetry(item);
+                        }}
+                      >
+                        <span>Chi tiết &amp; Lệnh ADB</span>
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 );
@@ -1537,6 +1552,212 @@ export default function ToolboxTab({
                 </a>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Slide-Over Inspection Drawer for Telemetry */}
+      {inspectTelemetry && (
+        <>
+          <div className="crm-drawer-backdrop" onClick={() => setInspectTelemetry(null)} />
+          <div className="crm-drawer-panel">
+            <div className="crm-drawer-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="badge-tag tag-safe" style={{ fontSize: '10px', fontFamily: 'var(--font-mono)' }}>
+                  secure: {inspectTelemetry.key}
+                </span>
+                <span className="badge-tag tag-neutral" style={{ fontSize: '10px' }}>
+                  {inspectTelemetry.categoryLabel}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="crm-drawer-close"
+                onClick={() => setInspectTelemetry(null)}
+                title="Đóng cửa sổ (Esc)"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            <div className="crm-drawer-body">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                <div>
+                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-bright)', lineHeight: '1.4' }}>
+                    {inspectTelemetry.title}
+                  </h3>
+                  <div style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '4px' }}>
+                    Khóa tiếp thị &amp; theo dõi ẩn của Honor MagicOS
+                  </div>
+                </div>
+
+                <label className="magicos-switch" style={{ flexShrink: 0, marginTop: '4px' }}>
+                  <input
+                    type="checkbox"
+                    checked={magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] !== '0'}
+                    onChange={() => handleToggleSingleTelemetry(inspectTelemetry.key)}
+                    disabled={!isOnline || loadingTweakKey === inspectTelemetry.key}
+                  />
+                  <span className="magicos-slider"></span>
+                </label>
+              </div>
+
+              {/* Status pill */}
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  background: magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] === '0'
+                    ? 'rgba(16, 185, 129, 0.12)'
+                    : 'rgba(245, 158, 11, 0.12)',
+                  border: `1px solid ${magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] === '0' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span style={{ fontSize: '12px', color: 'var(--text-bright)' }}>Trạng thái hiện tại:</span>
+                <span
+                  className={`badge-tag ${magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] === '0' ? 'tag-safe' : 'tag-warn'}`}
+                  style={{ fontSize: '11px', fontWeight: 600 }}
+                >
+                  {magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] === '0'
+                    ? 'Đã Chặn An Toàn (Giá trị = 0)'
+                    : `Đang Mở (Giá trị = ${magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] || '1'})`}
+                </span>
+              </div>
+
+              {/* Description */}
+              <div className="crm-drawer-section">
+                <div className="crm-drawer-section-title">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <span>Mục đích can thiệp</span>
+                </div>
+                <div style={{ fontSize: '12.5px', color: 'var(--text-main)', lineHeight: '1.6' }}>
+                  {inspectTelemetry.desc}
+                </div>
+              </div>
+
+              {/* Exact ADB Command */}
+              <div className="crm-drawer-section">
+                <div className="crm-drawer-section-title">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="4 17 10 11 4 5"></polyline>
+                    <line x1="12" y1="19" x2="20" y2="19"></line>
+                  </svg>
+                  <span>Lệnh ADB Shell thực thi</span>
+                </div>
+                <div className="crm-code-box">
+                  {`# Lệnh ghi giá trị chặn:\nadb shell settings put secure ${inspectTelemetry.key} 0\n\n# Lệnh khôi phục bật lại:\nadb shell settings put secure ${inspectTelemetry.key} 1`}
+                </div>
+              </div>
+
+              {/* Impact */}
+              <div className="crm-drawer-section" style={{ borderLeft: '3px solid #38bdf8' }}>
+                <div className="crm-drawer-section-title" style={{ color: '#38bdf8' }}>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                  </svg>
+                  <span>Lợi ích thực tế</span>
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: '1.5' }}>
+                  {inspectTelemetry.impact}
+                </div>
+              </div>
+
+              {/* Safety */}
+              <div className="crm-drawer-section" style={{ borderLeft: '3px solid #10b981' }}>
+                <div className="crm-drawer-section-title" style={{ color: '#10b981' }}>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  </svg>
+                  <span>Mức độ an toàn</span>
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: '1.4' }}>
+                  Can thiệp vào bảng Settings Secure qua ADB không can thiệp system file, không ảnh hưởng đến chức năng gọi điện, tin nhắn hay camera. Có thể bật lại bất kỳ lúc nào.
+                </div>
+              </div>
+            </div>
+
+            <div className="crm-drawer-footer">
+              <button
+                type="button"
+                className="btn-tool"
+                onClick={() => setInspectTelemetry(null)}
+                style={{ fontSize: '12px' }}
+              >
+                Đóng
+              </button>
+
+              <button
+                type="button"
+                className={`btn-tool ${magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] === '0' ? '' : 'success'}`}
+                onClick={() => handleToggleSingleTelemetry(inspectTelemetry.key)}
+                disabled={!isOnline || loadingTweakKey === inspectTelemetry.key}
+                style={{ fontSize: '12px', fontWeight: 600 }}
+              >
+                {magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] === '0'
+                  ? 'Khôi Phục Mở Lại (= 1)'
+                  : 'Chặn Ngay Khóa Này (= 0)'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Floating Action Dock when Telemetry keys are selected */}
+      {selectedTelemetryKeys.size > 0 && (
+        <div className="crm-floating-dock">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="badge-tag tag-safe" style={{ fontSize: '11px', fontWeight: 600 }}>
+              Đã chọn {selectedTelemetryKeys.size}/11 khóa
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              type="button"
+              className="btn-tool success"
+              style={{ fontSize: '11.5px', padding: '5px 14px', fontWeight: 600 }}
+              onClick={() => handleApplySelectedTelemetry(true)}
+              disabled={!isOnline || isApplyingTelemetry}
+            >
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '5px' }}>
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <polyline points="9 12 11 14 15 10"></polyline>
+              </svg>
+              <span>Chặn {selectedTelemetryKeys.size} Khóa (= 0)</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn-tool"
+              style={{ fontSize: '11px', padding: '5px 10px' }}
+              onClick={() => handleApplySelectedTelemetry(false)}
+              disabled={!isOnline || isApplyingTelemetry}
+            >
+              <span>Khôi Phục (= 1)</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn-tool"
+              style={{ fontSize: '11px', padding: '5px 8px' }}
+              onClick={() => setSelectedTelemetryKeys(new Set())}
+              title="Bỏ chọn tất cả"
+            >
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
         </div>
       )}

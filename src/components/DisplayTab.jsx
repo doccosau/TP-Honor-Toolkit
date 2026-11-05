@@ -18,8 +18,10 @@ export default function DisplayTab({ device, onApplyDisplay }) {
   const [knuckleGestures, setKnuckleGestures] = useState(true);
   const [fingerprintSlide, setFingerprintSlide] = useState(false);
 
+  // CRM State
   const [activeModule, setActiveModule] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [inspectItem, setInspectItem] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
 
   const isOnline = Boolean(device && device.connected);
@@ -32,6 +34,17 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       setSelectedHz(String(device.max_hz));
     }
   }, [device]);
+
+  // Handle ESC key to close drawer
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && inspectItem) {
+        setInspectItem(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [inspectItem]);
 
   const handleApply = async () => {
     if (!isOnline) return;
@@ -88,14 +101,17 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       categoryLabel: 'Tần Số Quét',
       title: 'Tần Số Quét Màn Hình Mục Tiêu (Refresh Rate Hz)',
       scope: 'system: min_refresh_rate & peak_refresh_rate',
-      desc: 'Thiết lập mức quét khung hình tối đa và tối thiểu của tấm nền OLED/LTPO.',
-      impact: 'Trải nghiệm cuộn lướt mượt mà vượt trội ở mức 120Hz/144Hz/165Hz.',
+      summary: 'Thiết lập mức quét khung hình 120Hz/144Hz/165Hz cho tấm nền OLED/LTPO.',
+      desc: 'Hệ thống cho phép ép tần số quét tối thiểu và tối đa ngang bằng nhau, giúp các thao tác vuốt cuộn Facebook, TikTok, Chrome luôn ở ngưỡng mượt mà cao nhất.',
+      adbCommand: 'adb shell settings put system min_refresh_rate 120\nadb shell settings put system peak_refresh_rate 120',
+      impact: 'Khung hình siêu mượt, loại bỏ độ trễ mắt nhìn khi lướt mạng xã hội và chơi game.',
+      safety: 'Chuẩn tham số Android Display HAL',
       recommended: true,
       type: 'select',
       value: selectedHz,
       onChange: (val) => setSelectedHz(val),
       options: [
-        { value: 'auto', label: 'Tự Động Dynamic (Hệ thống Honor tự quyết định)' },
+        { value: 'auto', label: 'Tự Động Dynamic (Hệ thống Honor tự quản lý)' },
         { value: '165', label: 'Khóa Cứng 165Hz (Dòng Chuyên Game eSports WIN2)' },
         { value: '144', label: 'Khóa Cứng 144Hz (Dòng WIN Gen 1 / GT / X60 GT)' },
         { value: '120', label: 'Khóa Cứng 120Hz (Chuẩn Flagship Magic / Number / X80)' },
@@ -107,10 +123,13 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       id: 'lock_high_hz_no_drop',
       category: 'refresh',
       categoryLabel: 'Tần Số Quét',
-      title: 'Khóa Cứng Tần Số Quét Không Tự Hạ (No-Drop Refresh Rate)',
+      title: 'Khóa Cứng Tần Số Quét Không Tự Hạ (No-Drop Hz)',
       scope: 'secure: reduce_refresh_rate_enabled = 0',
-      desc: 'Tắt tính năng tự ý hạ tần số quét xuống 60Hz của MagicOS khi xem video YouTube/TikTok, gõ bàn phím hoặc khi màn hình đứng yên.',
-      impact: 'Màn hình luôn duy trì tốc độ quét tối đa, loại bỏ hoàn toàn hiện tượng khựng giật (stutter) khi vuốt app.',
+      summary: 'Tắt cờ tự động hạ về 60Hz khi xem video hoặc khi màn hình đứng yên.',
+      desc: 'HonorHook phát hiện MagicOS sở hữu cơ chế hạ xung màn hình ngầm `reduce_refresh_rate_enabled`. Khi tắt cờ này (0), màn hình không bao giờ tự ý tụt xung, triệt tiêu hiện tượng khựng hình khi vuốt app sau khi tạm dừng.',
+      adbCommand: 'adb shell settings put secure reduce_refresh_rate_enabled 0',
+      impact: 'Duy trì 120Hz/144Hz thực thụ mọi lúc, không giật lag khi chuyển tiếp ứng dụng.',
+      safety: 'An Toàn Tuyệt Đối',
       recommended: true,
       type: 'toggle',
       checked: lockHighHz,
@@ -122,8 +141,11 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       categoryLabel: 'Động Cơ Hiển Thị',
       title: 'Nâng Cấp Tự Động SDR Sang HDR (Honor Video Engine)',
       scope: 'secure: hn_sdr2hdr_switch = 1',
-      desc: 'Kích hoạt thuật toán nội bộ của MagicOS tự động mở rộng dải tương phản động (Dynamic Range) cho các video SDR thông thường.',
-      impact: 'Video YouTube, TikTok, Netflix SDR có màu sắc rực rỡ, độ sâu màu đen và độ sáng vùng highlight tương tự HDR thực tế.',
+      summary: 'Tự động mở rộng dải tương phản cho video SDR thông thường.',
+      desc: 'Kích hoạt thuật toán xử lý video phần cứng của MagicOS, phân tích từng khung hình của video SDR thông thường (YouTube, TikTok, Netflix SDR) để mở rộng độ sâu màu sắc và độ sáng vùng highlight tương tự chuẩn HDR.',
+      adbCommand: 'adb shell settings put secure hn_sdr2hdr_switch 1',
+      impact: 'Video có độ tương phản sống động hơn, chi tiết vùng tối rõ nét hơn rõ rệt.',
+      safety: 'An Toàn Tuyệt Đối (Tận dụng NPU/GPU có sẵn của máy)',
       recommended: true,
       type: 'toggle',
       checked: sdr2hdr,
@@ -135,8 +157,11 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       categoryLabel: 'Động Cơ Hiển Thị',
       title: 'Chế Độ Tăng Cường Độ Sáng Đỉnh Ngoài Trời (SDR+ Boost)',
       scope: 'secure: hn_sdrplus_switch = 1',
-      desc: 'Mở khóa giới hạn độ sáng đỉnh (Peak Nit) của tấm nền màn hình khi xem nội dung dưới ánh nắng mặt trời trực tiếp.',
-      impact: 'Nội dung hiển thị rõ nét ngoài trời nắng gắt, không bị tối mờ hay lóa mắt khi sử dụng ngoài đường.',
+      summary: 'Mở khóa giới hạn độ sáng đỉnh ngoài trời khi xem nội dung dưới nắng gắt.',
+      desc: 'Mở khóa thuật toán SDR+ của MagicOS, cho phép tấm nền OLED đẩy độ sáng tức thời lên mức Nit tối đa của màn hình khi cảm biến quang học nhận diện môi trường ngoài trời nắng to.',
+      adbCommand: 'adb shell settings put secure hn_sdrplus_switch 1',
+      impact: 'Nhìn rõ nét nội dung bản đồ Google Maps, tin nhắn dưới trời nắng gắt.',
+      safety: 'An Toàn (Phần cứng tự động điều tiết theo nhiệt độ)',
       recommended: true,
       type: 'toggle',
       checked: sdrPlus,
@@ -146,10 +171,13 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       id: 'tianshan',
       category: 'engine',
       categoryLabel: 'Động Cơ Hiển Thị',
-      title: 'Siêu Hiển Thị Thiên Sơn Oasis (Tianshan Eye-Protection Display)',
+      title: 'Siêu Hiển Thị Thiên Sơn Oasis (Tianshan Display Engine)',
       scope: 'secure: hn_tianshan_switch = 1',
-      desc: 'Bật động cơ hiển thị màn hình bảo vệ mắt cao cấp Thiên Sơn / Oasis Display của Honor trên các dòng máy Magic, X80, X70.',
-      impact: 'Tối ưu phổ ánh sáng dịu mắt, giảm ánh sáng xanh có hại và nâng cao độ sắc nét của phông chữ văn bản.',
+      summary: 'Kích hoạt động cơ màn hình bảo vệ mắt cao cấp Thiên Sơn Oasis của Honor.',
+      desc: 'Bật thuật toán hiển thị cao cấp Thiên Sơn / Oasis Eye-Protection của Honor trên các dòng Flagship Magic và Series X. Thuật toán mô phỏng ánh sáng tự nhiên dịu mắt và tăng cường độ sắc nét cạnh chữ.',
+      adbCommand: 'adb shell settings put secure hn_tianshan_switch 1',
+      impact: 'Giảm mỏi mắt khi đọc sách, phông chữ hiển thị thanh mảnh và sắc sảo hơn.',
+      safety: 'An Toàn Tuyệt Đối',
       recommended: true,
       type: 'toggle',
       checked: tianshan,
@@ -160,9 +188,12 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       category: 'engine',
       categoryLabel: 'Động Cơ Hiển Thị',
       title: 'Chống Tự Hạ Độ Phân Giải Thông Minh (Anti-Downscaling)',
-      scope: 'system: low_resolution_switch = 0 & smart_resolution_mode = 0',
-      desc: 'Vô hiệu hóa toàn bộ các cờ tự động giảm độ phân giải xuống 1080p hoặc 720p khi nhiệt độ máy tăng lên.',
-      impact: 'Màn hình luôn hiển thị ở độ phân giải gốc 1.5K hoặc 2K sắc nét 100%, không bị vỡ hạt icon và phông chữ.',
+      scope: 'system: low_resolution_switch = 0',
+      summary: 'Khóa chết cờ tự động giảm độ phân giải xuống 1080p/720p khi máy ấm lên.',
+      desc: 'MagicOS có cơ chế "Độ phân giải thông minh" tự động hạ kích thước render xuống 1080p hoặc 720p để tiết kiệm pin, khiến chữ bị mờ và icon vỡ hạt. Tùy chọn này tắt hoàn toàn 4 cờ hạ phân giải ngầm.',
+      adbCommand: 'adb shell settings put system low_resolution_switch 0\nadb shell settings put global low_resolution_switch 0\nadb shell settings put system smart_resolution_mode 0\nadb shell settings put global aps_display_resolution 0',
+      impact: 'Màn hình giữ nguyên độ phân giải vật lý 1.5K/2K siêu sắc nét 100% thời gian.',
+      safety: 'An Toàn Tuyệt Đối',
       recommended: true,
       type: 'toggle',
       checked: disableLowRes,
@@ -174,8 +205,11 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       categoryLabel: 'Mật Độ DPI',
       title: 'Mật Độ Điểm Ảnh DPI Chuẩn Vàng (Sweet-Spot 385 dp)',
       scope: 'wm density & secure: display_density_forced',
-      desc: 'Áp dụng công thức chuẩn vàng DPI = (Chiều rộng pixel vật lý × 160) / 385 để giao diện ứng dụng hiển thị vừa vặn, không bị phóng đại quá khổ.',
-      impact: 'Không gian hiển thị nhiều nội dung hơn, các icon và chữ thanh thoát, chuẩn thị giác người dùng chuyên nghiệp.',
+      summary: 'Áp dụng công thức 385 dp để giao diện vừa vặn, không bị phóng to thô ráp.',
+      desc: 'Giao diện mặc định của máy nội địa thường phóng to quá mức khiến thanh trạng thái và font chữ bị bè to. Toolkit tính toán chính xác DPI = (Chiều rộng pixel vật lý × 160) / 385 để chuẩn hóa tỷ lệ hiển thị vàng 385 dp chuẩn chuyên nghiệp.',
+      adbCommand: `adb shell wm density ${sweetDpi}\nadb shell settings put secure display_density_forced ${sweetDpi}`,
+      impact: 'Hiển thị nhiều thông tin hơn trên màn hình, layout thanh thoát và chuyên nghiệp.',
+      safety: 'Có thể khôi phục bằng nút "Mặc Định Gốc" bất kỳ lúc nào',
       recommended: true,
       type: 'select',
       value: selectedDpi,
@@ -196,8 +230,11 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       categoryLabel: 'AOD & Cử Chỉ',
       title: 'Always-On Display Toàn Màn Hình (Full-Screen AOD)',
       scope: 'secure: enable_full_screen_AOD = 1',
-      desc: 'Mở rộng giao diện hiển thị màn hình khóa Always-On Display trên toàn bộ tấm nền thay vì chỉ ở một vùng nhỏ ở giữa.',
-      impact: 'Giao diện AOD hiển thị hình nền mờ nghệ thuật tương tự iOS StandBy và MagicOS 9.0 cao cấp.',
+      summary: 'Mở rộng hiển thị AOD trên toàn bộ tấm nền kèm hình nền nghệ thuật.',
+      desc: 'Mặc định AOD chỉ hiển thị đồng hồ nhỏ giữa màn hình đen. Cờ ẩn `enable_full_screen_AOD` cho phép AOD hiển thị hình nền mờ toàn màn hình tuyệt đẹp tương tự chế độ StandBy của iOS và MagicOS Flagship.',
+      adbCommand: 'adb shell settings put secure enable_full_screen_AOD 1',
+      impact: 'Màn hình khóa sang trọng, hiện đại và thẩm mỹ cao khi đặt máy trên bàn làm việc.',
+      safety: 'Tấm nền LTPO tự hạ xuống 1Hz tiết kiệm điện',
       recommended: false,
       type: 'toggle',
       checked: fullScreenAod,
@@ -209,8 +246,11 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       categoryLabel: 'AOD & Cử Chỉ',
       title: 'Kéo Dài Thời Gian Duy Trì AOD Lên 200 Giây',
       scope: 'secure: lock_to_aod_duration = 200',
-      desc: 'Tăng thời gian hiển thị Always-On Display sau khi khóa màn hình từ 30 giây mặc định lên 200 giây.',
-      impact: 'Dễ dàng quan sát giờ và thông báo mà không cần chạm tay đánh thức máy liên tục.',
+      summary: 'Tăng thời gian sáng AOD sau khi khóa máy từ 30s lên 200s.',
+      desc: 'MagicOS thường tắt AOD sau 30 giây để ép tiết kiệm pin. Tùy chọn này kéo dài thời gian duy trì lên 200 giây (hoặc chạm để sáng lâu hơn), tiện lợi quan sát thông báo.',
+      adbCommand: 'adb shell settings put secure lock_to_aod_duration 200',
+      impact: 'Xem giờ và thông báo dễ dàng mà không cần liên tục gõ tay vào màn hình.',
+      safety: 'An Toàn Tuyệt Đối',
       recommended: false,
       type: 'toggle',
       checked: extendAodDuration,
@@ -222,8 +262,11 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       categoryLabel: 'AOD & Cử Chỉ',
       title: 'Cử Chỉ Khớp Ngón Tay (Knuckle Gestures)',
       scope: 'secure: fingersense_letters_enabled = 1',
-      desc: 'Kích hoạt nhận diện cử chỉ gõ và vẽ chữ bằng khớp ngón tay (Knuckle Sense) trứ danh của MagicOS.',
-      impact: 'Gõ 2 lần để chụp ảnh màn hình, vẽ chữ S để cuộn chụp dài, vẽ chữ C để mở nhanh camera.',
+      summary: 'Gõ 2 lần chụp màn hình, vẽ chữ S cuộn dài, vẽ chữ C mở camera.',
+      desc: 'Kích hoạt công nghệ nhận diện cảm ứng khớp ngón tay (Knuckle Sense) độc quyền của Honor, phân biệt giữa đầu ngón tay và khớp đốt ngón tay.',
+      adbCommand: 'adb shell settings put secure fingersense_letters_enabled 1',
+      impact: 'Thao tác chụp cuộn màn hình và kích hoạt ứng dụng nhanh gấp 3 lần.',
+      safety: 'Tính năng chính thức của MagicOS',
       recommended: true,
       type: 'toggle',
       checked: knuckleGestures,
@@ -235,8 +278,11 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       categoryLabel: 'AOD & Cử Chỉ',
       title: 'Trượt Cảm Biến Vân Tay Kéo Thanh Thông Báo',
       scope: 'secure: fingerprint_slide_switch = 1',
-      desc: 'Cho phép vuốt ngón tay xuống trên cảm biến vân tay để hạ bảng điều khiển thông báo xuống mà không cần với tay lên đỉnh màn hình.',
-      impact: 'Thao tác sử dụng một tay trên các thiết bị màn hình lớn trở nên thuận tiện và nhanh chóng.',
+      summary: 'Vuốt ngón tay trên cảm biến vân tay để hạ bảng thông báo xuống.',
+      desc: 'Cho phép dùng cử chỉ vuốt xuống trên khu vực cảm biến vân tay để kéo thanh thông báo và trung tâm điều khiển xuống nhanh chóng mà không cần với tay lên mép trên màn hình.',
+      adbCommand: 'adb shell settings put secure fingerprint_slide_switch 1',
+      impact: 'Rất tiện lợi khi sử dụng điện thoại màn hình lớn bằng 1 tay khi đi lại.',
+      safety: 'An Toàn Tuyệt Đối',
       recommended: false,
       type: 'toggle',
       checked: fingerprintSlide,
@@ -248,8 +294,11 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       categoryLabel: 'Tốc Độ Hoạt Ảnh',
       title: 'Tỷ Lệ Tốc Độ Hoạt Ảnh Hệ Thống (Animation Scale)',
       scope: 'global: window_animation_scale, transition_scale, animator_scale',
-      desc: 'Điều chỉnh tốc độ hiệu ứng mở ứng dụng, chuyển trang và thu nhỏ màn hình trong hệ điều hành Android.',
-      impact: 'Mức 0.5x cho cảm giác máy phản hồi tức thì, thao tác vuốt nhanh gấp đôi mà vẫn giữ được độ mượt mà.',
+      summary: 'Mức 0.5x cho phản hồi tức thì, mở ứng dụng và chuyển cảnh nhanh gấp đôi.',
+      desc: 'Android mặc định đặt tốc độ hoạt ảnh là 1.0x tạo cảm giác hơi trôi chậm. Đặt về 0.5x giúp các hiệu ứng đóng/mở app và vuốt trang nhanh hơn 50% trong khi vẫn giữ trọn vẹn vẻ mượt mà.',
+      adbCommand: 'adb shell settings put global window_animation_scale 0.5\nadb shell settings put global transition_animation_scale 0.5\nadb shell settings put global animator_duration_scale 0.5',
+      impact: 'Máy mượt và nhanh như chớp, phản hồi cảm ứng nhạy bén hơn đáng kể.',
+      safety: 'Chuẩn tham số Android AOSP Developer Options',
       recommended: true,
       type: 'select',
       value: selectedAnim,
@@ -285,7 +334,7 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       const q = searchQuery.toLowerCase();
       return (
         item.title.toLowerCase().includes(q) ||
-        item.desc.toLowerCase().includes(q) ||
+        item.summary.toLowerCase().includes(q) ||
         item.scope.toLowerCase().includes(q) ||
         item.categoryLabel.toLowerCase().includes(q)
       );
@@ -293,9 +342,9 @@ export default function DisplayTab({ device, onApplyDisplay }) {
   }, [displayItems, activeModule, searchQuery]);
 
   return (
-    <div className="tab-pane active" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div className="crm-workspace-layout">
       {/* 1. Header & KPI Metric Ribbon */}
-      <div className="specs-card" style={{ width: '100%' }}>
+      <div className="specs-card" style={{ width: '100%', marginBottom: 0 }}>
         <div className="specs-header-title">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span className="svg-icon" style={{ color: 'var(--brand-accent)' }}>
@@ -310,7 +359,7 @@ export default function DisplayTab({ device, onApplyDisplay }) {
                 Quản Lý Màn Hình, Tần Số Quét Hz, DPI Vàng &amp; Động Cơ MagicOS
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
-                Tích hợp công nghệ HonorHook: Khóa 120Hz không tụt, Nâng cấp SDR-HDR, SDR+ Peak &amp; Thiên Sơn Oasis
+                Hệ thống CRM Matrix: Click vào từng mục để trượt cửa sổ chi tiết &amp; xem giải phẫu lệnh ADB
               </div>
             </div>
           </div>
@@ -441,8 +490,6 @@ export default function DisplayTab({ device, onApplyDisplay }) {
               <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
               <line x1="1" y1="12" x2="3" y2="12"></line>
               <line x1="21" y1="12" x2="23" y2="12"></line>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
             </svg>
             <span>Động Cơ Hình Ảnh MagicOS</span>
           </button>
@@ -521,34 +568,25 @@ export default function DisplayTab({ device, onApplyDisplay }) {
         </div>
       </div>
 
-      {/* 3. Detailed Parameter Cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {/* 3. Compact CRM Grid Matrix (No more infinite scrolling!) */}
+      <div className="crm-grid-matrix">
         {filteredItems.map((item) => (
           <div
             key={item.id}
-            className="telemetry-card"
-            style={{
-              padding: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              background: 'var(--panel-alt)',
-              borderRadius: '8px',
-              border: '1px solid var(--border-light)',
-            }}
+            className={`crm-card ${inspectItem?.id === item.id ? 'active-selected' : ''}`}
+            onClick={() => setInspectItem(item)}
           >
-            {/* Row Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flex: 1, minWidth: '280px' }}>
-                <span className="svg-icon" style={{ color: 'var(--brand-accent)', marginTop: '2px' }}>
+            <div className="crm-card-header">
+              <div className="crm-card-title-group">
+                <div className="crm-card-icon">
                   {item.category === 'refresh' && (
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
                       <polyline points="23 4 23 10 17 10"></polyline>
                       <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
                     </svg>
                   )}
                   {item.category === 'engine' && (
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="12" cy="12" r="5"></circle>
                       <line x1="12" y1="1" x2="12" y2="3"></line>
                       <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -559,49 +597,40 @@ export default function DisplayTab({ device, onApplyDisplay }) {
                     </svg>
                   )}
                   {item.category === 'density' && (
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
                       <line x1="8" y1="21" x2="16" y2="21"></line>
                       <line x1="12" y1="17" x2="12" y2="21"></line>
                     </svg>
                   )}
                   {item.category === 'aod' && (
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="12" cy="12" r="10"></circle>
                       <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
                   )}
                   {item.category === 'animation' && (
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
                       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                     </svg>
                   )}
-                </span>
+                </div>
+
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-bright)' }}>
-                      {item.title}
-                    </span>
-                    <span className="badge-tag tag-neutral" style={{ fontSize: '10px' }}>
+                  <div className="crm-card-title">{item.title}</div>
+                  <div className="crm-card-meta">
+                    <span className="badge-tag tag-neutral" style={{ fontSize: '9px', padding: '1px 5px' }}>
                       {item.categoryLabel}
                     </span>
-                    <span className="badge-tag tag-safe" style={{ fontSize: '10px', fontFamily: 'var(--font-mono)' }}>
+                    <span className="badge-tag tag-safe" style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', padding: '1px 5px' }}>
                       {item.scope}
                     </span>
-                    {item.recommended && (
-                      <span className="badge-tag" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', fontSize: '9px' }}>
-                        Khuyên Dùng
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '4px', lineHeight: '1.5' }}>
-                    {item.desc}
                   </div>
                 </div>
               </div>
 
-              {/* Action Control: Switch or Select */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {/* Quick interactive control directly on card */}
+              <div onClick={(e) => e.stopPropagation()}>
                 {item.type === 'toggle' && (
                   <label className="magicos-switch">
                     <input
@@ -613,44 +642,203 @@ export default function DisplayTab({ device, onApplyDisplay }) {
                     <span className="magicos-slider"></span>
                   </label>
                 )}
-
                 {item.type === 'select' && (
+                  <span className="badge-tag tag-safe" style={{ fontSize: '10px', padding: '3px 8px' }}>
+                    {item.options.find((o) => o.value === item.value)?.value || item.value}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="crm-card-desc">{item.summary}</div>
+
+            <div className="crm-card-footer">
+              <span style={{ color: 'var(--text-muted)' }}>
+                {item.recommended ? 'Đề xuất kích hoạt' : 'Tùy chọn nâng cao'}
+              </span>
+              <button
+                type="button"
+                className="crm-inspect-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setInspectItem(item);
+                }}
+              >
+                <span>Chi tiết &amp; Lệnh ADB</span>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 4. Slide-Over Inspection Drawer (Trượt từ phải sang trái) */}
+      {inspectItem && (
+        <>
+          <div className="crm-drawer-backdrop" onClick={() => setInspectItem(null)} />
+          <div className="crm-drawer-panel">
+            {/* Drawer Header */}
+            <div className="crm-drawer-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="badge-tag tag-safe" style={{ fontSize: '10px', fontFamily: 'var(--font-mono)' }}>
+                  {inspectItem.scope}
+                </span>
+                <span className="badge-tag tag-neutral" style={{ fontSize: '10px' }}>
+                  {inspectItem.categoryLabel}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="crm-drawer-close"
+                onClick={() => setInspectItem(null)}
+                title="Đóng cửa sổ (Esc)"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            {/* Drawer Body */}
+            <div className="crm-drawer-body">
+              {/* Title & Quick Switch */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                <div>
+                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-bright)', lineHeight: '1.4' }}>
+                    {inspectItem.title}
+                  </h3>
+                  <div style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '4px' }}>
+                    {inspectItem.summary}
+                  </div>
+                </div>
+
+                {inspectItem.type === 'toggle' && (
+                  <label className="magicos-switch" style={{ flexShrink: 0, marginTop: '4px' }}>
+                    <input
+                      type="checkbox"
+                      checked={inspectItem.checked}
+                      onChange={(e) => inspectItem.onChange(e.target.checked)}
+                      disabled={!isOnline}
+                    />
+                    <span className="magicos-slider"></span>
+                  </label>
+                )}
+              </div>
+
+              {/* Direct Controls in Drawer if Select */}
+              {inspectItem.type === 'select' && (
+                <div className="crm-drawer-section">
+                  <div className="crm-drawer-section-title">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                      <polyline points="2 17 12 22 22 17"></polyline>
+                      <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                    <span>Lựa chọn giá trị mục tiêu</span>
+                  </div>
                   <select
                     className="tool-select"
-                    value={item.value}
-                    onChange={(e) => item.onChange(e.target.value)}
+                    value={inspectItem.value}
+                    onChange={(e) => inspectItem.onChange(e.target.value)}
                     disabled={!isOnline}
-                    style={{ minWidth: '240px', maxWidth: '340px', fontSize: '12px' }}
+                    style={{ width: '100%', fontSize: '13px' }}
                   >
-                    {item.options.map((opt) => (
+                    {inspectItem.options.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
                       </option>
                     ))}
                   </select>
-                )}
+                </div>
+              )}
+
+              {/* Technical Description */}
+              <div className="crm-drawer-section">
+                <div className="crm-drawer-section-title">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <span>Mục đích &amp; Cơ chế can thiệp</span>
+                </div>
+                <div style={{ fontSize: '12.5px', color: 'var(--text-main)', lineHeight: '1.6' }}>
+                  {inspectItem.desc}
+                </div>
               </div>
+
+              {/* Exact ADB Command executed */}
+              {inspectItem.adbCommand && (
+                <div className="crm-drawer-section">
+                  <div className="crm-drawer-section-title">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="4 17 10 11 4 5"></polyline>
+                      <line x1="12" y1="19" x2="20" y2="19"></line>
+                    </svg>
+                    <span>Lệnh ADB Shell thực thi</span>
+                  </div>
+                  <div className="crm-code-box">{inspectItem.adbCommand}</div>
+                </div>
+              )}
+
+              {/* Real-world Impact */}
+              {inspectItem.impact && (
+                <div className="crm-drawer-section" style={{ borderLeft: '3px solid #38bdf8' }}>
+                  <div className="crm-drawer-section-title" style={{ color: '#38bdf8' }}>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    <span>Lợi ích thực tế</span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: '1.5' }}>
+                    {inspectItem.impact}
+                  </div>
+                </div>
+              )}
+
+              {/* Safety Rating */}
+              {inspectItem.safety && (
+                <div className="crm-drawer-section" style={{ borderLeft: '3px solid #10b981' }}>
+                  <div className="crm-drawer-section-title" style={{ color: '#10b981' }}>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    <span>Mức độ an toàn</span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: '1.4' }}>
+                    {inspectItem.safety}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Impact Note */}
-            {item.impact && (
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--text-dim)',
-                  background: 'rgba(56, 189, 248, 0.05)',
-                  padding: '6px 10px',
-                  borderRadius: '4px',
-                  borderLeft: '2px solid #38bdf8',
-                  lineHeight: '1.4',
-                }}
+            {/* Drawer Footer */}
+            <div className="crm-drawer-footer">
+              <button
+                type="button"
+                className="btn-tool"
+                onClick={() => setInspectItem(null)}
+                style={{ fontSize: '12px' }}
               >
-                <b style={{ color: '#38bdf8' }}>Hiệu quả:</b> {item.impact}
-              </div>
-            )}
+                Đóng
+              </button>
+
+              <button
+                type="button"
+                className="btn-tool primary"
+                onClick={handleApply}
+                disabled={!isOnline || isApplying}
+                style={{ fontSize: '12px', fontWeight: 600 }}
+              >
+                {isApplying ? 'Đang Lưu...' : 'Lưu Thiết Lập'}
+              </button>
+            </div>
           </div>
-        ))}
-      </div>
+        </>
+      )}
     </div>
   );
 }
