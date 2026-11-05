@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { adbService } from '../services/adbService';
 import ThemeStudioModal from './ThemeStudioModal';
+import CrmDrawer from './CrmDrawer';
 
 // Detailed definitions for the 11 system marketing & telemetry keys
 const TELEMETRY_DEFINITIONS = [
@@ -951,8 +952,7 @@ export default function ToolboxTab({
       {/* =========================================================================
           VIEW A: MASTER HUB LAUNCHPAD (When activeModule === null and not searching)
           ========================================================================= */}
-      {activeModule === null && !searchQuery.trim() && (
-        <>
+      {/* Master Hub Launchpad (3uTools Style: Always Visible) */}
           {/* Header & KPI Summary */}
           <div className="specs-card" style={{ width: '100%', marginBottom: 0 }}>
             <div className="specs-header-title">
@@ -967,7 +967,7 @@ export default function ToolboxTab({
                     Hộp Công Cụ Chuyên Sâu &amp; Tinh Chỉnh Hệ Thống MagicOS
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
-                    Trung tâm điều khiển phân tầng: Chọn bất kỳ thẻ chức năng nào bên dưới để mở giao diện cấu hình chuyên biệt
+                    Trung tâm tối ưu hóa chuyên sâu: Chọn thẻ chức năng để mở ngăn cấu hình trượt từ cạnh trái
                   </div>
                 </div>
               </div>
@@ -1092,8 +1092,6 @@ export default function ToolboxTab({
               </div>
             ))}
           </div>
-        </>
-      )}
 
       {/* =========================================================================
           VIEW B: GLOBAL SEARCH RESULTS VIEW (When searchQuery is non-empty)
@@ -1167,305 +1165,243 @@ export default function ToolboxTab({
       {/* =========================================================================
           VIEW C: DEDICATED SLIDE-OUT WORKSPACE (When a Master Card is Clicked)
           ========================================================================= */}
-      {activeModule !== null && !searchQuery.trim() && activeModuleMeta && (
-        <div className="crm-slide-workspace-left">
-          {/* Top Breadcrumb & Tiered Navigation Bar (Nhạc Quán / Salesforce Console Tiered Style) */}
-          <div className="specs-card" style={{ width: '100%', marginBottom: 0, padding: '16px 20px' }}>
-            <div className="crm-top-breadcrumb-bar">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                {/* Back Button */}
+      <CrmDrawer
+        isOpen={activeModule !== null && !!activeModuleMeta}
+        onClose={() => setActiveModule(null)}
+        title={activeModuleMeta?.title}
+        subtitle={activeModuleMeta?.subtitle}
+        icon={activeModuleMeta?.icon}
+        badge={{ label: activeModuleMeta?.badge || 'MagicOS 10/11', variant: activeModuleMeta?.badgeType || 'tag-safe' }}
+        side="left"
+        width="xl"
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '8px' }}>
+            <button
+              type="button"
+              className="btn-tool"
+              onClick={() => setActiveModule(null)}
+              style={{ fontSize: '12px', padding: '6px 14px' }}
+            >
+              Đóng Cửa Sổ (ESC)
+            </button>
+
+            {activeModule === 'telemetry' && (
+              <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   type="button"
-                  className="crm-back-button"
-                  onClick={() => setActiveModule(null)}
-                  title="Quay về Tầng 1: Tổng Quan (Phím ESC)"
+                  className="btn-tool"
+                  style={{ fontSize: '11px', padding: '5px 10px' }}
+                  onClick={() => setSelectedTelemetryKeys(new Set(TELEMETRY_DEFINITIONS.map((d) => d.key)))}
                 >
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                  </svg>
-                  <span>Trở Về Tầng 1</span>
+                  Chọn Tất Cả (11)
                 </button>
-
-                {/* Tiered Navigator Capsule (Xếp Tầng Chuyên Nghiệp) */}
-                <div className="crm-tier-navigator">
-                  <button
-                    type="button"
-                    className="crm-tier-link-btn"
-                    onClick={() => setActiveModule(null)}
-                    title="Quay lại Tầng 1: Tổng Quan"
-                  >
-                    <span>TẦNG 1: TỔNG QUAN</span>
-                  </button>
-                  <span className="crm-tier-divider">
-                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </span>
-                  <div className="crm-tier-badge">
-                    <span>TẦNG 2: {activeModuleMeta.title.toUpperCase()}</span>
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  className="btn-tool success"
+                  style={{ fontSize: '11px', padding: '5px 12px', fontWeight: 600 }}
+                  onClick={() => handleApplySelectedTelemetry(true)}
+                  disabled={!isOnline || isApplyingTelemetry}
+                >
+                  Chặn Tất Cả 11 Mục
+                </button>
               </div>
+            )}
 
-              {/* Right Side: Live ADB Indicator & Bulk Actions */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', fontSize: '11px', color: '#10b981', fontWeight: 600 }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }} />
-                  <span>ADB: MagicOS 10/11</span>
-                </div>
+            {activeModule === 'screen' && (
+              <button
+                type="button"
+                className="btn-tool primary"
+                style={{ fontSize: '11.5px', padding: '6px 16px', fontWeight: 600 }}
+                onClick={() => onLaunchScrcpy({ turnOffScreen, stayAwake })}
+                disabled={!isOnline}
+              >
+                Khởi Chạy Scrcpy 120Hz
+              </button>
+            )}
 
-                {activeModule === 'telemetry' && (
-                  <>
-                    <button
-                      type="button"
-                      className="btn-tool"
-                      style={{ fontSize: '11px', padding: '5px 10px' }}
-                      onClick={() => setSelectedTelemetryKeys(new Set(TELEMETRY_DEFINITIONS.map((d) => d.key)))}
-                    >
-                      Chọn Tất Cả (11)
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-tool"
-                      style={{ fontSize: '11px', padding: '5px 10px' }}
-                      onClick={() => setSelectedTelemetryKeys(new Set())}
-                    >
-                      Bỏ Chọn
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-tool success"
-                      style={{ fontSize: '11px', padding: '5px 12px', fontWeight: 600 }}
-                      onClick={() => handleApplySelectedTelemetry(true)}
-                      disabled={!isOnline || isApplyingTelemetry}
-                    >
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '4px' }}>
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                      </svg>
-                      <span>Chặn Tất Cả 11 Mục</span>
-                    </button>
-                  </>
-                )}
+            {activeModule === 'theme' && (
+              <button
+                type="button"
+                className="btn-tool primary"
+                style={{ fontSize: '11.5px', padding: '6px 16px', fontWeight: 600 }}
+                onClick={() => setIsThemeStudioOpen(true)}
+              >
+                Mở Trình Quản Lý Theme
+              </button>
+            )}
+          </div>
+        }
+      >
+        <div style={{ fontSize: '12.5px', color: 'var(--text-dim)', lineHeight: '1.6', marginBottom: '12px' }}>
+          {activeModuleMeta?.desc}
+        </div>
 
-                {activeModule === 'screen' && (
-                  <button
-                    type="button"
-                    className="btn-tool primary"
-                    style={{ fontSize: '11px', padding: '5px 12px', fontWeight: 600 }}
-                    onClick={() => onLaunchScrcpy({ turnOffScreen, stayAwake })}
-                    disabled={!isOnline}
-                  >
-                    Khởi Chạy Scrcpy 120Hz
-                  </button>
-                )}
-
-                {activeModule === 'theme' && (
-                  <button
-                    type="button"
-                    className="btn-tool primary"
-                    style={{ fontSize: '11px', padding: '5px 12px', fontWeight: 600 }}
-                    onClick={() => setIsThemeStudioOpen(true)}
-                  >
-                    Mở Trình Quản Lý Theme
-                  </button>
-                )}
+        {/* Bulk Action Header for Telemetry */}
+        {activeModule === 'telemetry' && (
+          <div
+            style={{
+              padding: '12px 14px',
+              borderRadius: '10px',
+              background: 'rgba(15, 23, 42, 0.65)',
+              border: '1px solid rgba(56, 189, 248, 0.2)',
+              marginBottom: '14px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '10px',
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>
+                Đã chặn {telemetryBlockedCount}/11 dịch vụ theo dõi
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                Khuyên dùng: Chặn toàn bộ 11 khóa để bảo vệ quyền riêng tư và tiết kiệm pin tối đa
               </div>
             </div>
-
-            <div style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '8px', lineHeight: '1.5' }}>
-              {activeModuleMeta.desc}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                className="btn-tool"
+                style={{ fontSize: '11px', padding: '4px 10px' }}
+                onClick={() => setSelectedTelemetryKeys(new Set(TELEMETRY_DEFINITIONS.map((d) => d.key)))}
+              >
+                Chọn Tất Cả (11)
+              </button>
+              <button
+                type="button"
+                className="btn-tool"
+                style={{ fontSize: '11px', padding: '4px 10px' }}
+                onClick={() => setSelectedTelemetryKeys(new Set())}
+              >
+                Bỏ Chọn
+              </button>
+              <button
+                type="button"
+                className="btn-tool success"
+                style={{ fontSize: '11px', padding: '4px 12px', fontWeight: 600 }}
+                onClick={() => handleApplySelectedTelemetry(true)}
+                disabled={!isOnline || isApplyingTelemetry}
+              >
+                Chặn Tất Cả (= 0)
+              </button>
             </div>
           </div>
+        )}
 
-          {/* Dedicated High-Density Cards for this specific tool */}
-          <div className="crm-grid-matrix">
-            {currentModuleTools.map((item) => (
-              <div
-                key={item.id}
-                className={`crm-card ${inspectTool?.id === item.id ? 'active-selected' : ''}`}
-                onClick={() => setInspectTool(item)}
-              >
-                <div className="crm-card-header">
-                  <div className="crm-card-title-group">
-                    {/* Checkbox for Telemetry */}
-                    {item.type === 'telemetry_item' && (
-                      <div
-                        style={{ paddingTop: '2px' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleSelectTelemetry(item.key);
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={item.isSelected}
-                          onChange={() => handleToggleSelectTelemetry(item.key)}
-                          style={{ cursor: 'pointer', width: '15px', height: '15px' }}
-                        />
-                      </div>
-                    )}
+        {/* Dedicated High-Density Cards for this specific tool */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {currentModuleTools.map((item) => (
+            <div key={item.id} className="crm-card" style={{ cursor: 'default' }}>
+              <div className="crm-card-header">
+                <div className="crm-card-title-group">
+                  {/* Checkbox for Telemetry */}
+                  {item.type === 'telemetry_item' && (
+                    <div
+                      style={{ paddingTop: '2px' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleSelectTelemetry(item.key);
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={item.isSelected}
+                        onChange={() => handleToggleSelectTelemetry(item.key)}
+                        style={{ cursor: 'pointer', width: '15px', height: '15px' }}
+                      />
+                    </div>
+                  )}
 
-                    <div>
-                      <div className="crm-card-title">{item.title}</div>
-                      <div className="crm-card-meta">
-                        <span className="badge-tag tag-neutral" style={{ fontSize: '9px', padding: '1px 5px' }}>
-                          {item.categoryLabel}
-                        </span>
-                        <span className="badge-tag tag-safe" style={{ fontSize: '9px', padding: '1px 5px' }}>
-                          {item.safety || 'An Toàn'}
-                        </span>
-                      </div>
+                  <div>
+                    <div className="crm-card-title">{item.title}</div>
+                    <div className="crm-card-meta">
+                      <span className="badge-tag tag-neutral" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                        {item.categoryLabel}
+                      </span>
+                      <span className="badge-tag tag-safe" style={{ fontSize: '9px', padding: '1px 5px', fontFamily: 'var(--font-mono)' }}>
+                        {item.scope}
+                      </span>
+                      <span className="badge-tag tag-safe" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                        {item.safety || 'An Toàn'}
+                      </span>
                     </div>
                   </div>
+                </div>
 
-                  {/* Card Right Action / Switch */}
-                  <div onClick={(e) => e.stopPropagation()}>
-                    {item.type === 'toggle' && (
+                {/* Card Right Action / Switch */}
+                <div>
+                  {item.type === 'toggle' && (
+                    <label className="magicos-switch">
+                      <input
+                        type="checkbox"
+                        checked={item.checked}
+                        onChange={item.onToggle}
+                        disabled={!isOnline || item.loading}
+                      />
+                      <span className="magicos-slider"></span>
+                    </label>
+                  )}
+
+                  {item.type === 'telemetry_item' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                      <span
+                        className={`badge-tag ${item.isBlocked ? 'tag-safe' : 'tag-warn'}`}
+                        style={{ fontSize: '9px', padding: '1px 5px' }}
+                      >
+                        {item.isBlocked ? 'Đã Chặn (= 0)' : 'Đang Mở (= 1)'}
+                      </span>
                       <label className="magicos-switch">
                         <input
                           type="checkbox"
-                          checked={item.checked}
-                          onChange={item.onToggle}
-                          disabled={!isOnline || item.loading}
+                          checked={!item.isBlocked}
+                          onChange={() => handleToggleSingleTelemetry(item.key)}
+                          disabled={!isOnline || loadingTweakKey === item.key}
                         />
                         <span className="magicos-slider"></span>
                       </label>
-                    )}
-
-                    {item.type === 'telemetry_item' && (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                        <span
-                          className={`badge-tag ${item.isBlocked ? 'tag-safe' : 'tag-warn'}`}
-                          style={{ fontSize: '9px', padding: '1px 5px' }}
-                        >
-                          {item.isBlocked ? 'Đã Chặn' : 'Đang Mở'}
-                        </span>
-                        <label className="magicos-switch">
-                          <input
-                            type="checkbox"
-                            checked={!item.isBlocked}
-                            onChange={() => handleToggleSingleTelemetry(item.key)}
-                            disabled={!isOnline || loadingTweakKey === item.key}
-                          />
-                          <span className="magicos-slider"></span>
-                        </label>
-                      </div>
-                    )}
-
-                    {item.type === 'action' && (
-                      <button
-                        type="button"
-                        className="btn-tool primary"
-                        style={{ fontSize: '11px', padding: '4px 10px', whiteSpace: 'nowrap' }}
-                        onClick={item.onExecute}
-                        disabled={!isOnline || item.loading}
-                      >
-                        {item.actionLabel}
-                      </button>
-                    )}
-
-                    {item.type === 'reboot_controls' && (
-                      <span className="badge-tag tag-warn" style={{ fontSize: '10px' }}>
-                        Khởi Động Lại
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Plain-Language Explanation */}
-                <div className="crm-card-desc">{item.summary}</div>
-
-                {/* Collapsible Technical ADB Command for Geeks */}
-                {item.adbCommand && (
-                  <details
-                    className="crm-tech-accordion"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <summary>Xem lệnh kỹ thuật ADB Shell</summary>
-                    <div style={{ padding: '8px 10px' }}>
-                      <div className="crm-code-box" style={{ fontSize: '11px' }}>
-                        {item.adbCommand}
-                      </div>
                     </div>
-                  </details>
-                )}
+                  )}
 
-                <div className="crm-card-footer">
-                  <span style={{ color: 'var(--text-muted)' }}>
-                    {item.impact || 'Bấm để xem thông số & tác động'}
-                  </span>
-                  <button
-                    type="button"
-                    className="crm-inspect-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setInspectTool(item);
-                    }}
-                  >
-                    <span>Giải phẫu chi tiết</span>
-                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </button>
+                  {item.type === 'action' && (
+                    <button
+                      type="button"
+                      className="btn-tool primary"
+                      style={{ fontSize: '11px', padding: '5px 12px', whiteSpace: 'nowrap' }}
+                      onClick={item.onExecute}
+                      disabled={!isOnline || item.loading}
+                    >
+                      {item.actionLabel}
+                    </button>
+                  )}
+
+                  {item.type === 'reboot_controls' && (
+                    <span className="badge-tag tag-warn" style={{ fontSize: '10px' }}>
+                      Khởi Động Lại
+                    </span>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {/* =========================================================================
-          SLIDE-OVER INSPECTION DRAWER (For Deep Technical Breakdown)
-          ========================================================================= */}
-      {inspectTool && (
-        <>
-          <div className="crm-drawer-backdrop" onClick={() => setInspectTool(null)} />
-          <div className="crm-drawer-panel">
-            <div className="crm-drawer-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="badge-tag tag-safe" style={{ fontSize: '10.5px' }}>
-                  {inspectTool.categoryLabel}
-                </span>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-bright)' }}>
-                  Giải Phẫu Kỹ Thuật
-                </span>
-              </div>
-              <button
-                type="button"
-                className="crm-drawer-close"
-                onClick={() => setInspectTool(null)}
-                title="Đóng (ESC)"
-              >
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
+              {/* Plain-Language Explanation */}
+              <div className="crm-card-desc">{item.summary}</div>
 
-            <div className="crm-drawer-body">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', lineHeight: '1.3' }}>
-                  {inspectTool.title}
+              {/* Technical Description */}
+              {item.desc && (
+                <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: '1.5', marginTop: '4px' }}>
+                  {item.desc}
                 </div>
-                <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#38bdf8' }}>
-                  Phạm vi: {inspectTool.scope}
-                </div>
-              </div>
+              )}
 
               {/* Special options for Scrcpy */}
-              {inspectTool.id === 'sys_scrcpy_mirror' && (
-                <div className="crm-drawer-section">
-                  <div className="crm-drawer-section-title">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                      <line x1="8" y1="21" x2="16" y2="21"></line>
-                      <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                    <span>Cấu hình phiên Scrcpy</span>
+              {item.id === 'sys_scrcpy_mirror' && (
+                <div style={{ marginTop: '8px', padding: '10px 12px', background: 'rgba(15, 23, 42, 0.5)', borderRadius: '8px', border: '1px solid rgba(56, 189, 248, 0.15)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#38bdf8', marginBottom: '6px' }}>
+                    Tùy chọn phiên Scrcpy:
                   </div>
                   <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11.5px', color: 'var(--text-main)' }}>
                       <input
                         type="checkbox"
                         checked={turnOffScreen}
@@ -1473,27 +1409,23 @@ export default function ToolboxTab({
                       />
                       <span>Tắt màn hình điện thoại khi chiếu</span>
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11.5px', color: 'var(--text-main)' }}>
                       <input
                         type="checkbox"
                         checked={stayAwake}
                         onChange={(e) => setStayAwake(e.target.checked)}
                       />
-                      <span>Luôn sáng màn hình</span>
+                      <span>Luôn sáng màn hình máy tính</span>
                     </label>
                   </div>
                 </div>
               )}
 
               {/* Special options for Reboot */}
-              {inspectTool.type === 'reboot_controls' && (
-                <div className="crm-drawer-section">
-                  <div className="crm-drawer-section-title">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="23 4 23 10 17 10"></polyline>
-                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                    </svg>
-                    <span>Lựa chọn phân vùng khởi động</span>
+              {item.type === 'reboot_controls' && (
+                <div style={{ marginTop: '8px', padding: '10px 12px', background: 'rgba(15, 23, 42, 0.5)', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#f59e0b', marginBottom: '8px' }}>
+                    Chọn phân vùng khởi động lại:
                   </div>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <button
@@ -1501,7 +1433,7 @@ export default function ToolboxTab({
                       className="btn-tool"
                       onClick={() => onReboot('system')}
                       disabled={!isOnline}
-                      style={{ flex: 1, minWidth: '120px' }}
+                      style={{ flex: 1, minWidth: '110px', fontSize: '11px', padding: '5px 8px' }}
                     >
                       Khởi Động Lại Máy
                     </button>
@@ -1510,7 +1442,7 @@ export default function ToolboxTab({
                       className="btn-tool"
                       onClick={() => onReboot('bootloader')}
                       disabled={!isOnline}
-                      style={{ flex: 1, minWidth: '120px' }}
+                      style={{ flex: 1, minWidth: '110px', fontSize: '11px', padding: '5px 8px' }}
                     >
                       Vào Fastboot
                     </button>
@@ -1519,7 +1451,7 @@ export default function ToolboxTab({
                       className="btn-tool"
                       onClick={() => onReboot('recovery')}
                       disabled={!isOnline}
-                      style={{ flex: 1, minWidth: '120px' }}
+                      style={{ flex: 1, minWidth: '110px', fontSize: '11px', padding: '5px 8px' }}
                     >
                       Vào Recovery
                     </button>
@@ -1527,134 +1459,55 @@ export default function ToolboxTab({
                 </div>
               )}
 
-              {/* Technical Description */}
-              <div className="crm-drawer-section">
-                <div className="crm-drawer-section-title">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                  </svg>
-                  <span>Mục đích &amp; Cơ chế hoạt động</span>
-                </div>
-                <div style={{ fontSize: '12.5px', color: 'var(--text-main)', lineHeight: '1.6' }}>
-                  {inspectTool.desc}
-                </div>
-              </div>
-
-              {/* Exact ADB Command */}
-              {inspectTool.adbCommand && (
-                <div className="crm-drawer-section">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div className="crm-drawer-section-title">
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="4 17 10 11 4 5"></polyline>
-                        <line x1="12" y1="19" x2="20" y2="19"></line>
-                      </svg>
-                      <span>Lệnh ADB Shell thực thi</span>
-                    </div>
-                    <button
-                      type="button"
-                      className="btn-tool"
-                      style={{ fontSize: '10px', padding: '2px 8px' }}
-                      onClick={() => {
-                        navigator.clipboard.writeText(inspectTool.adbCommand);
-                        alert('Đã sao chép lệnh ADB vào clipboard!');
-                      }}
-                    >
-                      Sao Chép
-                    </button>
-                  </div>
-                  <div className="crm-code-box">{inspectTool.adbCommand}</div>
-                </div>
-              )}
-
-              {/* Impact */}
-              {inspectTool.impact && (
-                <div className="crm-drawer-section" style={{ borderLeft: '3px solid #38bdf8' }}>
-                  <div className="crm-drawer-section-title" style={{ color: '#38bdf8' }}>
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+              {/* Impact / Safety info */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
+                {item.impact && (
+                  <div style={{ fontSize: '11.5px', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
                       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                     </svg>
-                    <span>Lợi ích thực tế</span>
+                    <span>{item.impact}</span>
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: '1.5' }}>
-                    {inspectTool.impact}
-                  </div>
-                </div>
-              )}
-
-              {/* Safety Rating */}
-              {inspectTool.safety && (
-                <div className="crm-drawer-section" style={{ borderLeft: '3px solid #10b981' }}>
-                  <div className="crm-drawer-section-title" style={{ color: '#10b981' }}>
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                )}
+                {item.safety && (
+                  <div style={{ fontSize: '11.5px', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     </svg>
-                    <span>Mức độ an toàn</span>
+                    <span>{item.safety}</span>
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: '1.4' }}>
-                    {inspectTool.safety}
+                )}
+              </div>
+
+              {/* Collapsible Technical ADB Command */}
+              {item.adbCommand && (
+                <details className="crm-tech-accordion" style={{ marginTop: '8px' }}>
+                  <summary>Xem lệnh kỹ thuật ADB Shell</summary>
+                  <div style={{ padding: '8px 10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>Lệnh thực thi trực tiếp qua Android Shell / Binder</span>
+                      <button
+                        type="button"
+                        className="btn-tool"
+                        style={{ fontSize: '10px', padding: '2px 8px' }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(item.adbCommand);
+                          alert('Đã sao chép lệnh ADB vào clipboard!');
+                        }}
+                      >
+                        Sao Chép
+                      </button>
+                    </div>
+                    <div className="crm-code-box" style={{ fontSize: '11px' }}>
+                      {item.adbCommand}
+                    </div>
                   </div>
-                </div>
+                </details>
               )}
             </div>
-
-            <div className="crm-drawer-footer">
-              <button
-                type="button"
-                className="btn-tool"
-                onClick={() => setInspectTool(null)}
-                style={{ fontSize: '12px' }}
-              >
-                Đóng
-              </button>
-
-              {inspectTool.type === 'action' && (
-                <button
-                  type="button"
-                  className="btn-tool primary"
-                  onClick={() => {
-                    inspectTool.onExecute?.();
-                    setInspectTool(null);
-                  }}
-                  disabled={!isOnline || inspectTool.loading}
-                  style={{ fontSize: '12px', fontWeight: 600 }}
-                >
-                  Thực Thi Ngay
-                </button>
-              )}
-
-              {inspectTool.type === 'telemetry_item' && (
-                <button
-                  type="button"
-                  className={`btn-tool ${inspectTool.isBlocked ? '' : 'success'}`}
-                  onClick={() => handleToggleSingleTelemetry(inspectTool.key)}
-                  disabled={!isOnline || loadingTweakKey === inspectTool.key}
-                  style={{ fontSize: '12px', fontWeight: 600 }}
-                >
-                  {inspectTool.isBlocked ? 'Khôi Phục Mở Lại (= 1)' : 'Chặn Ngay Khóa Này (= 0)'}
-                </button>
-              )}
-
-              {inspectTool.type === 'toggle' && (
-                <button
-                  type="button"
-                  className="btn-tool primary"
-                  onClick={() => {
-                    inspectTool.onToggle?.();
-                    setInspectTool(null);
-                  }}
-                  disabled={!isOnline || inspectTool.loading}
-                  style={{ fontSize: '12px', fontWeight: 600 }}
-                >
-                  Đổi Trạng Thái
-                </button>
-              )}
-            </div>
-          </div>
-        </>
-      )}
+          ))}
+        </div>
+      </CrmDrawer>
 
       {/* Floating Action Dock when Telemetry keys are selected */}
       {selectedTelemetryKeys.size > 0 && activeModule === 'telemetry' && (

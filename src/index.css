@@ -4,33 +4,33 @@
    ========================================================================== */
 
 :root {
-  /* MagicOS 10/11 Glassmorphism & Obsidian Dark Theme */
-  --win-bg: #080c14;
-  --win-header: rgba(12, 17, 29, 0.88);
-  --panel-bg: rgba(16, 23, 38, 0.72);
-  --panel-alt: rgba(13, 19, 32, 0.65);
-  --panel-card: rgba(20, 28, 46, 0.78);
+  /* MagicOS 10/11 Luminous Sapphire & Glassmorphism Theme (Inspired by Honor Flagship Magic 7/6) */
+  --win-bg: #0b1120;
+  --win-header: rgba(15, 23, 42, 0.92);
+  --panel-bg: rgba(22, 33, 54, 0.82);
+  --panel-alt: rgba(18, 28, 46, 0.75);
+  --panel-card: rgba(26, 39, 64, 0.82);
   
-  --border-light: rgba(255, 255, 255, 0.08);
-  --border-dark: rgba(0, 0, 0, 0.5);
-  --border-highlight: rgba(56, 189, 248, 0.35);
-  --border-accent: rgba(59, 130, 246, 0.4);
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-dark: rgba(0, 0, 0, 0.4);
+  --border-highlight: rgba(56, 189, 248, 0.4);
+  --border-accent: rgba(59, 130, 246, 0.45);
   
-  --text-main: #e2e8f0;
+  --text-main: #f1f5f9;
   --text-dim: #94a3b8;
   --text-muted: #64748b;
   --text-bright: #ffffff;
   
   /* MagicOS Brand & Functional Accents */
-  --magicos-blue: #2563eb;
+  --magicos-blue: #38bdf8;
   --magicos-cyan: #06b6d4;
   --magicos-indigo: #6366f1;
-  --magicos-purple: #8b5cf6;
+  --magicos-purple: #a855f7;
   --magicos-gradient: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
-  --magicos-glow: 0 0 20px rgba(37, 99, 235, 0.3);
+  --magicos-glow: 0 0 24px rgba(56, 189, 248, 0.25);
   
-  --tool-blue: #2563eb;
-  --tool-blue-hover: #1d4ed8;
+  --tool-blue: #0284c7;
+  --tool-blue-hover: #0369a1;
   --tool-green: #10b981;
   --tool-green-hover: #059669;
   --tool-amber: #f59e0b;
@@ -54,7 +54,10 @@
 body {
   font-family: var(--font-family);
   background-color: var(--win-bg);
-  background-image: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.1) 0%, transparent 65%);
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.1) 0%, transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(37, 99, 235, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.07) 0%, transparent 45%);
   color: var(--text-main);
   height: 100vh;
   display: flex;
@@ -264,18 +267,22 @@ body {
 @keyframes tabEntrance {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translate3d(0, 6px, 0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
 .tab-pane.active {
   display: flex;
   gap: 14px;
-  animation: tabEntrance 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: tabEntrance 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* ==========================================================================
@@ -2157,35 +2164,35 @@ body {
   padding-right: 4px;
 }
 
-@keyframes crmSlideInRight {
+@keyframes crmDrawerSlideInRight {
   from {
-    transform: translateX(100%);
+    transform: translate3d(100%, 0, 0);
     opacity: 0.3;
   }
   to {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
     opacity: 1;
   }
 }
 
-@keyframes crmSlideOutRight {
+@keyframes crmDrawerSlideOutRight {
   from {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
     opacity: 1;
   }
   to {
-    transform: translateX(100%);
+    transform: translate3d(100%, 0, 0);
     opacity: 0;
   }
 }
 
 @keyframes crmSlideInUp {
   from {
-    transform: translate(-50%, 40px);
+    transform: translate3d(-50%, 20px, 0);
     opacity: 0;
   }
   to {
-    transform: translate(-50%, 0);
+    transform: translate3d(-50%, 0, 0);
     opacity: 1;
   }
 }
@@ -2193,6 +2200,17 @@ body {
 @keyframes crmFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes crmHubEnter {
+  0% {
+    transform: translate3d(0, 8px, 0);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
 }
 
 /* ==========================================================================
@@ -2204,6 +2222,11 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 16px;
   width: 100%;
+  animation: crmHubEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .crm-hub-tile {
@@ -2218,15 +2241,22 @@ body {
   justify-content: space-between;
   gap: 16px;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s ease,
+              background-color 0.2s ease,
+              box-shadow 0.2s ease;
   position: relative;
   overflow: hidden;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .crm-hub-tile:hover {
   background: rgba(26, 38, 64, 0.92);
   border-color: rgba(56, 189, 248, 0.45);
-  transform: translateY(-3px);
+  transform: translate3d(0, -3px, 0);
   box-shadow: 0 14px 34px -4px rgba(0, 0, 0, 0.5), 0 0 24px rgba(37, 99, 235, 0.2);
 }
 
@@ -2309,33 +2339,38 @@ body {
 
 @keyframes crmSlideInLeft {
   0% {
-    transform: translateX(-40px);
+    transform: translate3d(-14px, 0, 0);
     opacity: 0;
   }
   100% {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
     opacity: 1;
   }
 }
 
 @keyframes crmSlideInRight {
   0% {
-    transform: translateX(40px);
+    transform: translate3d(14px, 0, 0);
     opacity: 0;
   }
   100% {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
     opacity: 1;
   }
 }
 
 /* Tiered Architecture (Xếp Tầng Chuyên Nghiệp & Nhẹ Nhàng) */
-.crm-slide-workspace-left {
+.crm-slide-workspace-left,
+.crm-slide-workspace {
   display: flex;
   flex-direction: column;
   gap: 14px;
   width: 100%;
-  animation: crmSlideInLeft 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: crmSlideInLeft 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .crm-tier-navigator {
@@ -2589,50 +2624,174 @@ body {
 }
 
 /* Slide-Over Drawer Backdrop */
+/* ==========================================================================
+   CrmDrawer - Enterprise Slide-over Drawer (Nhạc Quán Admin Standard)
+   ========================================================================== */
+
+.crm-drawer-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  pointer-events: none;
+}
+
+.crm-drawer-root.side-left {
+  justify-content: flex-start;
+}
+
+.crm-drawer-root.side-right {
+  justify-content: flex-end;
+}
+
 .crm-drawer-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(3, 7, 18, 0.6);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  z-index: 1000;
-  animation: crmFadeIn 0.22s ease-out forwards;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: auto;
+  animation: crmDrawerFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Slide-Over Inspection Drawer Panel */
+@keyframes crmDrawerFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes crmDrawerSlideFromLeft {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes crmDrawerSlideFromRight {
+  0% {
+    transform: translate3d(100%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Slide-Over Drawer Panel */
 .crm-drawer-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 480px;
-  max-width: 90vw;
-  background: rgba(10, 16, 28, 0.96);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border-left: 1px solid rgba(56, 189, 248, 0.25);
-  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.65), 0 0 24px rgba(37, 99, 235, 0.15);
-  z-index: 1001;
+  pointer-events: auto;
+  position: relative;
+  height: 100%;
+  background: rgba(10, 16, 28, 0.98);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.75), 0 0 30px rgba(37, 99, 235, 0.2);
   display: flex;
   flex-direction: column;
-  animation: crmSlideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   overflow: hidden;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
+.crm-drawer-panel.crm-panel-from-left {
+  border-right: 1px solid rgba(56, 189, 248, 0.25);
+  animation: crmDrawerSlideFromLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.crm-drawer-panel.crm-panel-from-right {
+  border-left: 1px solid rgba(56, 189, 248, 0.25);
+  animation: crmDrawerSlideFromRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Width Classes (Matching Nhạc Quán AdminDrawer Standard) */
+.crm-drawer-panel.width-sm { width: 420px; max-width: 90vw; }
+.crm-drawer-panel.width-md { width: 520px; max-width: 90vw; }
+.crm-drawer-panel.width-lg { width: 640px; max-width: 92vw; }
+.crm-drawer-panel.width-xl { width: 740px; max-width: 94vw; }
+.crm-drawer-panel.width-2xl { width: 860px; max-width: 96vw; }
+.crm-drawer-panel.width-full { width: 100vw; }
+
 .crm-drawer-header {
-  height: 64px;
-  padding: 0 20px;
+  height: 68px;
+  padding: 0 24px;
   border-bottom: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(13, 19, 32, 0.7);
+  background: rgba(13, 19, 32, 0.85);
+  backdrop-filter: blur(12px);
+  flex-shrink: 0;
+  gap: 14px;
+}
+
+.crm-drawer-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.crm-drawer-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.16);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
   flex-shrink: 0;
 }
 
+.crm-drawer-title-group {
+  min-width: 0;
+}
+
+.crm-drawer-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.crm-drawer-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-bright);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crm-drawer-subtitle {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.crm-drawer-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.crm-drawer-esc-pill {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.crm-drawer-close-btn,
 .crm-drawer-close {
   width: 32px;
   height: 32px;
@@ -2647,16 +2806,17 @@ body {
   transition: all 0.15s ease;
 }
 
+.crm-drawer-close-btn:hover,
 .crm-drawer-close:hover {
   background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.35);
   color: #ef4444;
 }
 
 .crm-drawer-body {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -2697,12 +2857,14 @@ body {
 }
 
 .crm-drawer-footer {
-  padding: 14px 20px;
+  padding: 14px 24px;
   border-top: 1px solid var(--border-light);
   background: rgba(13, 19, 32, 0.85);
+  backdrop-filter: blur(12px);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   flex-shrink: 0;
 }
 

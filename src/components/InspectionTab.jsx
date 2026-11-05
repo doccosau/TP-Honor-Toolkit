@@ -225,10 +225,10 @@ export default function InspectionTab({ device }) {
             <div className="metric-tile">
               <div className="metric-label">Chu kỳ sạc (Cycle Count)</div>
               <div className="metric-value highlight">
-                {hasBattery ? `${cycleCount} lần` : '--'}
+                {hasBattery ? (cycleCount !== null && cycleCount > 0 ? `${cycleCount} lần` : (batteryData.cycle_count_display || 'BMS Bảo Mật')) : '--'}
               </div>
               <div className="metric-hint">
-                {hasBattery ? (cycleCount === 0 ? 'Pin mới 100% chưa qua chu kỳ xả sâu' : 'Đọc từ dumpsys batterystats') : '--'}
+                {hasBattery ? (cycleCount !== null && cycleCount > 0 ? 'Đọc trực tiếp từ cảm biến chip BMS' : 'Chip BMS Honor bảo mật hoặc pin mới 100%') : '--'}
               </div>
             </div>
 
@@ -238,7 +238,7 @@ export default function InspectionTab({ device }) {
                 {hasBattery ? `${currentMah} / ${designMah} mAh` : '--'}
               </div>
               <div className="metric-hint">
-                {hasBattery ? 'Đo bởi mạch sạc BMS phần cứng' : '--'}
+                {hasBattery ? 'Đo bởi mạch quản lý nguồn BMS phần cứng' : '--'}
               </div>
             </div>
 
@@ -258,7 +258,7 @@ export default function InspectionTab({ device }) {
                 {hasBattery ? `${batteryData.wattage}W • ${batteryData.status}` : '--'}
               </div>
               <div className="metric-hint">
-                {hasBattery ? `Dòng điện: ${Math.abs(batteryData.current_ma || 192)} mA` : '--'}
+                {hasBattery && batteryData.current_ma ? `Dòng điện thực: ${Math.abs(batteryData.current_ma)} mA` : '--'}
               </div>
             </div>
           </div>

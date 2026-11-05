@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import CrmDrawer from './CrmDrawer';
 
 export default function NetworkTab({ device, onApplyNetwork }) {
   const [captive, setCaptive] = useState('google');
@@ -11,10 +12,8 @@ export default function NetworkTab({ device, onApplyNetwork }) {
   const [disableVerboseLogging, setDisableVerboseLogging] = useState(true);
   const [infiniteBluetooth, setInfiniteBluetooth] = useState(false);
 
-  // Navigation State: null = Master Hub (Cards View), 'cellular' | 'wifi' | 'captive' | 'dns' | 'bluetooth' = Dedicated Slide-Out Workspace
+  // Active module drawer state: null = Master Hub, 'cellular' | 'wifi' | 'captive' | 'dns' | 'bluetooth' = Open Drawer
   const [activeModule, setActiveModule] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [inspectItem, setInspectItem] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
 
   const isOnline = Boolean(device && device.connected);
@@ -26,20 +25,16 @@ export default function NetworkTab({ device, onApplyNetwork }) {
     }
   }, [device]);
 
-  // Handle ESC key to return to Hub or close drawer
+  // Handle ESC key to close drawer
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        if (inspectItem) {
-          setInspectItem(null);
-        } else if (activeModule !== null) {
-          setActiveModule(null);
-        }
+      if (e.key === 'Escape' && activeModule !== null) {
+        setActiveModule(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [inspectItem, activeModule]);
+  }, [activeModule]);
 
   const handleDnsChange = (val) => {
     setDnsPreset(val);
@@ -343,11 +338,7 @@ export default function NetworkTab({ device, onApplyNetwork }) {
 
   return (
     <div className="crm-workspace-layout">
-      {/* =========================================================================
-          VIEW A: MASTER HUB LAUNCHPAD (When activeModule === null)
-          ========================================================================= */}
-      {activeModule === null && (
-        <>
+      {/* Master Hub Launchpad (3uTools Style: Always Visible) */}
           {/* Header & KPI Summary */}
           <div className="specs-card" style={{ width: '100%', marginBottom: 0 }}>
             <div className="specs-header-title">
@@ -365,7 +356,7 @@ export default function NetworkTab({ device, onApplyNetwork }) {
                     Tối Ưu Hóa Mạng Di Động, Wi-Fi &amp; DNS MagicOS
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
-                    Trung tâm điều khiển phân tầng: Chọn bất kỳ thẻ bên dưới để cấu hình chi tiết từng hệ thống mạng
+                    Trung tâm tối ưu hóa mạng: Chọn thẻ để mở ngăn cấu hình chi tiết kết nối và DNS
                   </div>
                 </div>
               </div>
@@ -487,341 +478,175 @@ export default function NetworkTab({ device, onApplyNetwork }) {
               </div>
             ))}
           </div>
-        </>
-      )}
 
       {/* =========================================================================
-          VIEW B: DEDICATED SLIDE-OUT WORKSPACE (When a Master Tile is Clicked)
+          SLIDE-OVER WORKSPACE DRAWER (Nhạc Quán Admin / 3uTools Standard)
+          Slides in smoothly from the LEFT edge over glassmorphism backdrop
           ========================================================================= */}
-      {activeModule !== null && activeModuleMeta && (
-        <div className="crm-slide-workspace-left">
-          {/* Top Breadcrumb & Tiered Navigation Bar (Xếp Tầng Mạng) */}
-          <div className="specs-card" style={{ width: '100%', marginBottom: 0, padding: '16px 20px' }}>
-            <div className="crm-top-breadcrumb-bar">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  className="crm-back-button"
-                  onClick={() => setActiveModule(null)}
-                  title="Quay lại Tầng 1: Tổng Quan (Phím ESC)"
-                >
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                  </svg>
-                  <span>Trở Về Tầng 1</span>
-                </button>
-
-                {/* Tiered Navigator Capsule */}
-                <div className="crm-tier-navigator">
-                  <button
-                    type="button"
-                    className="crm-tier-link-btn"
-                    onClick={() => setActiveModule(null)}
-                    title="Quay lại Tầng 1: Tổng Quan"
-                  >
-                    <span>TẦNG 1: TỔNG QUAN MẠNG</span>
-                  </button>
-                  <span className="crm-tier-divider">
-                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </span>
-                  <div className="crm-tier-badge">
-                    <span>TẦNG 2: {activeModuleMeta.title.toUpperCase()}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', fontSize: '11px', color: '#10b981', fontWeight: 600 }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }} />
-                  <span>ADB: Sẵn Sàng</span>
-                </div>
-
-                <button
-                  type="button"
-                  className="btn-tool primary"
-                  onClick={handleApply}
-                  disabled={!isOnline || isApplying}
-                  style={{ fontSize: '11.5px', padding: '6px 16px', fontWeight: 600 }}
-                >
-                  {isApplying ? 'Đang Lưu...' : 'Lưu & Áp Dụng Ngay'}
-                </button>
-              </div>
-            </div>
-
-            <div style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '8px', lineHeight: '1.5' }}>
-              {activeModuleMeta.desc}
-            </div>
+      <CrmDrawer
+        isOpen={activeModule !== null && !!activeModuleMeta}
+        onClose={() => setActiveModule(null)}
+        title={activeModuleMeta?.title}
+        subtitle={activeModuleMeta?.subtitle}
+        icon={activeModuleMeta?.icon}
+        badge={{ label: activeModuleMeta?.badge || 'MagicOS 10/11', variant: activeModuleMeta?.badgeType || 'tag-safe' }}
+        side="left"
+        width="xl"
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <button
+              type="button"
+              className="btn-tool"
+              onClick={() => setActiveModule(null)}
+              style={{ fontSize: '12px', padding: '6px 14px' }}
+            >
+              Đóng Cửa Sổ (ESC)
+            </button>
+            <button
+              type="button"
+              className="btn-tool primary"
+              onClick={handleApply}
+              disabled={!isOnline || isApplying}
+              style={{ fontSize: '12px', padding: '6px 18px', fontWeight: 600 }}
+            >
+              {isApplying ? 'Đang Lưu...' : 'Lưu & Áp Dụng Ngay'}
+            </button>
           </div>
-
-          {/* Dedicated Cards for this specific network subsystem */}
-          <div className="crm-grid-matrix">
-            {currentItems.map((item) => (
-              <div
-                key={item.id}
-                className="crm-card"
-                onClick={() => setInspectItem(item)}
-              >
-                <div className="crm-card-header">
-                  <div className="crm-card-title-group">
-                    <div>
-                      <div className="crm-card-title">{item.title}</div>
-                      <div className="crm-card-meta">
-                        <span className="badge-tag tag-neutral" style={{ fontSize: '9px' }}>
-                          {item.categoryLabel}
-                        </span>
-                        <span className="badge-tag tag-safe" style={{ fontSize: '9px', fontFamily: 'var(--font-mono)' }}>
-                          {item.scope}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Interactive Control */}
-                  <div onClick={(e) => e.stopPropagation()}>
-                    {item.type === 'toggle' && (
-                      <label className="magicos-switch">
-                        <input
-                          type="checkbox"
-                          checked={item.checked}
-                          onChange={(e) => item.onChange(e.target.checked)}
-                          disabled={!isOnline}
-                        />
-                        <span className="magicos-slider"></span>
-                      </label>
-                    )}
-                    {item.type === 'select' && (
-                      <select
-                        className="tool-select"
-                        value={item.value}
-                        onChange={(e) => item.onChange(e.target.value)}
-                        style={{ fontSize: '11px', padding: '4px 8px' }}
-                      >
-                        {item.options.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-                </div>
-
-                {/* Plain-Language Explanation */}
-                <div className="crm-card-desc">{item.summary}</div>
-
-                {/* Custom DNS Sub-panel if applicable */}
-                {item.type === 'custom_dns' && (
-                  <div
-                    style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      {[
-                        { id: 'cloudflare', label: 'Cloudflare' },
-                        { id: 'google', label: 'Google' },
-                        { id: 'adguard', label: 'AdGuard' },
-                        { id: 'nextdns', label: 'NextDNS' },
-                        { id: 'quad9', label: 'Quad9' },
-                        { id: 'off', label: 'Tắt DoT' },
-                      ].map((preset) => (
-                        <button
-                          key={preset.id}
-                          type="button"
-                          className={`btn-tool ${dnsPreset === preset.id ? 'primary' : ''}`}
-                          style={{ fontSize: '11px', padding: '3px 8px' }}
-                          onClick={() => handleDnsChange(preset.id)}
-                        >
-                          {preset.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    <input
-                      type="text"
-                      className="tool-input"
-                      placeholder="Nhập hostname DNS (VD: one.one.one.one)"
-                      value={customDns}
-                      onChange={(e) => {
-                        setCustomDns(e.target.value);
-                        setDnsPreset('custom');
-                      }}
-                      style={{ width: '100%', fontSize: '11.5px', fontFamily: 'var(--font-mono)' }}
-                    />
-                  </div>
-                )}
-
-                {/* Collapsible Technical ADB Command */}
-                {item.adbCommand && (
-                  <details
-                    className="crm-tech-accordion"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <summary>Xem lệnh kỹ thuật ADB Shell</summary>
-                    <div style={{ padding: '8px 10px' }}>
-                      <div className="crm-code-box" style={{ fontSize: '11px' }}>
-                        {item.adbCommand}
-                      </div>
-                    </div>
-                  </details>
-                )}
-
-                <div className="crm-card-footer">
-                  <span style={{ color: 'var(--text-muted)' }}>
-                    {item.impact || 'Bấm để xem thông số & tác động'}
-                  </span>
-                  <button
-                    type="button"
-                    className="crm-inspect-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setInspectItem(item);
-                    }}
-                  >
-                    <span>Giải phẫu chi tiết</span>
-                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+        }
+      >
+        <div style={{ fontSize: '12.5px', color: 'var(--text-dim)', lineHeight: '1.6', marginBottom: '8px' }}>
+          {activeModuleMeta?.desc}
         </div>
-      )}
 
-      {/* =========================================================================
-          SLIDE-OVER INSPECTION DRAWER (For Deep Technical Breakdown)
-          ========================================================================= */}
-      {inspectItem && (
-        <>
-          <div className="crm-drawer-backdrop" onClick={() => setInspectItem(null)} />
-          <div className="crm-drawer-panel">
-            <div className="crm-drawer-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="badge-tag tag-safe" style={{ fontSize: '10.5px' }}>
-                  {inspectItem.categoryLabel}
-                </span>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-bright)' }}>
-                  Giải Phẫu Kỹ Thuật
-                </span>
-              </div>
-              <button
-                type="button"
-                className="crm-drawer-close"
-                onClick={() => setInspectItem(null)}
-                title="Đóng (ESC)"
-              >
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
-
-            <div className="crm-drawer-body">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', lineHeight: '1.3' }}>
-                  {inspectItem.title}
-                </div>
-                <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#38bdf8' }}>
-                  Phạm vi: {inspectItem.scope}
-                </div>
-              </div>
-
-              <div className="crm-drawer-section">
-                <div className="crm-drawer-section-title">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                  </svg>
-                  <span>Mục đích &amp; Cơ chế hoạt động</span>
-                </div>
-                <div style={{ fontSize: '12.5px', color: 'var(--text-main)', lineHeight: '1.6' }}>
-                  {inspectItem.desc}
-                </div>
-              </div>
-
-              {inspectItem.adbCommand && (
-                <div className="crm-drawer-section">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div className="crm-drawer-section-title">
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="4 17 10 11 4 5"></polyline>
-                        <line x1="12" y1="19" x2="20" y2="19"></line>
-                      </svg>
-                      <span>Lệnh ADB Shell thực thi</span>
+        {/* Dedicated cards for this specific network subsystem */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {currentItems.map((item) => (
+            <div key={item.id} className="crm-card" style={{ cursor: 'default' }}>
+              <div className="crm-card-header">
+                <div className="crm-card-title-group">
+                  <div>
+                    <div className="crm-card-title">{item.title}</div>
+                    <div className="crm-card-meta">
+                      <span className="badge-tag tag-neutral" style={{ fontSize: '9px' }}>
+                        {item.categoryLabel}
+                      </span>
+                      <span className="badge-tag tag-safe" style={{ fontSize: '9px', fontFamily: 'var(--font-mono)' }}>
+                        {item.scope}
+                      </span>
                     </div>
-                    <button
-                      type="button"
-                      className="btn-tool"
-                      style={{ fontSize: '10px', padding: '2px 8px' }}
-                      onClick={() => {
-                        navigator.clipboard.writeText(inspectItem.adbCommand);
-                        alert('Đã sao chép lệnh ADB vào clipboard!');
-                      }}
+                  </div>
+                </div>
+
+                {/* Interactive Control */}
+                <div>
+                  {item.type === 'toggle' && (
+                    <label className="magicos-switch">
+                      <input
+                        type="checkbox"
+                        checked={item.checked}
+                        onChange={(e) => item.onChange(e.target.checked)}
+                        disabled={!isOnline}
+                      />
+                      <span className="magicos-slider"></span>
+                    </label>
+                  )}
+                  {item.type === 'select' && (
+                    <select
+                      className="tool-select"
+                      value={item.value}
+                      onChange={(e) => item.onChange(e.target.value)}
+                      style={{ fontSize: '11px', padding: '4px 8px' }}
                     >
-                      Sao Chép
-                    </button>
+                      {item.options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              {/* Plain-Language Explanation */}
+              <div className="crm-card-desc">{item.summary}</div>
+
+              {/* Custom DNS Sub-panel if applicable */}
+              {item.type === 'custom_dns' && (
+                <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {[
+                      { id: 'cloudflare', label: 'Cloudflare' },
+                      { id: 'google', label: 'Google' },
+                      { id: 'adguard', label: 'AdGuard' },
+                      { id: 'nextdns', label: 'NextDNS' },
+                      { id: 'quad9', label: 'Quad9' },
+                      { id: 'off', label: 'Tắt DoT' },
+                    ].map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        className={`btn-tool ${dnsPreset === preset.id ? 'primary' : ''}`}
+                        style={{ fontSize: '11px', padding: '3px 8px' }}
+                        onClick={() => handleDnsChange(preset.id)}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
                   </div>
-                  <div className="crm-code-box">{inspectItem.adbCommand}</div>
+
+                  <input
+                    type="text"
+                    className="tool-input"
+                    placeholder="Nhập hostname DNS (VD: one.one.one.one)"
+                    value={customDns}
+                    onChange={(e) => {
+                      setCustomDns(e.target.value);
+                      setDnsPreset('custom');
+                    }}
+                    style={{ width: '100%', fontSize: '11.5px', fontFamily: 'var(--font-mono)' }}
+                  />
                 </div>
               )}
 
-              {inspectItem.impact && (
-                <div className="crm-drawer-section" style={{ borderLeft: '3px solid #38bdf8' }}>
-                  <div className="crm-drawer-section-title" style={{ color: '#38bdf8' }}>
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                    </svg>
-                    <span>Lợi ích thực tế</span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: '1.5' }}>
-                    {inspectItem.impact}
-                  </div>
+              {/* Impact / Safety info */}
+              {item.impact && (
+                <div style={{ fontSize: '11.5px', color: '#38bdf8', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>{item.impact}</span>
                 </div>
               )}
 
-              {inspectItem.safety && (
-                <div className="crm-drawer-section" style={{ borderLeft: '3px solid #10b981' }}>
-                  <div className="crm-drawer-section-title" style={{ color: '#10b981' }}>
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    </svg>
-                    <span>Mức độ an toàn</span>
+              {/* Collapsible Technical ADB Command */}
+              {item.adbCommand && (
+                <details className="crm-tech-accordion">
+                  <summary>Xem lệnh kỹ thuật ADB Shell</summary>
+                  <div style={{ padding: '8px 10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Thực thi trên thiết bị:</span>
+                      <button
+                        type="button"
+                        className="btn-tool"
+                        style={{ fontSize: '10px', padding: '2px 8px' }}
+                        onClick={() => {
+                          navigator.clipboard?.writeText(item.adbCommand);
+                          alert('Đã sao chép lệnh ADB vào clipboard!');
+                        }}
+                      >
+                        Sao Chép Lệnh
+                      </button>
+                    </div>
+                    <div className="crm-code-box" style={{ fontSize: '11px' }}>
+                      {item.adbCommand}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: '1.4' }}>
-                    {inspectItem.safety}
-                  </div>
-                </div>
+                </details>
               )}
             </div>
-
-            <div className="crm-drawer-footer">
-              <button
-                type="button"
-                className="btn-tool"
-                onClick={() => setInspectItem(null)}
-                style={{ fontSize: '12px' }}
-              >
-                Đóng
-              </button>
-
-              <button
-                type="button"
-                className="btn-tool primary"
-                onClick={handleApply}
-                disabled={!isOnline || isApplying}
-                style={{ fontSize: '12px', fontWeight: 600 }}
-              >
-                {isApplying ? 'Đang Lưu...' : 'Lưu Thay Đổi'}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+          ))}
+        </div>
+      </CrmDrawer>
     </div>
   );
 }
