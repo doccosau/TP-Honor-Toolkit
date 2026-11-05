@@ -17,6 +17,9 @@ import urllib.request
 import re
 import ssl
 import zipfile
+import tarfile
+import base64
+import shutil
 import subprocess
 import threading
 import glob
@@ -32,7 +35,45 @@ BACKUP_FILE = os.path.join(BASE_DIR, 'honor_debloat_backup.json')
 DOWNLOADS_DIR = os.path.join(WEB_DIR, 'downloads')
 SCREENSHOTS_DIR = os.path.join(DOWNLOADS_DIR, 'screenshots')
 APKS_DIR = os.path.join(DOWNLOADS_DIR, 'apks')
+THEMES_DIR = os.path.join(BASE_DIR, 'themes')
+os.makedirs(THEMES_DIR, exist_ok=True)
 os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+os.makedirs(APKS_DIR, exist_ok=True)
+
+# Gói ứng dụng hệ thống cốt lõi bất khả xâm phạm (Chống gỡ nhầm gây brick / bootloop)
+PROTECTED_PACKAGES = {
+    'com.android.systemui',
+    'com.hihonor.android.launcher',
+    'com.android.settings',
+    'com.android.phone',
+    'com.android.server.telecom',
+    'com.android.providers.telephony',
+    'com.android.packageinstaller',
+    'com.android.bluetooth',
+    'com.android.keyguard',
+    'androidhnext',
+    'com.hihonor.frameworkreshnext.overlay',
+    'com.hihonor.systemserver',
+    'com.hihonor.systemmanager',
+    'com.hihonor.iaware',
+    'com.hihonor.powergenie',
+    'com.hihonor.android.pushagent',
+    'com.hihonor.securityserver',
+    'com.hihonor.coauthservice',
+    'com.hihonor.medialibrary',
+    'com.hihonor.android.internal.app',
+    'com.hihonor.contacts',
+    'com.os.callservice',
+    'com.newcall',
+    'org.codeaurora.ims',
+    'com.hihonor.bluetooth',
+    'com.hihonor.nfc',
+    'unionpay.tsmservice',
+    'com.hihonor.keychain',
+    'com.hihonor.fitness.healthservice',
+    'com.hihonor.aod',
+    'com.hihonor.desktop.systemui',
+}
 os.makedirs(APKS_DIR, exist_ok=True)
 
 # In-memory real-time log buffer (max 1000 entries)
@@ -1393,8 +1434,443 @@ def scan_packages():
         'bloatware': bloat_results
     }
 
+# MagicOS Hidden Tweaks & Optimization Engine (Kế thừa từ HonorHook)
+def get_magic_tweaks_status():
+    keys = [
+        ('charge_turbo_switch', 'secure', '1'),
+        ('infinite_volume_music_bt_a2dp', 'secure', '1'),
+        ('reduce_refresh_rate_enabled', 'secure', '0'), # 0 = tắt tự hạ Hz, giữ max refresh rate
+        ('hn_sdr2hdr_switch', 'secure', '1'),
+        ('hn_tianshan_switch', 'secure', '1'),
+        ('fingersense_letters_enabled', 'secure', '1'),
+        ('fingerprint_slide_switch', 'secure', '1'),
+        ('enable_full_screen_AOD', 'secure', '1'),
+        ('lock_to_aod_duration', 'secure', '200'),
+        ('show_network_speed_enabled', 'system', '1'),
+        ('smart_network_switch', 'secure', '1'),
+    ]
+    marketing_keys = [
+        'state_of_ads_switch',
+        'intelligent_message_enabled',
+        'personalized_push_state',
+        'personalized_recommendation',
+        'hiboard.recommend.status',
+        'location_honor_ads',
+        'settings_ai_recommend',
+        'intelligent_recommendation_toggle',
+        'search.recommend.letter.switch',
+        'cloud_maintenance',
+        'location_report_switch'
+    ]
+    status = {}
+    if not is_device_connected():
+        for key, table, on_val in keys:
+            status[key] = {'value': '', 'table': table, 'enabled': False}
+        status['marketing_all_disabled'] = {'enabled': True, 'details': {k: '' for k in marketing_keys}}
+        return {'success': True, 'tweaks': status}
+
+    # Batch read in 1 adb execution for maximum speed (~80ms instead of 22 roundtrips)
+    cmd_parts = [f'echo "{k}="`settings get {t} {k}`' for k, t, _ in keys]
+    cmd_parts += [f'echo "m_{mk}="`settings get secure {mk}`' for mk in marketing_keys]
+    full_batch_cmd = ' && '.join(cmd_parts)
+    code, batch_out, _ = run_cmd(['adb', 'shell', full_batch_cmd], timeout=10)
+    
+    val_map = {}
+    for line in batch_out.splitlines():
+        if '=' in line:
+            pk, pv = line.split('=', 1)
+            val_map[pk.strip()] = pv.strip()
+
+    for key, table, on_val in keys:
+        v = val_map.get(key, '')
+        status[key] = {
+            'value': v,
+            'table': table,
+            'enabled': (v == on_val)
+        }
+    
+    m_all_off = True
+    m_details = {}
+    for m_key in marketing_keys:
+        v = val_map.get(f'm_{m_key}', '')
+        m_details[m_key] = v
+        if v not in ('0', 'null', ''):
+            m_all_off = False
+    
+    status['marketing_all_disabled'] = {
+        'enabled': m_all_off,
+        'details': m_details
+    }
+    return {'success': True, 'tweaks': status}
+
+def apply_magic_tweak(table, key, value):
+    add_log('info', f'Cấu hình cài đặt ẩn MagicOS: [{table}] {key} = {value}...')
+    add_log('cmd', f'$ adb shell settings put {table} {key} {value}')
+    code, out, err = run_cmd(['adb', 'shell', 'settings', 'put', table, key, str(value)])
+    _, read_val, _ = run_cmd(['adb', 'shell', 'settings', 'get', table, key])
+    verified = (read_val.strip() == str(value))
+    if verified:
+        add_log('success', f'  ↳ Đã áp dụng thành công [{table}] {key} = {value}')
+        return {'success': True, 'verified': True, 'current': read_val.strip()}
+    else:
+        add_log('warn', f'  ↳ Ghi xong nhưng đọc lại ra: "{read_val.strip()}"')
+        return {'success': True, 'verified': False, 'current': read_val.strip()}
+
+def apply_all_marketing_off(turn_off=True):
+    val = '0' if turn_off else '1'
+    marketing_keys = [
+        'state_of_ads_switch',
+        'intelligent_message_enabled',
+        'personalized_push_state',
+        'personalized_recommendation',
+        'hiboard.recommend.status',
+        'location_honor_ads',
+        'settings_ai_recommend',
+        'intelligent_recommendation_toggle',
+        'search.recommend.letter.switch',
+        'cloud_maintenance',
+        'location_report_switch'
+    ]
+    add_log('info', f'Bắt đầu {"dập tắt toàn bộ" if turn_off else "bật lại"} 11 khóa Marketing & Telemetry ngầm...')
+    for m_key in marketing_keys:
+        add_log('cmd', f'$ adb shell settings put secure {m_key} {val}')
+        run_cmd(['adb', 'shell', 'settings', 'put', 'secure', m_key, val])
+    add_log('success', f'=== [HOÀN TẤT] Đã {"vô hiệu hóa sạch" if turn_off else "bật lại"} 11 khóa quảng cáo & telemetry hệ thống! ===')
+    return {'success': True}
+
+# Helper: Chuẩn hóa tên theme an toàn (bảo toàn 100% tiếng Việt, tiếng Trung CJK & Unicode)
+def sanitize_theme_name(raw_name, fallback_prefix="Theme"):
+    if not raw_name or not str(raw_name).strip():
+        return f"{fallback_prefix}_{int(time.time())}"
+    clean = str(raw_name).replace('[', '(').replace(']', ')')
+    clean = re.sub(r'[\/\\:*?"\'<>|;`$#&!^~\x00-\x1F]', '_', clean)
+    clean = re.sub(r'\s+', ' ', clean).strip(' ._-')
+    clean = re.sub(r'^(?:Dùng\s*thử|Trial|Tryout)\s*[-_:]*\s*', '', clean, flags=re.IGNORECASE).strip(' ._-')
+    if not clean:
+        return f"{fallback_prefix}_{int(time.time())}"
+    return clean[:60].rstrip(' ._-')
+
+# Helper: Bóc tách Metadata chính xác từ description.xml và tryoutData.json (chuẩn TP Theme Extractor)
+def parse_theme_metadata(xml_content, tryout_json=None):
+    def extract_tag(xml, tag):
+        m = re.search(rf'<{tag}[^>]*>(.*?)</{tag}>', xml, re.DOTALL | re.IGNORECASE)
+        return m.group(1).strip() if m else ''
+
+    raw_title = extract_tag(xml_content, 'title')
+    xml_tryout_title = extract_tag(xml_content, 'tryout_resource_title') or extract_tag(xml_content, 'tryout_theme_name')
+    
+    json_title = None
+    if tryout_json:
+        jm = re.search(r'"(?:resourceTitle|themeName|title|name)"\s*:\s*"([^"]+)"', tryout_json)
+        if jm: json_title = jm.group(1).strip()
+
+    loc_title = (
+        extract_tag(xml_content, 'title-cn') or
+        extract_tag(xml_content, 'title_cn') or
+        extract_tag(xml_content, 'title-zh_CN') or
+        extract_tag(xml_content, 'title-en') or
+        extract_tag(xml_content, 'title_en')
+    )
+
+    clean_raw = re.sub(r'^(?:Dùng\s*thử|Trial|Tryout)\s*[-_:]*\s*', '', raw_title, flags=re.IGNORECASE).strip()
+    clean_tryout = re.sub(r'^(?:Dùng\s*thử|Trial|Tryout)\s*[-_:]*\s*', '', xml_tryout_title, flags=re.IGNORECASE).strip()
+    clean_json = re.sub(r'^(?:Dùng\s*thử|Trial|Tryout)\s*[-_:]*\s*', '', json_title or '', flags=re.IGNORECASE).strip()
+
+    if clean_raw and clean_raw not in ('Honor_Magic_Theme', 'Honor_Default', 'default'):
+        title = clean_raw
+    elif clean_tryout:
+        title = clean_tryout
+    elif clean_json:
+        title = clean_json
+    elif loc_title:
+        title = loc_title
+    elif raw_title:
+        title = raw_title
+    else:
+        title = 'Honor_Magic_Theme'
+
+    raw_author = extract_tag(xml_content, 'author') or extract_tag(xml_content, 'designer')
+    xml_tryout_author = extract_tag(xml_content, 'tryout_resource_author') or extract_tag(xml_content, 'tryout_author')
+    author = raw_author if raw_author else (xml_tryout_author or 'Honor Design Labs')
+
+    return {'title': title, 'author': author}
+
+# Helper: Làm sạch cờ trial & đặt giá = 0 chuẩn hóa description.xml
+def sanitize_description_xml_content(content, new_title=None):
+    # 1. Loại bỏ toàn bộ các thẻ liên quan đến chế độ dùng thử
+    content = re.sub(r'<is_tryout_theme[^>]*>.*?</is_tryout_theme>|<is_tryout_theme[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<tryout_[^>]*>.*?</tryout_[^>]*>|<tryout_[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<trial_[^>]*>.*?</trial_[^>]*>|<trial_[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+
+    # 2. Chuyển giá và loại phí về 0 (theme miễn phí hoàn toàn)
+    if '<price>' in content:
+        content = re.sub(r'<price>.*?</price>', '<price>0</price>', content)
+    elif '</description>' in content:
+        content = content.replace('</description>', '    <price>0</price>\n</description>')
+
+    if '<charge_type>' in content:
+        content = re.sub(r'<charge_type>.*?</charge_type>', '<charge_type>0</charge_type>', content)
+    elif '</description>' in content:
+        content = content.replace('</description>', '    <charge_type>0</charge_type>\n</description>')
+
+    # 3. Cập nhật tiêu đề nếu có
+    if new_title:
+        if '<title>' in content:
+            content = re.sub(r'<title>.*?</title>', f'<title>{new_title}</title>', content)
+        elif '</description>' in content:
+            content = content.replace('</description>', f'    <title>{new_title}</title>\n</description>')
+
+    return content
+
+# Helper: Nén ZIP chuẩn Deflate Method 8 có Directory Entries (tương thích 100% MagicOS Theme Engine)
+def create_deflate_hnt_package(source_dir, output_hnt_path):
+    if os.path.exists(output_hnt_path):
+        os.remove(output_hnt_path)
+    os.makedirs(os.path.dirname(output_hnt_path), exist_ok=True)
+    with zipfile.ZipFile(output_hnt_path, 'w', compression=zipfile.ZIP_DEFLATED) as z:
+        # Bước 1: Ghi directory entries (STORED method 0)
+        for root, dirs, _ in os.walk(source_dir):
+            for d in sorted(dirs):
+                full_dir = os.path.join(root, d)
+                rel_dir = os.path.relpath(full_dir, source_dir).replace('\\', '/').rstrip('/') + '/'
+                zinfo = zipfile.ZipInfo(rel_dir)
+                zinfo.compress_type = zipfile.ZIP_STORED
+                z.writestr(zinfo, '')
+        # Bước 2: Nén toàn bộ file theo chuẩn Deflate
+        for root, _, files in os.walk(source_dir):
+            for f in sorted(files):
+                full_file = os.path.join(root, f)
+                rel_file = os.path.relpath(full_file, source_dir).replace('\\', '/')
+                z.write(full_file, rel_file, compress_type=zipfile.ZIP_DEFLATED)
+
+# TP Theme Studio Engine (Trích xuất Theme dùng thử thành .hnt vĩnh viễn)
+def extract_trial_theme():
+    add_log('info', 'Kiểm tra dữ liệu theme đang dùng thử trên điện thoại (/data/themes/0)...')
+    _, check_out, _ = run_cmd(['adb', 'shell', 'test -f /data/themes/0/description.xml && echo FOUND || echo NOT_FOUND'])
+    if 'FOUND' not in check_out:
+        add_log('error', 'Chưa phát hiện theme đang dùng thử tại /data/themes/0/!')
+        return {
+            'success': False,
+            'message': 'Không tìm thấy dữ liệu theme tại /data/themes/0/! Vui lòng vào app Chủ Đề trên máy, chọn theme VIP bất kỳ và bấm "Dùng thử" (5 phút) trước.'
+        }
+
+    timestamp = int(time.time())
+    temp_dir = os.path.join(THEMES_DIR, f'temp_extract_{timestamp}')
+    pkg_dir = os.path.join(temp_dir, 'package')
+    os.makedirs(pkg_dir, exist_ok=True)
+
+    try:
+        add_log('step', '>>> [1/5] Đang kéo tài nguyên theme về máy tính (không tạo file rác trên máy)...')
+        # Lớp 1: Thử tar streaming qua stdout trực tiếp vào Python tarfile (nhanh nhất, 0 byte rác trên máy)
+        pulled = False
+        try:
+            tar_proc = subprocess.Popen([ADB_BIN, 'exec-out', 'tar -C /data/themes/0 -cf - .'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            with tarfile.open(fileobj=tar_proc.stdout, mode='r|*') as tar:
+                for member in tar:
+                    tar.extract(member, path=pkg_dir)
+            tar_proc.wait(timeout=20)
+            if os.path.exists(os.path.join(pkg_dir, 'description.xml')):
+                pulled = True
+        except Exception:
+            pass
+
+        # Lớp 2: Fallback adb pull trực tiếp
+        if not pulled or not os.path.exists(os.path.join(pkg_dir, 'description.xml')):
+            code, _, _ = run_cmd(['adb', 'pull', '/data/themes/0/.', pkg_dir], timeout=60)
+            if code == 0 and os.path.exists(os.path.join(pkg_dir, 'description.xml')):
+                pulled = True
+
+        # Lớp 3: Fallback qua bản sao trung gian trên sdcard và xóa sạch ngay
+        if not pulled or not os.path.exists(os.path.join(pkg_dir, 'description.xml')):
+            add_log('warn', 'Kéo trực tiếp gặp hạn chế, chuyển sang bản sao an toàn trung gian...')
+            temp_phone_dump = f'/sdcard/Download/.tp_theme_dump_{timestamp}'
+            run_cmd(['adb', 'shell', f'mkdir -p "{temp_phone_dump}" && cp -r /data/themes/0/* "{temp_phone_dump}/"'])
+            run_cmd(['adb', 'pull', f'{temp_phone_dump}/.', pkg_dir], timeout=60)
+            run_cmd(['adb', 'shell', f'rm -rf "{temp_phone_dump}"'])
+
+        if not os.path.exists(os.path.join(pkg_dir, 'description.xml')):
+            raise Exception("Không thể đọc được file description.xml từ thiết bị")
+
+        # Đọc nội dung description.xml & tryoutData.json để lấy thông tin chân thực
+        desc_path = os.path.join(pkg_dir, 'description.xml')
+        with open(desc_path, 'r', encoding='utf-8', errors='ignore') as f:
+            desc_content = f.read()
+
+        tryout_json_content = None
+        tryout_json_path = os.path.join(pkg_dir, 'tryoutData.json')
+        if os.path.exists(tryout_json_path):
+            try:
+                with open(tryout_json_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    tryout_json_content = f.read()
+            except Exception:
+                pass
+
+        meta = parse_theme_metadata(desc_content, tryout_json_content)
+        theme_title = meta.get('title') or f'Honor_Theme_{timestamp}'
+        clean_title = sanitize_theme_name(theme_title)
+        hnt_filename = f"{clean_title}.hnt"
+        add_log('success', f'Phát hiện theme bản quyền: "{theme_title}" (Tác giả: {meta.get("author")})')
+
+        add_log('step', '>>> [2/5] Đang loại bỏ toàn bộ các cờ trial & chuyển đổi sang Free vĩnh viễn...')
+        for junk in ['tried', 'tryoutData.json', 'icons_backup']:
+            j_path = os.path.join(pkg_dir, junk)
+            if os.path.exists(j_path):
+                os.remove(j_path)
+        for f in os.listdir(pkg_dir):
+            if f.endswith('.tryout'):
+                os.remove(os.path.join(pkg_dir, f))
+
+        sanitized_desc = sanitize_description_xml_content(desc_content, clean_title)
+        with open(desc_path, 'w', encoding='utf-8') as f:
+            f.write(sanitized_desc)
+
+        add_log('step', '>>> [3/5] Đang đóng gói chuẩn ZIP Deflate .hnt (Method 8)...')
+        local_hnt_path = os.path.join(temp_dir, hnt_filename)
+        create_deflate_hnt_package(pkg_dir, local_hnt_path)
+
+        file_size_mb = round(os.path.getsize(local_hnt_path) / (1024 * 1024), 2)
+        add_log('success', f'Đã đóng gói thành công: {hnt_filename} ({file_size_mb} MB)')
+
+        add_log('step', '>>> [4/5] Đang nạp vào ứng dụng Chủ Đề hệ thống & thư mục chia sẻ...')
+        # Đích 1: Thư mục nhận diện của Theme Store hệ thống (Kèm bộ đệm .cache)
+        remote_sys_dir = "/sdcard/Android/data/com.hihonor.android.thememanager/files/Download/Honor/Themes"
+        remote_cache_dir = f"{remote_sys_dir}/.cache/{hnt_filename}"
+        run_cmd(['adb', 'shell', f'mkdir -p "{remote_sys_dir}" && mkdir -p "{remote_cache_dir}"'])
+        run_cmd(['adb', 'push', local_hnt_path, f'{remote_sys_dir}/{hnt_filename}'])
+
+        # Nạp cache: description.xml, ảnh preview, hình nền, unlock để Theme Store hiển thị đầy đủ thẻ & xem trước
+        run_cmd(['adb', 'push', desc_path, f'{remote_cache_dir}/description.xml'])
+        for cf in ['wallpaper_meta.json', 'wallpapereditor_config.xml', 'cover.jpg', 'cover.png']:
+            cp = os.path.join(pkg_dir, cf)
+            if os.path.isfile(cp):
+                run_cmd(['adb', 'push', cp, f'{remote_cache_dir}/{cf}'])
+        for cd in ['preview', 'wallpaper', 'unlock']:
+            cd_path = os.path.join(pkg_dir, cd)
+            if os.path.isdir(cd_path):
+                run_cmd(['adb', 'shell', f'mkdir -p "{remote_cache_dir}/{cd}"'])
+                run_cmd(['adb', 'push', f'{cd_path}/.', f'{remote_cache_dir}/{cd}/'])
+
+        # Đích 2: Thư mục công khai để user share/sao lưu
+        remote_public_dir = "/sdcard/Honor/Themes"
+        run_cmd(['adb', 'shell', f'mkdir -p "{remote_public_dir}"'])
+        run_cmd(['adb', 'push', local_hnt_path, f'{remote_public_dir}/{hnt_filename}'])
+
+        # Cấp quyền đọc ghi 777 cho Theme Manager
+        run_cmd(['adb', 'shell', f'chmod -R 777 "{remote_cache_dir}" 2>/dev/null || true'])
+        run_cmd(['adb', 'shell', f'chmod 777 "{remote_sys_dir}/{hnt_filename}" "{remote_public_dir}/{hnt_filename}" 2>/dev/null || true'])
+
+        # Phát sóng MediaScanner để file hiện ngay trong Trình Quản Lý Tệp / Bộ Sưu Tập
+        run_cmd(['adb', 'shell', f'am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://{remote_public_dir}/{hnt_filename}"'])
+
+        add_log('step', '>>> [5/5] Cấp quyền & làm mới ứng dụng Chủ Đề...')
+        run_cmd(['adb', 'shell', 'appops set com.hihonor.android.thememanager MANAGE_EXTERNAL_STORAGE allow'])
+        run_cmd(['adb', 'shell', 'am force-stop com.hihonor.android.thememanager'])
+        run_cmd(['adb', 'shell', 'am start -n com.hihonor.android.thememanager/.PageActivity 2>/dev/null || am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p com.hihonor.android.thememanager'])
+
+        saved_copy = os.path.join(THEMES_DIR, hnt_filename)
+        shutil.copy2(local_hnt_path, saved_copy)
+
+        add_log('success', f'=== [HOÀN TẤT 100%] ĐÃ TRÍCH XUẤT THÀNH CÔNG THEME: {theme_title} ===')
+        add_log('info', f'✦ Đã nạp vào app Chủ Đề: {remote_sys_dir}/{hnt_filename}')
+        add_log('info', f'✦ Đã sao lưu để chia sẻ: {remote_public_dir}/{hnt_filename}')
+        add_log('info', '👉 Bây giờ trên điện thoại, anh chỉ cần vào tab "Tôi" -> "Chủ đề của tôi" để bấm Áp Dụng vĩnh viễn!')
+
+        return {
+            'success': True,
+            'title': theme_title,
+            'filename': hnt_filename,
+            'size_mb': file_size_mb,
+            'sys_path': f'{remote_sys_dir}/{hnt_filename}',
+            'public_path': f'{remote_public_dir}/{hnt_filename}'
+        }
+    except Exception as e:
+        add_log('error', f'Lỗi trong quá trình trích xuất theme: {e}')
+        return {'success': False, 'message': str(e)}
+    finally:
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir, ignore_errors=True)
+        run_cmd(['adb', 'shell', 'rm -rf /sdcard/Download/.tp_theme_dump_* 2>/dev/null || true'])
+
+def deploy_uploaded_theme(payload):
+    filename = payload.get('filename', '')
+    file_b64 = payload.get('content_b64', '')
+    if not filename or not file_b64:
+        return {'success': False, 'message': 'Thiếu file dữ liệu theme'}
+    if not filename.lower().endswith('.hnt'):
+        return {'success': False, 'message': 'Chỉ chấp nhận file theme định dạng .hnt của MagicOS!'}
+
+    clean_name = sanitize_theme_name(filename.rsplit('.', 1)[0]) + '.hnt'
+    theme_bytes = base64.b64decode(file_b64)
+    local_path = os.path.join(THEMES_DIR, clean_name)
+    with open(local_path, 'wb') as f:
+        f.write(theme_bytes)
+
+    add_log('info', f'Bắt đầu nạp file theme {clean_name} vào hệ thống...')
+    remote_sys_dir = "/sdcard/Android/data/com.hihonor.android.thememanager/files/Download/Honor/Themes"
+    remote_cache_dir = f"{remote_sys_dir}/.cache/{clean_name}"
+    run_cmd(['adb', 'shell', f'mkdir -p "{remote_sys_dir}" && mkdir -p "{remote_cache_dir}"'])
+    run_cmd(['adb', 'push', local_path, f'{remote_sys_dir}/{clean_name}'])
+
+    remote_public_dir = "/sdcard/Honor/Themes"
+    run_cmd(['adb', 'shell', f'mkdir -p "{remote_public_dir}"'])
+    run_cmd(['adb', 'push', local_path, f'{remote_public_dir}/{clean_name}'])
+
+    # Trích xuất metadata & preview từ file zip nạp vào thư mục cache để app Chủ Đề hiện ảnh xem trước
+    try:
+        temp_unpack = os.path.join(THEMES_DIR, f'temp_unpack_{int(time.time())}')
+        os.makedirs(temp_unpack, exist_ok=True)
+        with zipfile.ZipFile(local_path, 'r') as zf:
+            for member in zf.namelist():
+                lower_m = member.lower()
+                if lower_m == 'description.xml' or lower_m.startswith('preview/') or lower_m.startswith('wallpaper/') or lower_m.startswith('unlock/') or lower_m in ('wallpaper_meta.json', 'wallpapereditor_config.xml', 'cover.jpg', 'cover.png'):
+                    zf.extract(member, temp_unpack)
+
+        desc_p = os.path.join(temp_unpack, 'description.xml')
+        if os.path.isfile(desc_p):
+            run_cmd(['adb', 'push', desc_p, f'{remote_cache_dir}/description.xml'])
+        for cf in ['wallpaper_meta.json', 'wallpapereditor_config.xml', 'cover.jpg', 'cover.png']:
+            cp = os.path.join(temp_unpack, cf)
+            if os.path.isfile(cp):
+                run_cmd(['adb', 'push', cp, f'{remote_cache_dir}/{cf}'])
+        for cd in ['preview', 'wallpaper', 'unlock']:
+            cd_path = os.path.join(temp_unpack, cd)
+            if os.path.isdir(cd_path):
+                run_cmd(['adb', 'shell', f'mkdir -p "{remote_cache_dir}/{cd}"'])
+                run_cmd(['adb', 'push', f'{cd_path}/.', f'{remote_cache_dir}/{cd}/'])
+        shutil.rmtree(temp_unpack, ignore_errors=True)
+    except Exception as e:
+        add_log('warn', f'Không thể trích xuất preview từ file nạp: {e}')
+
+    run_cmd(['adb', 'shell', f'chmod -R 777 "{remote_cache_dir}" 2>/dev/null || true'])
+    run_cmd(['adb', 'shell', f'chmod 777 "{remote_sys_dir}/{clean_name}" "{remote_public_dir}/{clean_name}" 2>/dev/null || true'])
+    run_cmd(['adb', 'shell', f'am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://{remote_public_dir}/{clean_name}"'])
+
+    run_cmd(['adb', 'shell', 'appops set com.hihonor.android.thememanager MANAGE_EXTERNAL_STORAGE allow'])
+    run_cmd(['adb', 'shell', 'am force-stop com.hihonor.android.thememanager'])
+    run_cmd(['adb', 'shell', 'am start -n com.hihonor.android.thememanager/.PageActivity 2>/dev/null || am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p com.hihonor.android.thememanager'])
+
+    add_log('success', f'=== [HOÀN TẤT] Đã nạp thành công {clean_name} vào ứng dụng Chủ Đề! ===')
+    return {'success': True, 'filename': clean_name}
+
+def get_root_lsposed_status():
+    _, su_out, _ = run_cmd(['adb', 'shell', 'which su'])
+    has_root = ('/su' in su_out or 'bin/su' in su_out)
+    _, lsp_out, _ = run_cmd(['adb', 'shell', 'pm list packages | grep -E "lsposed|top.honorhook"'])
+    has_lsposed = ('lsposed' in lsp_out)
+    has_honorhook = ('top.honorhook' in lsp_out)
+    return {
+        'success': True,
+        'has_root': has_root,
+        'has_lsposed': has_lsposed,
+        'has_honorhook': has_honorhook
+    }
+
 # Action Handlers
 ACTION_TITLES = {
+    'apply_magic_tweak': 'Cấu hình cài đặt ẩn MagicOS',
+    'apply_all_marketing_off': 'Dập tắt 11 khóa Marketing & Telemetry ngầm',
+    'extract_trial_theme': 'Trích xuất Theme VIP đang dùng thử thành vĩnh viễn (.hnt)',
+    'deploy_theme_file': 'Nạp file theme .hnt vào ứng dụng Chủ Đề',
     'clear_logs': 'Làm sạch console nhật ký',
     'whitelist_all_vn': 'Cấp Whitelist Doze ứng dụng Việt Nam (Zalo, Banking, VNeID)',
     'debloat_packages': 'Gỡ bỏ an toàn ứng dụng rác nội địa Trung Quốc',
@@ -2233,6 +2709,9 @@ def handle_action(payload):
         pkg = payload.get('package', '')
         is_user = payload.get('is_user', True)
         if not pkg: return {'success': False, 'message': 'Thiếu package'}
+        if pkg in PROTECTED_PACKAGES:
+            add_log('error', f'Từ chối gỡ bỏ: [{pkg}] là ứng dụng hệ thống cốt lõi của MagicOS! Chống bootloop.')
+            return {'success': False, 'error': f'"{pkg}" là ứng dụng hệ thống cốt lõi bất khả xâm phạm. Không thể gỡ bỏ để bảo vệ an toàn cho máy.'}
         add_log('info', f'Bắt đầu quy trình gỡ cài đặt ứng dụng: {pkg}...')
         if is_user:
             add_log('cmd', f'$ adb shell pm uninstall {pkg}')
@@ -2252,6 +2731,9 @@ def handle_action(payload):
     elif action == 'freeze_app':
         pkg = payload.get('package', '')
         if not pkg: return {'success': False, 'message': 'Thiếu package'}
+        if pkg in PROTECTED_PACKAGES:
+            add_log('error', f'Từ chối đóng băng: [{pkg}] là ứng dụng hệ thống cốt lõi của MagicOS!')
+            return {'success': False, 'error': f'"{pkg}" là ứng dụng hệ thống cốt lõi bất khả xâm phạm. Không thể đóng băng để giữ ổn định hệ thống.'}
         add_log('info', f'Bắt đầu đóng băng (vô hiệu hóa): {pkg}...')
         add_log('cmd', f'$ adb shell pm disable-user --user 0 {pkg}')
         code, out, err = run_cmd(['adb', 'shell', 'pm', 'disable-user', '--user', '0', pkg])
@@ -2312,6 +2794,23 @@ def handle_action(payload):
         code, out, err = run_cmd(['adb', 'shell'] + cmd.split())
         return {'success': code == 0, 'output': out}
 
+    elif action == 'apply_magic_tweak':
+        table = payload.get('table', 'secure')
+        key = payload.get('key', '')
+        value = payload.get('value', '0')
+        if not key: return {'success': False, 'message': 'Thiếu key'}
+        return apply_magic_tweak(table, key, value)
+
+    elif action == 'apply_all_marketing_off':
+        turn_off = payload.get('turn_off', True)
+        return apply_all_marketing_off(turn_off)
+
+    elif action == 'extract_trial_theme':
+        return extract_trial_theme()
+
+    elif action == 'deploy_theme_file':
+        return deploy_uploaded_theme(payload)
+
     return {'success': False, 'message': f'Hành động không xác định: {action}'}
 
 # Custom HTTP Request Handler
@@ -2330,11 +2829,15 @@ class HonorRequestHandler(SimpleHTTPRequestHandler):
         elif path == '/api/inspection':
             self.send_json_response(get_device_inspection_report())
         elif path == '/api/env':
-            self.send_json_response(get_system_environment())
+            self.send_json_environment(get_system_environment()) if hasattr(self, 'send_json_environment') else self.send_json_response(get_system_environment())
         elif path == '/api/scan':
             self.send_json_response(scan_packages())
         elif path == '/api/apps':
             self.send_json_response(get_all_applications())
+        elif path == '/api/magic_tweaks':
+            self.send_json_response(get_magic_tweaks_status())
+        elif path == '/api/root_status':
+            self.send_json_response(get_root_lsposed_status())
         elif path == '/api/logs':
             with LOG_LOCK:
                 logs_copy = list(LOG_BUFFER)

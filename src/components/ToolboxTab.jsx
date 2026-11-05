@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { adbService } from '../services/adbService';
+import ThemeStudioModal from './ThemeStudioModal';
 
 export default function ToolboxTab({
   device,
@@ -24,6 +25,14 @@ export default function ToolboxTab({
   const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
   const [screenshotResult, setScreenshotResult] = useState(null);
   const [copiedQuickCmd, setCopiedQuickCmd] = useState(false);
+
+  // Theme Studio & Magic Tweaks State
+  const [isThemeStudioOpen, setIsThemeStudioOpen] = useState(false);
+  const [magicTweaks, setMagicTweaks] = useState({});
+  const [loadingTweakKey, setLoadingTweakKey] = useState(null);
+  const [rootStatus, setRootStatus] = useState(null);
+  const [quickExtracting, setQuickExtracting] = useState(false);
+  const [quickExtractMsg, setQuickExtractMsg] = useState(null);
 
   const isWeb = adbService.mode === 'webusb';
 
@@ -51,6 +60,66 @@ export default function ToolboxTab({
       if (recTimerRef.current) clearInterval(recTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (isOnline) {
+      loadMagicTweaks();
+      loadRootStatus();
+    }
+  }, [isOnline]);
+
+  const loadMagicTweaks = async () => {
+    const res = await adbService.getMagicTweaks();
+    if (res && res.success) {
+      setMagicTweaks(res.tweaks || {});
+    }
+  };
+
+  const loadRootStatus = async () => {
+    const res = await adbService.getRootStatus();
+    if (res) setRootStatus(res);
+  };
+
+  const handleToggleTweak = async (table, key, currentVal, targetOnVal = '1', targetOffVal = '0') => {
+    setLoadingTweakKey(key);
+    try {
+      const nextVal = currentVal === targetOnVal ? targetOffVal : targetOnVal;
+      const res = await adbService.applyMagicTweak(table, key, nextVal);
+      if (res && res.success) {
+        await loadMagicTweaks();
+      }
+    } finally {
+      setLoadingTweakKey(null);
+    }
+  };
+
+  const handleToggleMarketing = async () => {
+    setLoadingTweakKey('marketing');
+    try {
+      const isCurrentlyOff = magicTweaks?.marketing_all_disabled?.enabled;
+      await adbService.applyAllMarketingOff(!isCurrentlyOff);
+      await loadMagicTweaks();
+    } finally {
+      setLoadingTweakKey(null);
+    }
+  };
+
+  const handleQuickExtract = async () => {
+    setQuickExtracting(true);
+    setQuickExtractMsg(null);
+    try {
+      const res = await adbService.extractTrialTheme();
+      if (res && res.success) {
+        setQuickExtractMsg(`🎉 Đã trích xuất thành công: ${res.title} (${res.size_mb} MB)! Đã nạp vào app Chủ Đề.`);
+      } else {
+        alert(res?.message || 'Chưa phát hiện theme dùng thử tại /data/themes/0. Vui lòng vào app Chủ Đề và bấm Dùng thử (5 phút) trước.');
+      }
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setQuickExtracting(false);
+    }
+  };
 
   const handleWirelessConnect = async () => {
     setIsSettingWireless(true);
@@ -588,7 +657,233 @@ export default function ToolboxTab({
             </button>
           </div>
         </div>
+
+        {/* Card 5: TP Theme Studio */}
+        <div className="specs-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div className="specs-header-title">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="svg-icon" style={{ color: '#ec4899' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83m13.79-4l-5.74 9.94"></path>
+                  </svg>
+                </span>
+                <span>🎨 TP Theme Studio (Trích Xuất Theme VIP .hnt)</span>
+              </div>
+            </div>
+            <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '10px 0 12px 0', lineHeight: '1.5' }}>
+              Trích xuất 1-Click theme VIP đang dùng thử thành file <b>.hnt</b> vĩnh viễn, nạp vào thư mục hệ thống và sao lưu chia sẻ, không để lại rác trên điện thoại.
+            </p>
+            {quickExtractMsg && (
+              <div style={{ padding: '8px 10px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '4px', fontSize: '11.5px', color: '#10b981', marginBottom: '10px' }}>
+                {quickExtractMsg}
+              </div>
+            )}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button
+              className="btn-tool primary"
+              style={{ width: '100%', justifyContent: 'center', padding: '9px 12px', fontWeight: 600 }}
+              onClick={handleQuickExtract}
+              disabled={!isOnline || quickExtracting}
+            >
+              {quickExtracting ? 'Đang trích xuất sang .hnt...' : '⚡ Trích Xuất Nhanh Theme VIP Đang Thử'}
+            </button>
+            <button
+              type="button"
+              className="btn-tool"
+              style={{ width: '100%', justifyContent: 'center', padding: '7px', fontSize: '12px', color: '#ec4899' }}
+              onClick={() => setIsThemeStudioOpen(true)}
+              disabled={!isOnline}
+            >
+              <span>📂 Mở Studio Quản Lý & Nạp File .hnt</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Card 6: Tinh Chỉnh Cài Đặt Ẩn MagicOS (Magic Tweaks) */}
+        <div className="specs-card" style={{ gridColumn: '1 / -1', background: 'var(--panel)' }}>
+          <div className="specs-header-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="svg-icon" style={{ color: '#f59e0b' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+              </span>
+              <span>⚡ Tinh Chỉnh Cài Đặt Ẩn MagicOS (Magic Tweaks - Kế thừa từ HonorHook)</span>
+            </div>
+            {rootStatus?.has_root && (
+              <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                🛡️ Thiết bị Đã Root {rootStatus?.has_lsposed ? '(Có LSPosed)' : ''}
+              </span>
+            )}
+          </div>
+          <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '8px 0 14px 0', lineHeight: '1.5' }}>
+            Can thiệp trực tiếp vào bảng cơ sở dữ liệu hệ thống (Settings Secure/System) của MagicOS qua ADB. <b>100% không cần Root, bền vững sau khi khởi động lại</b>.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px', marginBottom: '14px' }}>
+            {/* Tweak 1: SuperCharge Turbo */}
+            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>⚡ Siêu Sạc Nhanh Khi Sáng Màn Hình</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Giữ công suất sạc Turbo tối đa lúc đang sử dụng</div>
+              </div>
+              <button
+                className={`btn-tool ${magicTweaks?.charge_turbo_switch?.enabled ? 'primary' : ''}`}
+                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
+                onClick={() => handleToggleTweak('secure', 'charge_turbo_switch', magicTweaks?.charge_turbo_switch?.value, '1', '0')}
+                disabled={!isOnline || loadingTweakKey === 'charge_turbo_switch'}
+              >
+                {magicTweaks?.charge_turbo_switch?.enabled ? 'BẬT' : 'TẮT'}
+              </button>
+            </div>
+
+            {/* Tweak 2: Infinite Bluetooth Volume */}
+            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>🔊 Âm Lượng Bluetooth Vô Cực</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Phá vỡ trần giới hạn âm lượng tai nghe Bluetooth</div>
+              </div>
+              <button
+                className={`btn-tool ${magicTweaks?.infinite_volume_music_bt_a2dp?.enabled ? 'primary' : ''}`}
+                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
+                onClick={() => handleToggleTweak('secure', 'infinite_volume_music_bt_a2dp', magicTweaks?.infinite_volume_music_bt_a2dp?.value, '1', '0')}
+                disabled={!isOnline || loadingTweakKey === 'infinite_volume_music_bt_a2dp'}
+              >
+                {magicTweaks?.infinite_volume_music_bt_a2dp?.enabled ? 'BẬT' : 'TẮT'}
+              </button>
+            </div>
+
+            {/* Tweak 3: Lock Max Refresh Rate */}
+            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>🚀 Khóa Cứng Tần Số Quét Không Tụt</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Chống tự hạ Hz khi màn hình tĩnh, giữ mượt 120Hz</div>
+              </div>
+              <button
+                className={`btn-tool ${magicTweaks?.reduce_refresh_rate_enabled?.enabled ? 'primary' : ''}`}
+                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
+                onClick={() => handleToggleTweak('secure', 'reduce_refresh_rate_enabled', magicTweaks?.reduce_refresh_rate_enabled?.value, '0', '1')}
+                disabled={!isOnline || loadingTweakKey === 'reduce_refresh_rate_enabled'}
+              >
+                {magicTweaks?.reduce_refresh_rate_enabled?.enabled ? 'KHÓA' : 'TỰ ĐỘNG'}
+              </button>
+            </div>
+
+            {/* Tweak 4: Tianshan Display */}
+            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>🏔️ Hiển Thị Thiên Sơn (Tianshan)</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Kích hoạt thuật toán hiển thị Oasis/Tianshan cao cấp</div>
+              </div>
+              <button
+                className={`btn-tool ${magicTweaks?.hn_tianshan_switch?.enabled ? 'primary' : ''}`}
+                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
+                onClick={() => handleToggleTweak('secure', 'hn_tianshan_switch', magicTweaks?.hn_tianshan_switch?.value, '1', '0')}
+                disabled={!isOnline || loadingTweakKey === 'hn_tianshan_switch'}
+              >
+                {magicTweaks?.hn_tianshan_switch?.enabled ? 'BẬT' : 'TẮT'}
+              </button>
+            </div>
+
+            {/* Tweak 5: SDR to HDR */}
+            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>✨ Nâng Cấp SDR Sang HDR</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Tự động tăng cường độ sáng và tương phản HDR</div>
+              </div>
+              <button
+                className={`btn-tool ${magicTweaks?.hn_sdr2hdr_switch?.enabled ? 'primary' : ''}`}
+                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
+                onClick={() => handleToggleTweak('secure', 'hn_sdr2hdr_switch', magicTweaks?.hn_sdr2hdr_switch?.value, '1', '0')}
+                disabled={!isOnline || loadingTweakKey === 'hn_sdr2hdr_switch'}
+              >
+                {magicTweaks?.hn_sdr2hdr_switch?.enabled ? 'BẬT' : 'TẮT'}
+              </button>
+            </div>
+
+            {/* Tweak 6: Knuckle Gesture */}
+            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>✍️ Cử Chỉ Khớp Ngón Tay (Knuckle)</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Vẽ chữ bằng khớp ngón tay để mở nhanh ứng dụng</div>
+              </div>
+              <button
+                className={`btn-tool ${magicTweaks?.fingersense_letters_enabled?.enabled ? 'primary' : ''}`}
+                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
+                onClick={() => handleToggleTweak('secure', 'fingersense_letters_enabled', magicTweaks?.fingersense_letters_enabled?.value, '1', '0')}
+                disabled={!isOnline || loadingTweakKey === 'fingersense_letters_enabled'}
+              >
+                {magicTweaks?.fingersense_letters_enabled?.enabled ? 'BẬT' : 'TẮT'}
+              </button>
+            </div>
+
+            {/* Tweak 7: Fingerprint Slide */}
+            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>👆 Trượt Vân Tay Xem Thông Báo</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Vuốt lên/xuống tại cảm biến vân tay để kéo bảng tin</div>
+              </div>
+              <button
+                className={`btn-tool ${magicTweaks?.fingerprint_slide_switch?.enabled ? 'primary' : ''}`}
+                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
+                onClick={() => handleToggleTweak('secure', 'fingerprint_slide_switch', magicTweaks?.fingerprint_slide_switch?.value, '1', '0')}
+                disabled={!isOnline || loadingTweakKey === 'fingerprint_slide_switch'}
+              >
+                {magicTweaks?.fingerprint_slide_switch?.enabled ? 'BẬT' : 'TẮT'}
+              </button>
+            </div>
+
+            {/* Tweak 8: Network Speed */}
+            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>📶 Hiện Tốc Độ Mạng Thời Gian Thực</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Hiển thị tốc độ download KB/s trên thanh trạng thái</div>
+              </div>
+              <button
+                className={`btn-tool ${magicTweaks?.show_network_speed_enabled?.enabled ? 'primary' : ''}`}
+                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
+                onClick={() => handleToggleTweak('system', 'show_network_speed_enabled', magicTweaks?.show_network_speed_enabled?.value, '1', '0')}
+                disabled={!isOnline || loadingTweakKey === 'show_network_speed_enabled'}
+              >
+                {magicTweaks?.show_network_speed_enabled?.enabled ? 'BẬT' : 'TẮT'}
+              </button>
+            </div>
+          </div>
+
+          {/* Marketing 11 Keys 1-Click Action */}
+          <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-bright)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>🛡️</span>
+                <span>Bộ 11 Khóa Dập Tắt Quảng Cáo &amp; Thu Thập Vị Trí Ngầm MagicOS</span>
+              </div>
+              <div style={{ fontSize: '11.5px', color: 'var(--text-dim)', marginTop: '2px' }}>
+                Khóa triệt để: Quảng cáo hệ thống, Tin nhắn thông minh, Push cá nhân hóa, Tin rác HiBoard, Báo cáo vị trí ngầm.
+              </div>
+            </div>
+            <button
+              className={`btn-tool ${magicTweaks?.marketing_all_disabled?.enabled ? '' : 'primary'}`}
+              style={{ fontWeight: 600, padding: '7px 14px' }}
+              onClick={handleToggleMarketing}
+              disabled={!isOnline || loadingTweakKey === 'marketing'}
+            >
+              {magicTweaks?.marketing_all_disabled?.enabled
+                ? '✅ ĐÃ TẮT SẠCH 11 KHÓA (Bấm để khôi phục)'
+                : '🚫 1-Click Dập Tắt Sạch 11 Khóa'}
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Theme Studio Modal */}
+      <ThemeStudioModal
+        isOpen={isThemeStudioOpen}
+        onClose={() => setIsThemeStudioOpen(false)}
+        device={device}
+      />
 
       {/* Screenshot Preview Modal */}
       {screenshotResult && (

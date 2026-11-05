@@ -2060,6 +2060,163 @@ class AdbService {
     } catch (e) {}
     return { success: false };
   }
+
+  /**
+   * MagicOS Hidden Tweaks & Optimizations (Kế thừa từ HonorHook)
+   */
+  async getMagicTweaks() {
+    if (this.mode === 'webusb' && this.adbInstance) {
+      const keys = [
+        ['charge_turbo_switch', 'secure', '1'],
+        ['infinite_volume_music_bt_a2dp', 'secure', '1'],
+        ['reduce_refresh_rate_enabled', 'secure', '0'],
+        ['hn_sdr2hdr_switch', 'secure', '1'],
+        ['hn_tianshan_switch', 'secure', '1'],
+        ['fingersense_letters_enabled', 'secure', '1'],
+        ['fingerprint_slide_switch', 'secure', '1'],
+        ['enable_full_screen_AOD', 'secure', '1'],
+        ['lock_to_aod_duration', 'secure', '200'],
+        ['show_network_speed_enabled', 'system', '1'],
+        ['smart_network_switch', 'secure', '1'],
+      ];
+      const marketingKeys = [
+        'state_of_ads_switch',
+        'intelligent_message_enabled',
+        'personalized_push_state',
+        'personalized_recommendation',
+        'hiboard.recommend.status',
+        'location_honor_ads',
+        'settings_ai_recommend',
+        'intelligent_recommendation_toggle',
+        'search.recommend.letter.switch',
+        'cloud_maintenance',
+        'location_report_switch'
+      ];
+      const tweaks = {};
+      for (const [key, table, onVal] of keys) {
+        try {
+          const val = (await this.executeShell(`settings get ${table} ${key}`)).trim();
+          tweaks[key] = { value: val, table, enabled: val === onVal };
+        } catch (e) {
+          tweaks[key] = { value: '', table, enabled: false };
+        }
+      }
+      let mAllOff = true;
+      const mDetails = {};
+      for (const mKey of marketingKeys) {
+        try {
+          const val = (await this.executeShell(`settings get secure ${mKey}`)).trim();
+          mDetails[mKey] = val;
+          if (val !== '0' && val !== 'null' && val !== '') mAllOff = false;
+        } catch (e) {
+          mDetails[mKey] = '';
+        }
+      }
+      tweaks['marketing_all_disabled'] = { enabled: mAllOff, details: mDetails };
+      return { success: true, tweaks };
+    }
+    try {
+      const resp = await fetch('/api/magic_tweaks');
+      if (resp.ok) return await resp.json();
+    } catch (e) {}
+    return { success: false, tweaks: {} };
+  }
+
+  async applyMagicTweak(table, key, value) {
+    if (this.mode === 'webusb' && this.adbInstance) {
+      this.addLog('info', `[Cài đặt ẩn] settings put ${table} ${key} ${value}`);
+      try {
+        await this.executeShell(`settings put ${table} ${key} ${value}`);
+        const readVal = (await this.executeShell(`settings get ${table} ${key}`)).trim();
+        return { success: true, verified: readVal === String(value), current: readVal };
+      } catch (e) {
+        return { success: false, error: e.message };
+      }
+    }
+    try {
+      const resp = await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'apply_magic_tweak', table, key, value }),
+      });
+      if (resp.ok) return await resp.json();
+    } catch (e) {}
+    return { success: false };
+  }
+
+  async applyAllMarketingOff(turnOff = true) {
+    const val = turnOff ? '0' : '1';
+    const marketingKeys = [
+      'state_of_ads_switch',
+      'intelligent_message_enabled',
+      'personalized_push_state',
+      'personalized_recommendation',
+      'hiboard.recommend.status',
+      'location_honor_ads',
+      'settings_ai_recommend',
+      'intelligent_recommendation_toggle',
+      'search.recommend.letter.switch',
+      'cloud_maintenance',
+      'location_report_switch'
+    ];
+    if (this.mode === 'webusb' && this.adbInstance) {
+      this.addLog('info', `[Marketing] Thiết lập 11 khóa về ${val}...`);
+      for (const k of marketingKeys) {
+        await this.executeShell(`settings put secure ${k} ${val}`);
+      }
+      return { success: true };
+    }
+    try {
+      const resp = await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'apply_all_marketing_off', turn_off: turnOff }),
+      });
+      if (resp.ok) return await resp.json();
+    } catch (e) {}
+    return { success: false };
+  }
+
+  /**
+   * TP Theme Studio Engine (Trích xuất & Nạp Theme .hnt)
+   */
+  async extractTrialTheme() {
+    this.addLog('info', 'Bắt đầu quy trình trích xuất Theme VIP đang dùng thử...');
+    try {
+      const resp = await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'extract_trial_theme' }),
+      });
+      if (resp.ok) return await resp.json();
+    } catch (e) {
+      return { success: false, message: e.message };
+    }
+    return { success: false, message: 'Lỗi gửi yêu cầu trích xuất theme' };
+  }
+
+  async deployThemeFile(filename, contentB64) {
+    this.addLog('info', `Đang nạp file theme ${filename}...`);
+    try {
+      const resp = await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deploy_theme_file', filename, content_b64: contentB64 }),
+      });
+      if (resp.ok) return await resp.json();
+    } catch (e) {
+      return { success: false, message: e.message };
+    }
+    return { success: false, message: 'Lỗi nạp file theme' };
+  }
+
+  async getRootStatus() {
+    try {
+      const resp = await fetch('/api/root_status');
+      if (resp.ok) return await resp.json();
+    } catch (e) {}
+    return { success: false, has_root: false, has_lsposed: false };
+  }
 }
 
 export const adbService = new AdbService();

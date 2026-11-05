@@ -165,6 +165,36 @@
           "name": "Kênh Gửi Dữ Liệu Ngầm HiView Tunnel",
           "desc": "Socket truyền dữ liệu chẩn đoán về server Trung Quốc.",
           "recommended": true
+        },
+        {
+          "package": "com.hihonor.geekcenter",
+          "name": "Geek Center (Thông Báo & Gợi Ý YOYO)",
+          "desc": "Dịch vụ thông báo và đề xuất tính năng gây phiền toái trên MagicOS.",
+          "recommended": true
+        },
+        {
+          "package": "com.honor.yoyoappsug",
+          "name": "Đề Xuất Ứng Dụng Rác YOYO",
+          "desc": "Dịch vụ đẩy danh sách gợi ý cài đặt ứng dụng đối tác tiếng Trung.",
+          "recommended": true
+        },
+        {
+          "package": "com.aura.oobe.honor",
+          "name": "Trình Cài Đặt Ứng Dụng Đối Tác OOBE",
+          "desc": "Trình tự động gợi ý và cài bloatware bên thứ 3 trong quá trình kích hoạt máy.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.autoinstallapkfrommcc",
+          "name": "Tự Động Cài Bloatware Nhà Mạng TQ",
+          "desc": "Dịch vụ tự động nạp ứng dụng rác dựa theo mã nhà mạng Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.easygo",
+          "name": "EasyGo (Chia Sẻ & Phân Phối Liên Kết TQ)",
+          "desc": "Dịch vụ phân phối liên kết rác nội địa ngốn RAM ngầm.",
+          "recommended": true
         }
       ]
     },

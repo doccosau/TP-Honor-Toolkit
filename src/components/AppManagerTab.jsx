@@ -3,6 +3,35 @@ import vnAppsData from '../data/vietnamApps.json';
 import { adbService } from '../services/adbService';
 import AppIcon from './AppIcon';
 
+// Danh sách các ứng dụng hệ thống cốt lõi bất khả xâm phạm (Chống bootloop / mất sóng)
+const PROTECTED_PACKAGES = new Set([
+  'com.hihonor.android.launcher',
+  'androidhnext',
+  'com.hihonor.frameworkreshnext.overlay',
+  'com.hihonor.systemserver',
+  'com.hihonor.systemmanager',
+  'com.hihonor.iaware',
+  'com.hihonor.powergenie',
+  'com.hihonor.android.pushagent',
+  'com.hihonor.securityserver',
+  'com.hihonor.coauthservice',
+  'com.hihonor.medialibrary',
+  'com.hihonor.android.internal.app',
+  'com.hihonor.contacts',
+  'com.os.callservice',
+  'com.newcall',
+  'org.codeaurora.ims',
+  'com.hihonor.bluetooth',
+  'com.hihonor.nfc',
+  'unionpay.tsmservice',
+  'com.hihonor.keychain',
+  'com.hihonor.fitness.healthservice',
+  'com.hihonor.aod',
+  'com.hihonor.desktop.systemui',
+  'com.android.systemui',
+  'com.android.settings',
+]);
+
 export default function AppManagerTab({
   device,
   scannedPackages,
@@ -73,14 +102,16 @@ export default function AppManagerTab({
 
   // Actions for All Apps
   const handleToggleSelectAll = () => {
-    if (selectedPkgs.size === filteredApps.length && filteredApps.length > 0) {
+    const selectableApps = filteredApps.filter((a) => !PROTECTED_PACKAGES.has(a.package));
+    if (selectedPkgs.size === selectableApps.length && selectableApps.length > 0) {
       setSelectedPkgs(new Set());
     } else {
-      setSelectedPkgs(new Set(filteredApps.map((a) => a.package)));
+      setSelectedPkgs(new Set(selectableApps.map((a) => a.package)));
     }
   };
 
   const handleToggleSelect = (pkg) => {
+    if (PROTECTED_PACKAGES.has(pkg)) return;
     setSelectedPkgs((prev) => {
       const next = new Set(prev);
       if (next.has(pkg)) next.delete(pkg);
@@ -90,6 +121,10 @@ export default function AppManagerTab({
   };
 
   const handleUninstall = async (pkg, isUser) => {
+    if (PROTECTED_PACKAGES.has(pkg)) {
+      alert(`[BẢO VỆ AN TOÀN] "${pkg}" là ứng dụng hệ thống cốt lõi của MagicOS.\nTuyệt đối không gỡ cài đặt để tránh làm treo máy (Bootloop) hoặc hỏng chức năng quan trọng.`);
+      return;
+    }
     if (!window.confirm(`Bạn có chắc chắn muốn gỡ cài đặt ứng dụng "${pkg}"?`)) return;
     setActionLoadingPkg(pkg);
     try {
@@ -106,6 +141,10 @@ export default function AppManagerTab({
   };
 
   const handleFreeze = async (pkg) => {
+    if (PROTECTED_PACKAGES.has(pkg)) {
+      alert(`[BẢO VỆ AN TOÀN] "${pkg}" là ứng dụng hệ thống cốt lõi của MagicOS.\nKhông nên đóng băng để đảm bảo hệ thống hoạt động ổn định.`);
+      return;
+    }
     setActionLoadingPkg(pkg);
     try {
       const res = await adbService.freezeApp(pkg);
@@ -180,8 +219,11 @@ export default function AppManagerTab({
   };
 
   const handleBulkUninstall = async () => {
-    const list = Array.from(selectedPkgs);
-    if (!list.length) return;
+    const list = Array.from(selectedPkgs).filter((p) => !PROTECTED_PACKAGES.has(p));
+    if (!list.length) {
+      alert('Không có ứng dụng nào có thể gỡ bỏ (các ứng dụng cốt lõi đã được bảo vệ tuyệt đối).');
+      return;
+    }
     if (!window.confirm(`Bạn có chắc muốn gỡ bỏ ${list.length} ứng dụng đã chọn?`)) return;
     setIsLoadingApps(true);
     try {
@@ -198,8 +240,11 @@ export default function AppManagerTab({
   };
 
   const handleBulkFreeze = async () => {
-    const list = Array.from(selectedPkgs);
-    if (!list.length) return;
+    const list = Array.from(selectedPkgs).filter((p) => !PROTECTED_PACKAGES.has(p));
+    if (!list.length) {
+      alert('Không có ứng dụng nào có thể đóng băng (các ứng dụng cốt lõi đã được bảo vệ tuyệt đối).');
+      return;
+    }
     setIsLoadingApps(true);
     try {
       for (const p of list) {
@@ -606,7 +651,10 @@ export default function AppManagerTab({
                   <th style={{ width: '40px', textAlign: 'center' }}>
                     <input
                       type="checkbox"
-                      checked={selectedPkgs.size === filteredApps.length && filteredApps.length > 0}
+                      checked={
+                        filteredApps.filter((a) => !PROTECTED_PACKAGES.has(a.package)).length > 0 &&
+                        selectedPkgs.size === filteredApps.filter((a) => !PROTECTED_PACKAGES.has(a.package)).length
+                      }
                       onChange={handleToggleSelectAll}
                     />
                   </th>
@@ -626,30 +674,38 @@ export default function AppManagerTab({
                     </td>
                   </tr>
                 ) : filteredApps.length > 0 ? (
-                  filteredApps.map((app) => (
-                    <tr
-                      key={app.package}
-                      style={{
-                        cursor: 'pointer',
-                        background: selectedPkgs.has(app.package) ? 'rgba(56, 189, 248, 0.1)' : undefined,
-                      }}
-                      onClick={() => handleToggleSelect(app.package)}
-                    >
-                      <td
-                        style={{ textAlign: 'center', cursor: 'pointer' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleSelect(app.package);
+                  filteredApps.map((app) => {
+                    const isProtected = PROTECTED_PACKAGES.has(app.package);
+                    return (
+                      <tr
+                        key={app.package}
+                        style={{
+                          cursor: isProtected ? 'default' : 'pointer',
+                          background: selectedPkgs.has(app.package) ? 'rgba(56, 189, 248, 0.1)' : undefined,
                         }}
+                        onClick={() => !isProtected && handleToggleSelect(app.package)}
                       >
-                        <input
-                          type="checkbox"
-                          checked={selectedPkgs.has(app.package)}
-                          readOnly
-                          style={{ pointerEvents: 'none', cursor: 'pointer' }}
-                        />
-                      </td>
-                      <td>
+                        <td
+                          style={{ textAlign: 'center', cursor: isProtected ? 'default' : 'pointer' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isProtected) handleToggleSelect(app.package);
+                          }}
+                        >
+                          {isProtected ? (
+                            <span title="Ứng dụng hệ thống cốt lõi (Bảo vệ chống xoá nhầm)" style={{ fontSize: '13px', cursor: 'not-allowed', opacity: 0.7 }}>
+                              🛡️
+                            </span>
+                          ) : (
+                            <input
+                              type="checkbox"
+                              checked={selectedPkgs.has(app.package)}
+                              readOnly
+                              style={{ pointerEvents: 'none', cursor: 'pointer' }}
+                            />
+                          )}
+                        </td>
+                        <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <AppIcon pkg={app.package} name={app.name} isUser={app.is_user} size={36} />
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -704,64 +760,84 @@ export default function AppManagerTab({
                               <line x1="12" y1="15" x2="12" y2="3"></line>
                             </svg>
                           </button>
-                          {app.disabled ? (
-                            <button
-                              type="button"
-                              className="btn-tool"
-                              style={{ padding: '4px 7px', fontSize: '11px' }}
-                              onClick={() => handleUnfreeze(app.package)}
-                              disabled={actionLoadingPkg === app.package}
-                              title="Rã đông (kích hoạt lại) ứng dụng"
+                          {PROTECTED_PACKAGES.has(app.package) ? (
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                padding: '3px 7px',
+                                background: 'rgba(239, 68, 68, 0.12)',
+                                color: '#ef4444',
+                                border: '1px solid rgba(239, 68, 68, 0.25)',
+                                borderRadius: '4px',
+                                fontWeight: 500
+                              }}
+                              title="Ứng dụng hệ thống cốt lõi - Được bảo vệ an toàn chống bootloop"
                             >
-                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                              </svg>
-                            </button>
+                              🛡️ Cốt lõi
+                            </span>
                           ) : (
-                            <button
-                              type="button"
-                              className="btn-tool"
-                              style={{ padding: '4px 7px', fontSize: '11px' }}
-                              onClick={() => handleFreeze(app.package)}
-                              disabled={actionLoadingPkg === app.package}
-                              title="Đóng băng (vô hiệu hóa) ứng dụng"
-                            >
-                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
-                                <rect x="6" y="4" width="4" height="16"></rect>
-                                <rect x="14" y="4" width="4" height="16"></rect>
-                              </svg>
-                            </button>
+                            <>
+                              {app.disabled ? (
+                                <button
+                                  type="button"
+                                  className="btn-tool"
+                                  style={{ padding: '4px 7px', fontSize: '11px' }}
+                                  onClick={() => handleUnfreeze(app.package)}
+                                  disabled={actionLoadingPkg === app.package}
+                                  title="Rã đông (kích hoạt lại) ứng dụng"
+                                >
+                                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                  </svg>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="btn-tool"
+                                  style={{ padding: '4px 7px', fontSize: '11px' }}
+                                  onClick={() => handleFreeze(app.package)}
+                                  disabled={actionLoadingPkg === app.package}
+                                  title="Đóng băng (vô hiệu hóa) ứng dụng"
+                                >
+                                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <rect x="6" y="4" width="4" height="16"></rect>
+                                    <rect x="14" y="4" width="4" height="16"></rect>
+                                  </svg>
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                className="btn-tool"
+                                style={{ padding: '4px 7px', fontSize: '11px' }}
+                                onClick={() => handleClearData(app.package)}
+                                disabled={actionLoadingPkg === app.package}
+                                title="Xóa dữ liệu & cache"
+                              >
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M12 20h9"></path>
+                                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-tool danger"
+                                style={{ padding: '4px 7px', fontSize: '11px' }}
+                                onClick={() => handleUninstall(app.package, app.is_user)}
+                                disabled={actionLoadingPkg === app.package}
+                                title="Gỡ cài đặt ứng dụng"
+                              >
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="3 6 5 6 21 6"></polyline>
+                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                              </button>
+                            </>
                           )}
-                          <button
-                            type="button"
-                            className="btn-tool"
-                            style={{ padding: '4px 7px', fontSize: '11px' }}
-                            onClick={() => handleClearData(app.package)}
-                            disabled={actionLoadingPkg === app.package}
-                            title="Xóa dữ liệu & cache"
-                          >
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M12 20h9"></path>
-                              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                            </svg>
-                          </button>
-                          <button
-                            type="button"
-                            className="btn-tool danger"
-                            style={{ padding: '4px 7px', fontSize: '11px' }}
-                            onClick={() => handleUninstall(app.package, app.is_user)}
-                            disabled={actionLoadingPkg === app.package}
-                            title="Gỡ cài đặt ứng dụng"
-                          >
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="3 6 5 6 21 6"></polyline>
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            </svg>
-                          </button>
                         </div>
                       </td>
                     </tr>
-                  ))
+                  );
+                })
                 ) : (
                   <tr>
                     <td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-dim)' }}>

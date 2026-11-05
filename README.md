@@ -53,7 +53,26 @@ Công cụ giúp người dùng dễ dàng khắc phục triệt để các vấ
 - Tích hợp sẵn bộ điều khiển Scrcpy qua Web/Desktop.
 - Điều khiển điện thoại bằng chuột, phím, bàn rê chuột trên máy tính với khung hình mượt mà lên tới 120fps.
 
-### 6. 📚 Kho Dữ Liệu Thiết Bị Honor (125+ Model)
+### 6. 🎨 Theme Studio (Trình Xử Lý & Nạp Theme VIP MagicOS)
+- **Bẻ khóa Theme dùng thử 5 phút**: Tự động trích xuất theme VIP đang dùng thử tại `/data/themes/0/` thành gói `.hnt` chuẩn MagicOS Deflate.
+- **Tẩy sạch dấu vết bản quyền thử nghiệm**: Tự động loại bỏ các cờ theo dõi hạn dùng (`tryoutData.json`, `is_tryout_theme`, `*.tryout`, `icons_backup`...) giúp theme không bị tự động trả về mặc định sau 5 phút.
+- **Cài đặt chuẩn nhận diện 100%**: Đẩy file `.hnt` và thư viện giải nén cache trực tiếp vào đường dẫn hệ thống Theme Store (`/sdcard/Android/data/com.hihonor.android.thememanager/files/Download/Honor/Themes/`), đồng thời sao lưu 1 bản ra `/sdcard/Honor/Themes/` để chia sẻ cho người khác.
+- **Sạch sẽ tuyệt đối**: Toàn bộ quá trình giải nén, chỉnh sửa và đóng gói diễn ra trên máy tính, không để lại bất kỳ thư mục rác nào trên bộ nhớ điện thoại.
+- **Cài đặt Theme thủ công**: Hỗ trợ kéo thả nạp các gói theme `.hnt` có sẵn vào ứng dụng Chủ Đề của máy chỉ với 1 click.
+
+### 7. 🎛️ MagicOS Hidden Tweaks (Bộ Tinh Chỉnh Tính Năng Ẩn)
+- **SuperCharge Turbo khi sáng màn hình**: Kích hoạt sạc siêu nhanh công suất tối đa ngay cả khi đang bật màn hình sử dụng (`charge_turbo_switch`).
+- **Âm lượng vô cực Bluetooth A2DP**: Phá bỏ giới hạn âm lượng tai nghe Bluetooth (`infinite_volume_music_bt_a2dp`).
+- **Khóa Max Hz toàn diện**: Ngăn hệ thống tự động hạ tần số quét màn hình khi pin yếu hoặc máy ấm (`reduce_refresh_rate_enabled = 0`).
+- **Nâng cấp hiển thị Thiên Sơn & SDR-to-HDR**: Bật thuật toán hiển thị sắc nét đỉnh cao Tianshan Display (`hn_tianshan_switch`) và giả lập dải tương phản động cao SDR sang HDR (`hn_sdr2hdr_switch`).
+- **Cử chỉ khớp ngón tay & Vân tay**: Bật vẽ chữ Knuckle Gestures (`fingersense_letters_enabled`) và vuốt cảm biến vân tay để kéo thanh thông báo (`fingerprint_slide_switch`).
+- **1-Click Tắt 11 Cổng Quảng Cáo & Gợi Ý**: Vô hiệu hóa đồng loạt 11 công tắc theo dõi hành vi, đẩy tin quảng cáo tiếp thị từ HiBoard, Khai khoáng nội dung, Trợ lý tìm kiếm và AI Recommendations.
+
+### 8. 🛡️ Cơ Chế Bảo Vệ Ứng Dụng Cốt Lõi (Core Safety Guard)
+- **Bảo vệ tuyệt đối 18+ gói ứng dụng sống còn**: Tự động khóa nút Gỡ bỏ / Đóng băng và gắn nhãn "🛡️ Cốt lõi" cho SystemUI, Launcher, Cài đặt, Bluetooth, Bàn phím số, Keyguard, Xác thực sinh trắc học... ngăn chặn hoàn toàn nguy cơ brick hoặc treo logo do thao tác nhầm.
+- **Bổ sung Bloatware an toàn**: Tích hợp các tiến trình rác mới vào danh mục an toàn Level 1 (Geek Center, YOYO App Suggestions, OOBE, AutoInstall MCC, EasyGo Framework).
+
+### 9. 📚 Kho Dữ Liệu Thiết Bị Honor (125+ Model)
 - Tra cứu tức thì thông số kỹ thuật, mã model nội địa và quốc tế (ví dụ: `BVL-AN00` = Magic 6 Pro), chipset, dung lượng pin và chuẩn sạc nhanh của toàn bộ hệ sinh thái smartphone Honor.
 
 ---

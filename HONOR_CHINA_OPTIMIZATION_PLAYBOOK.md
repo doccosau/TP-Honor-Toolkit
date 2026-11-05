@@ -168,6 +168,33 @@ adb shell cmd appops set com.google.android.apps.bard ASSIST_SCREENSHOT allow
 adb shell cmd appops set com.google.android.apps.bard SYSTEM_ALERT_WINDOW allow
 ```
 
+### Bước 8: Kích hoạt các tính năng ẩn MagicOS & Tắt quảng cáo gợi ý (HonorHook Tweaks)
+```bash
+# 1. Bật SuperCharge Turbo công suất tối đa khi đang sáng màn hình
+adb shell settings put secure charge_turbo_switch 1
+
+# 2. Mở khóa âm lượng vô cực Bluetooth A2DP (khử giới hạn âm lượng tai nghe)
+adb shell settings put secure infinite_volume_music_bt_a2dp 1
+
+# 3. Khóa Max Hz chống tụt tần số quét khi pin yếu / máy ấm
+adb shell settings put secure reduce_refresh_rate_enabled 0
+
+# 4. Bật chế độ hiển thị Thiên Sơn & SDR-to-HDR đỉnh cao
+adb shell settings put secure hn_tianshan_switch 1
+adb shell settings put secure hn_sdr2hdr_switch 1
+
+# 5. Bật cử chỉ vẽ chữ khớp ngón tay & vuốt vân tay mở thanh thông báo
+adb shell settings put secure fingersense_letters_enabled 1
+adb shell settings put secure fingerprint_slide_switch 1
+
+# 6. Tắt 11 công tắc quảng cáo & gợi ý tiếp thị ngầm hệ thống
+for key in state_of_ads_switch intelligent_message_enabled personalized_push_state personalized_recommendation \
+           hiboard.recommend.status location_honor_ads settings_ai_recommend intelligent_recommendation_toggle \
+           search.recommend.letter.switch cloud_maintenance location_report_switch; do
+    adb shell settings put secure $key 0
+done
+```
+
 ---
 
 ## 📱 THAO TÁC QUAN TRỌNG TRÊN ĐIỆN THOẠI (BẰNG TAY)
