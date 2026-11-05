@@ -892,7 +892,7 @@ def get_battery_health_details():
         rating = 'Cần Thay Pin (Chai Dưới 80%)'
 
     cycle_str = f"{cycles} lần" if cycles > 0 else "BMS Bảo Mật"
-    desc_status = f"Dữ liệu đọc trực tiếp từ cảm biến quản lý nguồn BMS: Dung lượng hiện tại {current_capacity_mah} mAh (Thiết kế {design_mah} mAh), chu kỳ sạc {cycle_str}, điện áp {volts}V, dòng điện {abs(current_ma)}mA ({wattage}W)."
+    desc_status = f"Dữ liệu đọc trực tiếp từ cảm biến quản lý nguồn BMS: Dung lượng pin tối đa {full_mah} mAh (Thiết kế {design_mah} mAh - Sức khỏe {health_pct}%), mức sạc hiện tại {level}% ({current_capacity_mah} mAh), chu kỳ sạc {cycle_str}, điện áp {volts}V, dòng điện {abs(current_ma)}mA ({wattage}W)."
 
     return {
         'connected': True,
@@ -990,8 +990,11 @@ def get_device_inspection_report():
     memory_note = f"Bộ nhớ phân vùng /data: Trống {avail_data} / {total_data}"
 
     # 6. Battery real values
-    bat_val = f"{bat_info.get('health_percent', 100)}% ({bat_info.get('current_capacity_mah', 5200)} / {bat_info.get('design_capacity_mah', 5200)} mAh)"
-    bat_note = f"Đã sạc: {bat_info.get('cycle_count', 0)} chu kỳ • Điện áp: {bat_info.get('voltage_v', 4.46)}V • {bat_info.get('status', 'Đang dùng pin')}"
+    full_mah_val = bat_info.get('full_capacity_mah') or bat_info.get('design_capacity_mah', 5200)
+    design_mah_val = bat_info.get('design_capacity_mah', 5200)
+    current_mah_val = bat_info.get('current_capacity_mah', full_mah_val)
+    bat_val = f"{bat_info.get('health_percent', 100)}% ({full_mah_val} / {design_mah_val} mAh)"
+    bat_note = f"Mức sạc: {bat_info.get('battery_level', 100)}% ({current_mah_val} mAh) • Đã sạc: {bat_info.get('cycle_count', 0)} chu kỳ • Điện áp: {bat_info.get('voltage_v', 4.17)}V"
 
     checklist = [
         {
@@ -1024,7 +1027,7 @@ def get_device_inspection_report():
         },
         {
             'id': 'battery',
-            'title': 'Sức Khỏe Pin & Chu Kỳ Sạc',
+            'title': 'Sức Khỏe Pin & Dung Lượng Tối Đa',
             'value': bat_val,
             'status': 'pass' if bat_info.get('health_percent', 100) >= 80 else 'warning',
             'note': bat_note

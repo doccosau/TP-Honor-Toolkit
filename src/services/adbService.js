@@ -1746,7 +1746,7 @@ class AdbService {
       else rating = 'Cần Thay Pin (Chai Dưới 80%)';
 
       const cycleStr = cycles !== null && cycles > 0 ? `${cycles} lần` : 'BMS Bảo Mật';
-      const descStatus = `Dữ liệu đọc trực tiếp từ cảm biến quản lý nguồn BMS: Dung lượng hiện tại ${currentChargeMah} mAh (Thiết kế ${designMah} mAh), chu kỳ sạc ${cycleStr}, điện áp ${volts}V, dòng điện ${Math.abs(curMa)}mA (${wattage}W).`;
+      const descStatus = `Dữ liệu đọc trực tiếp từ cảm biến quản lý nguồn BMS: Dung lượng pin tối đa ${fullMah} mAh (Thiết kế ${designMah} mAh - Sức khỏe ${healthPct}%), mức sạc hiện tại ${level}% (${currentChargeMah} mAh), chu kỳ sạc ${cycleStr}, điện áp ${volts}V, dòng điện ${Math.abs(curMa)}mA (${wattage}W).`;
 
       return {
         connected: true,
@@ -1876,10 +1876,10 @@ class AdbService {
         },
         {
           id: 'battery',
-          title: 'Sức Khỏe Pin & Chu Kỳ Sạc',
-          value: `${batInfo.health_percent || 100}% (${batInfo.current_capacity_mah || 5200} / ${batInfo.design_capacity_mah || 5200} mAh)`,
+          title: 'Sức Khỏe Pin & Dung Lượng Tối Đa',
+          value: `${batInfo.health_percent || 100}% (${batInfo.full_capacity_mah || batInfo.design_capacity_mah || 11000} / ${batInfo.design_capacity_mah || 11000} mAh)`,
           status: (batInfo.health_percent || 100) >= 80 ? 'pass' : 'warning',
-          note: `Đã sạc: ${batInfo.cycle_count || 0} chu kỳ • Điện áp: ${batInfo.voltage_v || 4.2}V • ${batInfo.status || 'Đang dùng pin'}`
+          note: `Mức sạc: ${batInfo.battery_level || 100}% (${batInfo.current_capacity_mah || 7631} mAh) • Đã sạc: ${batInfo.cycle_count || 0} chu kỳ • Điện áp: ${batInfo.voltage_v || 4.2}V • ${batInfo.status || 'Đang dùng pin'}`
         },
         {
           id: 'memory',

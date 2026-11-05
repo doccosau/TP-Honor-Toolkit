@@ -96,8 +96,10 @@ export default function InspectionTab({ device }) {
   const hasBattery = !!batteryData && batteryData.connected;
   const healthPct = hasBattery ? batteryData.health_percent : null;
   const cycleCount = hasBattery ? batteryData.cycle_count : null;
+  const fullMah = hasBattery ? (batteryData.full_capacity_mah || batteryData.design_capacity_mah) : null;
   const currentMah = hasBattery ? batteryData.current_capacity_mah : null;
   const designMah = hasBattery ? batteryData.design_capacity_mah : null;
+  const batteryLevel = hasBattery ? batteryData.battery_level : null;
   const score = inspectionData && inspectionData.connected ? inspectionData.score : null;
 
   // SVG circular gauge calculation (Radius 54, circumference ~ 339.29)
@@ -204,7 +206,7 @@ export default function InspectionTab({ device }) {
                 <span className="battery-pct-number">
                   {hasBattery ? `${healthPct}%` : '--'}
                 </span>
-                <span className="battery-pct-label">Dung lượng thực</span>
+                <span className="battery-pct-label">Dung lượng tối đa</span>
               </div>
             </div>
 
@@ -214,7 +216,7 @@ export default function InspectionTab({ device }) {
               </div>
               <div className="status-desc">
                 {hasBattery
-                  ? (batteryData.desc_status || `Dữ liệu đọc trực tiếp từ cảm biến BMS: Sức khỏe ${healthPct}%, đã qua ${cycleCount} chu kỳ sạc.`)
+                  ? (batteryData.desc_status || `Dữ liệu đọc trực tiếp từ cảm biến BMS: Dung lượng tối đa ${healthPct}%, đã qua ${cycleCount} chu kỳ sạc.`)
                   : 'Vui lòng cắm cáp USB và bật Gỡ lỗi ADB để hệ thống đọc thông số pin thật từ máy.'}
               </div>
             </div>
@@ -233,12 +235,12 @@ export default function InspectionTab({ device }) {
             </div>
 
             <div className="metric-tile">
-              <div className="metric-label">Dung lượng Hiện tại / Thiết kế</div>
-              <div className="metric-value">
-                {hasBattery ? `${currentMah} / ${designMah} mAh` : '--'}
+              <div className="metric-label">Dung lượng Tối đa / Thiết kế</div>
+              <div className="metric-value highlight">
+                {hasBattery ? `${fullMah} / ${designMah} mAh` : '--'}
               </div>
               <div className="metric-hint">
-                {hasBattery ? 'Đo bởi mạch quản lý nguồn BMS phần cứng' : '--'}
+                {hasBattery ? `Mức sạc hiện tại: ${batteryLevel}% (${currentMah} mAh)` : '--'}
               </div>
             </div>
 
