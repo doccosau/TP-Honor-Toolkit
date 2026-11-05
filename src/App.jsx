@@ -33,6 +33,20 @@ export default function App() {
   const [isExecuting, setIsExecuting] = useState(false);
   const [executingTask, setExecutingTask] = useState('');
 
+  // Dual Theme Engine: Default to 'light' (3uTools & MagicOS Suite Luminous)
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('tp_honor_theme') || 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('tp_honor_theme', theme);
+  }, [theme]);
+
+  const handleToggleTheme = useCallback(() => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  }, []);
+
   // Toast dispatch helper
   const addToast = useCallback((type, title, message, action = null) => {
     const id = Date.now() + Math.random();
@@ -606,6 +620,8 @@ export default function App() {
         onConnectWebUsb={handleConnectWebUsb}
         onRefresh={handleRefresh}
         onOpenGuide={() => setShowGuide(true)}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* Main Ribbon Navigation */}

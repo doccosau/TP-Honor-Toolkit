@@ -1242,8 +1242,8 @@ export default function ToolboxTab({
             style={{
               padding: '12px 14px',
               borderRadius: '10px',
-              background: 'rgba(15, 23, 42, 0.65)',
-              border: '1px solid rgba(56, 189, 248, 0.2)',
+              background: 'var(--drawer-section-bg)',
+              border: '1px solid var(--border-light)',
               marginBottom: '14px',
               display: 'flex',
               justifyContent: 'space-between',
@@ -1253,7 +1253,7 @@ export default function ToolboxTab({
             }}
           >
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-bright)' }}>
                 Đã chặn {telemetryBlockedCount}/11 dịch vụ theo dõi
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -1396,8 +1396,8 @@ export default function ToolboxTab({
 
               {/* Special options for Scrcpy */}
               {item.id === 'sys_scrcpy_mirror' && (
-                <div style={{ marginTop: '8px', padding: '10px 12px', background: 'rgba(15, 23, 42, 0.5)', borderRadius: '8px', border: '1px solid rgba(56, 189, 248, 0.15)' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#38bdf8', marginBottom: '6px' }}>
+                <div style={{ marginTop: '8px', padding: '10px 12px', background: 'var(--drawer-section-bg)', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--magicos-blue)', marginBottom: '6px' }}>
                     Tùy chọn phiên Scrcpy:
                   </div>
                   <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
@@ -1423,8 +1423,8 @@ export default function ToolboxTab({
 
               {/* Special options for Reboot */}
               {item.type === 'reboot_controls' && (
-                <div style={{ marginTop: '8px', padding: '10px 12px', background: 'rgba(15, 23, 42, 0.5)', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#f59e0b', marginBottom: '8px' }}>
+                <div style={{ marginTop: '8px', padding: '10px 12px', background: 'var(--drawer-section-bg)', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--tool-amber)', marginBottom: '8px' }}>
                     Chọn phân vùng khởi động lại:
                   </div>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>

@@ -67,13 +67,13 @@ export default function DeviceChassis({ device, onMasterOptimize, onLaunchScrcpy
             />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px', padding: '20px 10px', color: 'var(--text-muted)' }}>
-              <div style={{ width: '84px', height: '154px', borderRadius: '18px', border: '2px dashed rgba(255, 255, 255, 0.16)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0' }}>
-                <div style={{ width: '26px', height: '4px', background: 'rgba(255, 255, 255, 0.2)', borderRadius: '2px' }} />
-                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.4 }}>
+              <div style={{ width: '84px', height: '154px', borderRadius: '18px', border: '2px dashed var(--border-dark)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0' }}>
+                <div style={{ width: '26px', height: '4px', background: 'var(--border-dark)', borderRadius: '2px' }} />
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.5 }}>
                   <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
                   <line x1="12" y1="18" x2="12.01" y2="18"></line>
                 </svg>
-                <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: '1px solid rgba(255, 255, 255, 0.18)' }} />
+                <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: '1px solid var(--border-dark)' }} />
               </div>
               <span style={{ fontSize: '11px', textAlign: 'center', lineHeight: '1.4', opacity: 0.8 }}>
                 Cắm cáp USB để nhận diện<br />mọi dòng máy Honor nội địa

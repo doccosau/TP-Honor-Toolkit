@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 export default function TerminalConsole({ logs = [], isExecuting = false, executingTask = '', onClear }) {
-  // Size modes: 'default' (140px) | 'expanded' (360px) | 'full' (560px)
-  const [sizeMode, setSizeMode] = useState('default');
+  // Size modes: 'minimized' (36px) | 'default' (140px) | 'expanded' (360px) | 'full' (560px)
+  const [sizeMode, setSizeMode] = useState('minimized');
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'cmd' | 'step' | 'alert'
   const [autoScroll, setAutoScroll] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -71,10 +71,18 @@ export default function TerminalConsole({ logs = [], isExecuting = false, execut
   };
 
   const handleToggleSize = () => {
-    if (sizeMode === 'default') setSizeMode('expanded');
+    if (sizeMode === 'minimized') setSizeMode('default');
+    else if (sizeMode === 'default') setSizeMode('expanded');
     else if (sizeMode === 'expanded') setSizeMode('full');
-    else setSizeMode('default');
+    else setSizeMode('minimized');
   };
+
+  // Auto-expand if active task starts
+  useEffect(() => {
+    if (isExecuting && sizeMode === 'minimized') {
+      setSizeMode('default');
+    }
+  }, [isExecuting]);
 
   // Determine running status
   const lastLog = logs.length > 0 ? logs[logs.length - 1] : null;
@@ -85,7 +93,7 @@ export default function TerminalConsole({ logs = [], isExecuting = false, execut
     lastLog.level === 'cmd'
   ) && !lastLog.msg.includes('HOÀN TẤT') && !lastLog.msg.includes('thành công! ==='));
 
-  const drawerClass = sizeMode === 'full' ? 'is-full' : sizeMode === 'expanded' ? 'is-expanded' : '';
+  const drawerClass = sizeMode === 'full' ? 'is-full' : sizeMode === 'expanded' ? 'is-expanded' : sizeMode === 'minimized' ? 'is-minimized' : '';
 
   return (
     <div className={`console-drawer ${drawerClass}`}>
@@ -207,7 +215,14 @@ export default function TerminalConsole({ logs = [], isExecuting = false, execut
             onClick={handleToggleSize}
             title="Chuyển đổi kích thước bảng điều khiển: Chuẩn (140px) ⇄ Mở rộng (360px) ⇄ Toàn màn (560px)"
           >
-            {sizeMode === 'default' ? (
+            {sizeMode === 'minimized' ? (
+              <>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+                <span>Mở Nhật Ký (140px)</span>
+              </>
+            ) : sizeMode === 'default' ? (
               <>
                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="4 14 12 6 20 14"></polyline>
@@ -227,9 +242,9 @@ export default function TerminalConsole({ logs = [], isExecuting = false, execut
             ) : (
               <>
                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="4 10 12 18 20 10"></polyline>
+                  <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
-                <span>Thu gọn (140px)</span>
+                <span>Thu gọn</span>
               </>
             )}
           </button>
