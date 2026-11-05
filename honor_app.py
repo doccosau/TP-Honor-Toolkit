@@ -1516,9 +1516,9 @@ def apply_magic_tweak(table, key, value):
         add_log('warn', f'  ↳ Ghi xong nhưng đọc lại ra: "{read_val.strip()}"')
         return {'success': True, 'verified': False, 'current': read_val.strip()}
 
-def apply_all_marketing_off(turn_off=True):
+def apply_all_marketing_off(turn_off=True, keys=None):
     val = '0' if turn_off else '1'
-    marketing_keys = [
+    all_marketing_keys = [
         'state_of_ads_switch',
         'intelligent_message_enabled',
         'personalized_push_state',
@@ -1531,12 +1531,14 @@ def apply_all_marketing_off(turn_off=True):
         'cloud_maintenance',
         'location_report_switch'
     ]
-    add_log('info', f'Bắt đầu {"dập tắt toàn bộ" if turn_off else "bật lại"} 11 khóa Marketing & Telemetry ngầm...')
-    for m_key in marketing_keys:
+    target_keys = [k for k in keys if k in all_marketing_keys] if (keys and isinstance(keys, list)) else all_marketing_keys
+    action_str = "dập tắt" if turn_off else "bật lại"
+    add_log('info', f'Bắt đầu {action_str} {len(target_keys)} khóa Marketing & Telemetry ngầm...')
+    for m_key in target_keys:
         add_log('cmd', f'$ adb shell settings put secure {m_key} {val}')
         run_cmd(['adb', 'shell', 'settings', 'put', 'secure', m_key, val])
-    add_log('success', f'=== [HOÀN TẤT] Đã {"vô hiệu hóa sạch" if turn_off else "bật lại"} 11 khóa quảng cáo & telemetry hệ thống! ===')
-    return {'success': True}
+    add_log('success', f'=== [HOÀN TẤT] Đã {action_str} thành công {len(target_keys)} khóa quảng cáo & telemetry hệ thống! ===')
+    return {'success': True, 'modified_keys': target_keys}
 
 # Helper: Chuẩn hóa tên theme an toàn (bảo toàn 100% tiếng Việt, tiếng Trung CJK & Unicode)
 def sanitize_theme_name(raw_name, fallback_prefix="Theme"):
@@ -2803,7 +2805,8 @@ def handle_action(payload):
 
     elif action == 'apply_all_marketing_off':
         turn_off = payload.get('turn_off', True)
-        return apply_all_marketing_off(turn_off)
+        keys = payload.get('keys', None)
+        return apply_all_marketing_off(turn_off, keys)
 
     elif action == 'extract_trial_theme':
         return extract_trial_theme()

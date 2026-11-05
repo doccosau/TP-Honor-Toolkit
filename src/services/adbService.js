@@ -2144,9 +2144,9 @@ class AdbService {
     return { success: false };
   }
 
-  async applyAllMarketingOff(turnOff = true) {
+  async applyAllMarketingOff(turnOff = true, keys = null) {
     const val = turnOff ? '0' : '1';
-    const marketingKeys = [
+    const allMarketingKeys = [
       'state_of_ads_switch',
       'intelligent_message_enabled',
       'personalized_push_state',
@@ -2159,8 +2159,9 @@ class AdbService {
       'cloud_maintenance',
       'location_report_switch'
     ];
+    const marketingKeys = Array.isArray(keys) && keys.length > 0 ? keys : allMarketingKeys;
     if (this.mode === 'webusb' && this.adbInstance) {
-      this.addLog('info', `[Marketing] Thiết lập 11 khóa về ${val}...`);
+      this.addLog('info', `[Marketing] Thiết lập ${marketingKeys.length} khóa về ${val}...`);
       for (const k of marketingKeys) {
         await this.executeShell(`settings put secure ${k} ${val}`);
       }
@@ -2170,7 +2171,7 @@ class AdbService {
       const resp = await fetch('/api/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'apply_all_marketing_off', turn_off: turnOff }),
+        body: JSON.stringify({ action: 'apply_all_marketing_off', turn_off: turnOff, keys: marketingKeys }),
       });
       if (resp.ok) return await resp.json();
     } catch (e) {}

@@ -1919,3 +1919,84 @@ body {
   border-color: #ef4444 !important;
   animation: recPulse 1.5s infinite;
 }
+
+/* ==========================================================================
+   CRM / ERP Hybrid Utilities & Telemetry Management Panel
+   ========================================================================== */
+.crm-subnav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(13, 19, 32, 0.7);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.crm-subnav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.crm-subnav-btn:hover {
+  color: var(--text-bright);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.crm-subnav-btn.active {
+  color: #38bdf8;
+  background: rgba(37, 99, 235, 0.18);
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.2);
+  font-weight: 600;
+}
+
+.crm-subnav-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-dim);
+}
+
+.crm-subnav-btn.active .crm-subnav-badge {
+  background: rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+}
+
+.telemetry-row-card {
+  background: rgba(13, 19, 32, 0.65);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.telemetry-row-card:hover {
+  background: rgba(13, 19, 32, 0.85);
+  border-color: rgba(56, 189, 248, 0.25);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.telemetry-row-card.selected {
+  border-color: rgba(37, 99, 235, 0.4);
+  background: rgba(37, 99, 235, 0.06);
+}
+
