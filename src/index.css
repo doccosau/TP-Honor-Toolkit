@@ -2307,13 +2307,92 @@ body {
   gap: 9px;
 }
 
+@keyframes crmSlideInLeft {
+  0% {
+    transform: translateX(-40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes crmSlideInRight {
+  0% {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Tiered Architecture (Xếp Tầng Chuyên Nghiệp & Nhẹ Nhàng) */
+.crm-slide-workspace-left {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  animation: crmSlideInLeft 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.crm-tier-navigator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.crm-tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(37, 99, 235, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  font-size: 11px;
+  font-weight: 600;
+  color: #38bdf8;
+  font-family: var(--font-mono);
+}
+
+.crm-tier-divider {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.crm-tier-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  color: var(--text-dim);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.crm-tier-link-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #ffffff;
+  transform: translateX(-2px);
+}
+
 /* Dedicated Slide-Out Workspace */
 .crm-slide-workspace {
   display: flex;
   flex-direction: column;
   gap: 14px;
   width: 100%;
-  animation: crmSlideInRight 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: crmSlideInLeft 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .crm-top-breadcrumb-bar {

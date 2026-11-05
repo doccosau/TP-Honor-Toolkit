@@ -1168,35 +1168,41 @@ export default function ToolboxTab({
           VIEW C: DEDICATED SLIDE-OUT WORKSPACE (When a Master Card is Clicked)
           ========================================================================= */}
       {activeModule !== null && !searchQuery.trim() && activeModuleMeta && (
-        <div className="crm-slide-workspace">
-          {/* Top Breadcrumb & Back Navigation Bar (Nhạc Quán / Salesforce Console Style) */}
+        <div className="crm-slide-workspace-left">
+          {/* Top Breadcrumb & Tiered Navigation Bar (Nhạc Quán / Salesforce Console Tiered Style) */}
           <div className="specs-card" style={{ width: '100%', marginBottom: 0, padding: '16px 20px' }}>
             <div className="crm-top-breadcrumb-bar">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
                 {/* Back Button */}
                 <button
                   type="button"
                   className="crm-back-button"
                   onClick={() => setActiveModule(null)}
-                  title="Quay lại danh mục tổng quan (Phím ESC)"
+                  title="Quay về Tầng 1: Tổng Quan (Phím ESC)"
                 >
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <polyline points="15 18 9 12 15 6"></polyline>
                   </svg>
-                  <span>Quay Lại Tổng Quan</span>
+                  <span>Trở Về Tầng 1</span>
                 </button>
 
-                <div>
-                  {/* Breadcrumb Trail */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10.5px', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)', marginBottom: '3px' }}>
-                    <span>TP TOOLKIT</span>
-                    <span>/</span>
-                    <span>HỘP CÔNG CỤ</span>
-                    <span>/</span>
-                    <span style={{ color: '#38bdf8', fontWeight: 600 }}>{activeModuleMeta.title.toUpperCase()}</span>
-                  </div>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff' }}>
-                    {activeModuleMeta.title}
+                {/* Tiered Navigator Capsule (Xếp Tầng Chuyên Nghiệp) */}
+                <div className="crm-tier-navigator">
+                  <button
+                    type="button"
+                    className="crm-tier-link-btn"
+                    onClick={() => setActiveModule(null)}
+                    title="Quay lại Tầng 1: Tổng Quan"
+                  >
+                    <span>TẦNG 1: TỔNG QUAN</span>
+                  </button>
+                  <span className="crm-tier-divider">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </span>
+                  <div className="crm-tier-badge">
+                    <span>TẦNG 2: {activeModuleMeta.title.toUpperCase()}</span>
                   </div>
                 </div>
               </div>
