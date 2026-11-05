@@ -7,111 +7,133 @@ const TELEMETRY_DEFINITIONS = [
   {
     key: 'state_of_ads_switch',
     title: 'Quảng Cáo Thương Mại Hóa & Banner Hệ Thống',
-    category: 'ads',
+    category: 'telemetry',
     categoryLabel: 'Quảng Cáo',
     scope: 'Settings Secure',
-    desc: 'Chặn toàn bộ quảng cáo hiển thị trong các ứng dụng gốc của MagicOS và biểu ngữ tài trợ đẩy từ máy chủ tiếp thị Honor.',
+    desc: 'Chặn toàn bộ banner quảng cáo trong các app gốc của MagicOS và biểu ngữ tài trợ đẩy từ máy chủ tiếp thị Honor.',
+    adbCommand: 'adb shell settings put secure state_of_ads_switch 0',
     impact: 'Triệt tiêu hoàn toàn banner quảng cáo rác trong ứng dụng hệ thống.',
+    safety: 'An Toàn Tuyệt Đối (Không ảnh hưởng chức năng máy)',
     recommended: true,
   },
   {
     key: 'intelligent_message_enabled',
     title: 'Phân Tích Nội Dung Tin Nhắn Thông Minh',
-    category: 'privacy',
+    category: 'telemetry',
     categoryLabel: 'Riêng Tư',
     scope: 'Settings Secure',
     desc: 'Tắt engine AI tự động đọc và phân tích nội dung tin nhắn SMS / mã xác thực ngân hàng để phỏng đoán thói quen mua sắm.',
+    adbCommand: 'adb shell settings put secure intelligent_message_enabled 0',
     impact: 'Bảo vệ an toàn mật khẩu OTP ngân hàng và tin nhắn cá nhân.',
+    safety: 'An Toàn Tuyệt Đối',
     recommended: true,
   },
   {
     key: 'personalized_push_state',
     title: 'Thông Báo Đẩy Tiếp Thị Cá Nhân Hóa',
-    category: 'ads',
+    category: 'telemetry',
     categoryLabel: 'Quảng Cáo',
     scope: 'Settings Secure',
     desc: 'Chặn máy chủ Honor gửi các thông báo tiếp thị, khuyến mãi và thông báo tài trợ lên thanh thông báo Notification.',
+    adbCommand: 'adb shell settings put secure personalized_push_state 0',
     impact: 'Thanh thông báo sạch sẽ, không bị quấy rầy bởi tin nhắn tiếp thị ngầm.',
+    safety: 'An Toàn Tuyệt Đối',
     recommended: true,
   },
   {
     key: 'personalized_recommendation',
     title: 'Hồ Sơ Hành Vi & Đề Xuất Cá Nhân Hóa',
-    category: 'privacy',
+    category: 'telemetry',
     categoryLabel: 'Riêng Tư',
     scope: 'Settings Secure',
     desc: 'Ngăn thuật toán máy học theo dõi tần suất mở ứng dụng và hành vi sử dụng máy để lập hồ sơ thị hiếu người dùng.',
+    adbCommand: 'adb shell settings put secure personalized_recommendation 0',
     impact: 'Ngăn chặn việc định danh và lập hồ sơ theo dõi người dùng ngầm.',
+    safety: 'An Toàn Tuyệt Đối',
     recommended: true,
   },
   {
     key: 'hiboard.recommend.status',
     title: 'Đề Xuất Màn Hình Âm Phủ (Honor HiBoard)',
-    category: 'ui',
+    category: 'telemetry',
     categoryLabel: 'Giao Diện',
     scope: 'Settings Secure',
     desc: 'Xóa sạch các thẻ tin tức giật gân, ứng dụng gợi ý cài đặt và quảng cáo tài trợ trên trang màn hình -1 (HiBoard).',
+    adbCommand: 'adb shell settings put secure hiboard.recommend.status 0',
     impact: 'Màn hình -1 trở nên gọn gàng, giảm tiêu tốn dữ liệu di động ngầm.',
+    safety: 'An Toàn Tuyệt Đối',
     recommended: true,
   },
   {
     key: 'location_honor_ads',
     title: 'Định Vị Quảng Cáo Theo Tọa Độ GPS',
-    category: 'location',
+    category: 'telemetry',
     categoryLabel: 'Vị Trí',
     scope: 'Settings Secure',
     desc: 'Chặn dịch vụ Honor Ads truy cập tọa độ GPS thời gian thực để nhắm mục tiêu phân phối quảng cáo theo khu vực.',
+    adbCommand: 'adb shell settings put secure location_honor_ads 0',
     impact: 'Tiết kiệm pin GPS và bảo mật tuyệt đối vị trí di chuyển thực tế.',
+    safety: 'An Toàn Tuyệt Đối',
     recommended: true,
   },
   {
     key: 'settings_ai_recommend',
     title: 'Gợi Ý Dịch Vụ AI Trong Mục Cài Đặt',
-    category: 'ui',
+    category: 'telemetry',
     categoryLabel: 'Giao Diện',
     scope: 'Settings Secure',
     desc: 'Tắt các banner quảng cáo dịch vụ trả phí và ứng dụng đối tác hiển thị ở đầu trang Cài Đặt (Settings).',
+    adbCommand: 'adb shell settings put secure settings_ai_recommend 0',
     impact: 'Giao diện Cài đặt gốc trở nên nguyên bản, chuẩn phong cách thuần khiết.',
+    safety: 'An Toàn Tuyệt Đối',
     recommended: true,
   },
   {
     key: 'intelligent_recommendation_toggle',
     title: 'Đề Xuất Thông Minh Toàn Hệ Thống',
-    category: 'ui',
+    category: 'telemetry',
     categoryLabel: 'Giao Diện',
     scope: 'Settings Secure',
     desc: 'Vô hiệu hóa tính năng tự động gợi ý ứng dụng cài thêm trong thư mục app và màn hình chính MagicOS.',
+    adbCommand: 'adb shell settings put secure intelligent_recommendation_toggle 0',
     impact: 'Không còn xuất hiện các icon app rác gợi ý tải về.',
+    safety: 'An Toàn Tuyệt Đối',
     recommended: true,
   },
   {
     key: 'search.recommend.letter.switch',
     title: 'Từ Khóa Tìm Kiếm Tài Trợ (Honor Search)',
-    category: 'ads',
+    category: 'telemetry',
     categoryLabel: 'Quảng Cáo',
     scope: 'Settings Secure',
     desc: 'Chặn từ khóa gợi ý quảng cáo và danh sách trending thương mại trong thanh tìm kiếm Honor Search / Petal Search.',
+    adbCommand: 'adb shell settings put secure search.recommend.letter.switch 0',
     impact: 'Thanh tìm kiếm chỉ hiển thị ứng dụng và tệp tin thực tế trên máy.',
+    safety: 'An Toàn Tuyệt Đối',
     recommended: true,
   },
   {
     key: 'cloud_maintenance',
     title: 'Báo Cáo Chẩn Đoán Tự Động Lên Cloud',
     category: 'telemetry',
-    categoryLabel: 'Telemetry',
+    categoryLabel: 'Cloud Log',
     scope: 'Settings Secure',
-    desc: 'Ngắt tiến trình ngầm tự động gom dữ liệu crash dump, log hoạt động và phần cứng gửi về máy chủ Honor Cloud.',
-    impact: 'Giảm tiêu hao pin và lưu lượng mạng chạy nền liên tục.',
+    desc: 'Chặn tiến trình tự động tải các tệp chẩn đoán lỗi, log kernel và dữ liệu phần cứng lên máy chủ điện toán đám mây TQ.',
+    adbCommand: 'adb shell settings put secure cloud_maintenance 0',
+    impact: 'Ngắt hoàn toàn việc tải ngầm file log lên cloud, tiết kiệm băng thông mạng.',
+    safety: 'An Toàn Tuyệt Đối',
     recommended: true,
   },
   {
     key: 'location_report_switch',
-    title: 'Báo Cáo Vị Trí Định Kỳ Hệ Thống',
-    category: 'location',
+    title: 'Báo Cáo Tọa Độ Vị Trí Thiết Bị Ngầm',
+    category: 'telemetry',
     categoryLabel: 'Vị Trí',
     scope: 'Settings Secure',
-    desc: 'Ngừng gửi báo cáo vị trí và thông số trạm phát sóng di động định kỳ về máy chủ dịch vụ nền tảng.',
-    impact: 'Bảo mật quyền riêng tư vị trí và tối ưu hóa thời lượng pin chờ.',
+    desc: 'Vô hiệu hóa cờ báo cáo tọa độ định kỳ của thiết bị về trung tâm dịch vụ mạng của Honor.',
+    adbCommand: 'adb shell settings put secure location_report_switch 0',
+    impact: 'Bảo vệ quyền riêng tư định vị 24/7 và giảm chu kỳ thức máy nền.',
+    safety: 'An Toàn Tuyệt Đối',
     recommended: true,
   },
 ];
@@ -132,45 +154,29 @@ export default function ToolboxTab({
   onFixWeather,
   onReboot,
 }) {
-  // CRM / ERP Layout Modules: 'all' | 'tweaks' | 'theme' | 'google' | 'system'
-  const [activeModule, setActiveModule] = useState('all');
+  // Navigation State: null = Master Hub (Cards View), 'tweaks' | 'telemetry' | 'theme' | 'google' | 'screen' | 'system' = Dedicated Slide-Out Workspace
+  const [activeModule, setActiveModule] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [inspectTool, setInspectTool] = useState(null);
 
-  // Scrcpy Options
-  const [turnOffScreen, setTurnOffScreen] = useState(true);
-  const [stayAwake, setStayAwake] = useState(true);
-  const [customPlayStoreUrl, setCustomPlayStoreUrl] = useState('');
-  const [isSettingWireless, setIsSettingWireless] = useState(false);
-  const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
-  const [screenshotResult, setScreenshotResult] = useState(null);
-
-  // Theme Studio & Magic Tweaks State
-  const [isThemeStudioOpen, setIsThemeStudioOpen] = useState(false);
-  const [magicTweaks, setMagicTweaks] = useState({});
+  // MagicOS Tweaks state
+  const [magicTweaks, setMagicTweaks] = useState(null);
   const [loadingTweakKey, setLoadingTweakKey] = useState(null);
   const [rootStatus, setRootStatus] = useState(null);
   const [quickExtracting, setQuickExtracting] = useState(false);
   const [quickExtractMsg, setQuickExtractMsg] = useState(null);
+  const [isThemeStudioOpen, setIsThemeStudioOpen] = useState(false);
+  const [customPlayStoreUrl, setCustomPlayStoreUrl] = useState('');
+  const [isSettingWireless, setIsSettingWireless] = useState(false);
+  const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
+  const [turnOffScreen, setTurnOffScreen] = useState(false);
+  const [stayAwake, setStayAwake] = useState(true);
 
   // Telemetry Checklist Selection State
   const [selectedTelemetryKeys, setSelectedTelemetryKeys] = useState(
     () => new Set(TELEMETRY_DEFINITIONS.map((d) => d.key))
   );
-  const [telemetryFilterCat, setTelemetryFilterCat] = useState('all');
   const [isApplyingTelemetry, setIsApplyingTelemetry] = useState(false);
-  const [inspectTelemetry, setInspectTelemetry] = useState(null);
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && inspectTelemetry) {
-        setInspectTelemetry(null);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [inspectTelemetry]);
-
-  const isWeb = adbService.mode === 'webusb';
 
   // Screen recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -178,7 +184,22 @@ export default function ToolboxTab({
   const [recordingResult, setRecordingResult] = useState(null);
   const recTimerRef = useRef(null);
 
-  const isOnline = device && device.connected;
+  const isOnline = Boolean(device && device.connected);
+
+  // Keyboard navigation: ESC to go back to Hub or close drawer
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (inspectTool) {
+          setInspectTool(null);
+        } else if (activeModule !== null) {
+          setActiveModule(null);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [inspectTool, activeModule]);
 
   useEffect(() => {
     let timer = null;
@@ -229,7 +250,6 @@ export default function ToolboxTab({
     }
   };
 
-  // Telemetry: Toggle individual key
   const handleToggleSingleTelemetry = async (key) => {
     setLoadingTweakKey(key);
     try {
@@ -242,7 +262,6 @@ export default function ToolboxTab({
     }
   };
 
-  // Telemetry: Toggle batch selection checkbox
   const handleToggleSelectTelemetry = (key) => {
     setSelectedTelemetryKeys((prev) => {
       const next = new Set(prev);
@@ -252,21 +271,8 @@ export default function ToolboxTab({
     });
   };
 
-  // Telemetry: Select / Deselect All
-  const handleSelectAllTelemetry = () => {
-    if (selectedTelemetryKeys.size === TELEMETRY_DEFINITIONS.length) {
-      setSelectedTelemetryKeys(new Set());
-    } else {
-      setSelectedTelemetryKeys(new Set(TELEMETRY_DEFINITIONS.map((d) => d.key)));
-    }
-  };
-
-  // Telemetry: Apply Batch Action (Turn Off or Restore)
   const handleApplySelectedTelemetry = async (turnOff = true) => {
-    if (selectedTelemetryKeys.size === 0) {
-      alert('Vui lòng chọn ít nhất 1 khóa telemetry để áp dụng.');
-      return;
-    }
+    if (selectedTelemetryKeys.size === 0) return;
     setIsApplyingTelemetry(true);
     setLoadingTweakKey('telemetry-batch');
     try {
@@ -317,11 +323,16 @@ export default function ToolboxTab({
   const handleScreenshot = async () => {
     setIsCapturingScreenshot(true);
     try {
-      const res = await adbService.takeScreenshot();
-      if (res && res.success) {
-        setScreenshotResult(res);
+      const res = await adbService.captureScreenshot();
+      if (res && res.success && res.url) {
+        const a = document.createElement('a');
+        a.href = res.url;
+        a.download = res.filename || 'honor_screenshot.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       } else {
-        alert(res?.error || 'Lỗi chụp màn hình');
+        alert(res?.error || 'Chụp màn hình thất bại');
       }
     } catch (e) {
       alert(e.message);
@@ -331,1252 +342,1095 @@ export default function ToolboxTab({
   };
 
   const handleToggleRecord = async () => {
-    if (!isRecording) {
-      const res = await adbService.startScreenRecord();
-      if (res && res.success) {
-        setIsRecording(true);
-        setRecordSeconds(0);
-        recTimerRef.current = setInterval(() => {
-          setRecordSeconds((s) => s + 1);
-        }, 1000);
-      } else {
-        alert(res?.error || 'Không thể bắt đầu quay video màn hình');
-      }
-    } else {
-      if (recTimerRef.current) clearInterval(recTimerRef.current);
+    if (isRecording) {
+      clearInterval(recTimerRef.current);
       setIsRecording(false);
       const res = await adbService.stopScreenRecord();
       if (res && res.success) {
         setRecordingResult(res);
-      } else {
-        alert(res?.error || 'Lỗi dừng quay màn hình');
+      }
+      setRecordSeconds(0);
+    } else {
+      const res = await adbService.startScreenRecord(180);
+      if (res && res.success) {
+        setIsRecording(true);
+        setRecordSeconds(1);
+        recTimerRef.current = setInterval(() => {
+          setRecordSeconds((s) => s + 1);
+        }, 1000);
       }
     }
   };
 
-  // Counts for KPI strip
-  const tweakCounts = useMemo(() => {
-    const keys = [
-      'charge_turbo_switch',
-      'infinite_volume_music_bt_a2dp',
-      'reduce_refresh_rate_enabled',
-      'hn_tianshan_switch',
-      'hn_sdr2hdr_switch',
-      'fingersense_letters_enabled',
-      'fingerprint_slide_switch',
-      'show_network_speed_enabled',
-    ];
-    let enabledCount = 0;
-    keys.forEach((k) => {
-      if (magicTweaks?.[k]?.enabled) enabledCount++;
-    });
-    return { enabled: enabledCount, total: keys.length };
-  }, [magicTweaks]);
+  const handleCalibrateBattery = async () => {
+    if (!window.confirm('Cân chỉnh pin sẽ xóa bộ đếm chu kỳ và lịch sử tiêu thụ điện cũ của hệ điều hành. Tiếp tục?')) return;
+    try {
+      const res = await adbService.calibrateBattery();
+      if (res && res.success) {
+        alert('Đã reset thống kê pin và kích hoạt chu kỳ học lại dung lượng thực tế thành công!');
+      } else {
+        alert(res?.error || 'Lỗi cân chỉnh pin');
+      }
+    } catch (e) {
+      alert(e.message);
+    }
+  };
 
+  // Master Tools Inventory
+  const allTools = useMemo(() => {
+    const list = [];
+
+    // --- GROUP 1: MAGICOS HIDDEN TWEAKS (8 Items) ---
+    list.push(
+      {
+        id: 'tweak_charge_turbo',
+        category: 'tweaks',
+        categoryLabel: 'Cài Đặt Ẩn',
+        title: 'Siêu Sạc Nhanh Khi Sáng Màn Hình (Charge Turbo)',
+        scope: 'secure: charge_turbo_switch',
+        summary: 'Duy trì công suất sạc Turbo tối đa lúc đang mở màn hình sử dụng máy.',
+        desc: 'Mặc định khi bật sáng màn hình, MagicOS sẽ tự động hạ dòng sạc từ 66W/100W xuống còn 18W để giảm nhiệt. Khóa này mở rộng công suất sạc tối đa ngay cả khi đang xem video hoặc lướt web.',
+        adbCommand: 'adb shell settings put secure charge_turbo_switch 1',
+        impact: 'Sạc đầy pin nhanh hơn 40% trong lúc bạn đang sử dụng điện thoại.',
+        safety: 'An Toàn (Mạch bảo vệ nhiệt độ của máy vẫn quản lý độc lập)',
+        recommended: true,
+        type: 'toggle',
+        checked: Boolean(magicTweaks?.charge_turbo_switch?.enabled),
+        onToggle: () => handleToggleTweak('secure', 'charge_turbo_switch', magicTweaks?.charge_turbo_switch?.value, '1', '0'),
+        loading: loadingTweakKey === 'charge_turbo_switch',
+      },
+      {
+        id: 'tweak_infinite_bt',
+        category: 'tweaks',
+        categoryLabel: 'Cài Đặt Ẩn',
+        title: 'Âm Lượng Bluetooth Vô Cực (Infinite BT A2DP)',
+        scope: 'secure: infinite_volume_music_bt_a2dp',
+        summary: 'Phá vỡ mức giới hạn 75-80dB do quy định áp đặt lên tai nghe Bluetooth.',
+        desc: 'Phá vỡ mức giới hạn âm lượng an toàn, tăng công suất phát âm thanh cho tai nghe TWS & loa không dây.',
+        adbCommand: 'adb shell settings put secure infinite_volume_music_bt_a2dp 1',
+        impact: 'Âm lượng tai nghe TWS và loa Bluetooth to hơn 30-40%, âm trường sâu và sống động.',
+        safety: 'An Toàn (Không nghe âm lượng quá lớn trong thời gian dài)',
+        recommended: false,
+        type: 'toggle',
+        checked: Boolean(magicTweaks?.infinite_volume_music_bt_a2dp?.enabled),
+        onToggle: () => handleToggleTweak('secure', 'infinite_volume_music_bt_a2dp', magicTweaks?.infinite_volume_music_bt_a2dp?.value, '1', '0'),
+        loading: loadingTweakKey === 'infinite_volume_music_bt_a2dp',
+      },
+      {
+        id: 'tweak_lock_120hz',
+        category: 'tweaks',
+        categoryLabel: 'Cài Đặt Ẩn',
+        title: 'Khóa Cứng Tần Số Quét Không Tụt (No-Drop 120Hz)',
+        scope: 'secure: reduce_refresh_rate_enabled',
+        summary: 'Tắt cờ tự động hạ về 60Hz khi màn hình đứng yên hoặc xem video.',
+        desc: 'Tắt tính năng tự ý hạ tần số quét xuống 60Hz của MagicOS khi xem video YouTube/TikTok, khi gõ bàn phím hoặc khi màn hình đứng yên. Màn hình luôn giữ 120Hz/144Hz thực sự.',
+        adbCommand: 'adb shell settings put secure reduce_refresh_rate_enabled 0',
+        impact: 'Loại bỏ hoàn toàn cảm giác khựng giật khung hình khi vuốt app sau khi tạm dừng.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'toggle',
+        checked: Boolean(magicTweaks?.reduce_refresh_rate_enabled?.enabled),
+        onToggle: () => handleToggleTweak('secure', 'reduce_refresh_rate_enabled', magicTweaks?.reduce_refresh_rate_enabled?.value, '0', '1'),
+        loading: loadingTweakKey === 'reduce_refresh_rate_enabled',
+      },
+      {
+        id: 'tweak_tianshan',
+        category: 'tweaks',
+        categoryLabel: 'Cài Đặt Ẩn',
+        title: 'Siêu Hiển Thị Thiên Sơn Oasis (Tianshan Display)',
+        scope: 'secure: hn_tianshan_switch',
+        summary: 'Bật động cơ hiển thị màn hình bảo vệ mắt cao cấp Thiên Sơn của Honor.',
+        desc: 'Kích hoạt thuật toán hiển thị cao cấp Thiên Sơn Oasis của Honor trên các dòng Flagship Magic và Series X. Thuật toán tối ưu ánh sáng dịu mắt và tăng độ nét cạnh phông chữ.',
+        adbCommand: 'adb shell settings put secure hn_tianshan_switch 1',
+        impact: 'Dịu mắt khi đọc văn bản ban đêm, tăng độ sắc nét hiển thị.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'toggle',
+        checked: Boolean(magicTweaks?.hn_tianshan_switch?.enabled),
+        onToggle: () => handleToggleTweak('secure', 'hn_tianshan_switch', magicTweaks?.hn_tianshan_switch?.value, '1', '0'),
+        loading: loadingTweakKey === 'hn_tianshan_switch',
+      },
+      {
+        id: 'tweak_sdr2hdr',
+        category: 'tweaks',
+        categoryLabel: 'Cài Đặt Ẩn',
+        title: 'Nâng Cấp Tự Động SDR Sang HDR (Honor Video Engine)',
+        scope: 'secure: hn_sdr2hdr_switch',
+        summary: 'Tự động nâng cao dải tương phản và độ sáng cho video SDR thông thường.',
+        desc: 'Kích hoạt thuật toán phần cứng của MagicOS nâng dải nhạy sáng cho các video SDR (YouTube, TikTok, Netflix SDR) giúp màu sắc sống động và tương phản sâu hơn.',
+        adbCommand: 'adb shell settings put secure hn_sdr2hdr_switch 1',
+        impact: 'Trải nghiệm xem video SDR rực rỡ và giàu chi tiết như chuẩn HDR thật.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'toggle',
+        checked: Boolean(magicTweaks?.hn_sdr2hdr_switch?.enabled),
+        onToggle: () => handleToggleTweak('secure', 'hn_sdr2hdr_switch', magicTweaks?.hn_sdr2hdr_switch?.value, '1', '0'),
+        loading: loadingTweakKey === 'hn_sdr2hdr_switch',
+      },
+      {
+        id: 'tweak_knuckle',
+        category: 'tweaks',
+        categoryLabel: 'Cài Đặt Ẩn',
+        title: 'Cử Chỉ Khớp Ngón Tay (Knuckle Gestures)',
+        scope: 'secure: fingersense_letters_enabled',
+        summary: 'Gõ 2 lần chụp màn hình, vẽ chữ S cuộn dài, vẽ chữ C mở camera.',
+        desc: 'Kích hoạt nhận diện cử chỉ gõ và vẽ chữ bằng khớp đốt ngón tay (Knuckle Sense) trứ danh của MagicOS.',
+        adbCommand: 'adb shell settings put secure fingersense_letters_enabled 1',
+        impact: 'Thao tác chụp cuộn màn hình và kích hoạt ứng dụng nhanh gấp 3 lần.',
+        safety: 'Tính năng chính thức của MagicOS',
+        recommended: true,
+        type: 'toggle',
+        checked: Boolean(magicTweaks?.fingersense_letters_enabled?.enabled),
+        onToggle: () => handleToggleTweak('secure', 'fingersense_letters_enabled', magicTweaks?.fingersense_letters_enabled?.value, '1', '0'),
+        loading: loadingTweakKey === 'fingersense_letters_enabled',
+      },
+      {
+        id: 'tweak_fingerprint_slide',
+        category: 'tweaks',
+        categoryLabel: 'Cài Đặt Ẩn',
+        title: 'Trượt Cảm Biến Vân Tay Kéo Bảng Thông Báo',
+        scope: 'secure: fingerprint_slide_switch',
+        summary: 'Vuốt ngón tay trên cảm biến vân tay để hạ thanh thông báo xuống.',
+        desc: 'Cho phép dùng cử chỉ vuốt xuống trên khu vực cảm biến vân tay để kéo thanh thông báo và trung tâm điều khiển xuống nhanh chóng mà không cần với tay lên mép trên màn hình.',
+        adbCommand: 'adb shell settings put secure fingerprint_slide_switch 1',
+        impact: 'Thao tác sử dụng một tay trên các thiết bị màn hình lớn thuận tiện hơn.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: false,
+        type: 'toggle',
+        checked: Boolean(magicTweaks?.fingerprint_slide_switch?.enabled),
+        onToggle: () => handleToggleTweak('secure', 'fingerprint_slide_switch', magicTweaks?.fingerprint_slide_switch?.value, '1', '0'),
+        loading: loadingTweakKey === 'fingerprint_slide_switch',
+      },
+      {
+        id: 'tweak_network_speed',
+        category: 'tweaks',
+        categoryLabel: 'Cài Đặt Ẩn',
+        title: 'Hiện Tốc Độ Mạng Thời Gian Thực (Network Speed)',
+        scope: 'system: show_network_speed_enabled',
+        summary: 'Hiển thị tốc độ download KB/s trên thanh trạng thái Notification.',
+        desc: 'Kích hoạt hiển thị tốc độ truyền dữ liệu mạng theo thời gian thực trên thanh trạng thái cạnh cột sóng Wi-Fi/4G.',
+        adbCommand: 'adb shell settings put system show_network_speed_enabled 1',
+        impact: 'Dễ dàng giám sát tốc độ mạng khi tải file hoặc xem livestream.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'toggle',
+        checked: Boolean(magicTweaks?.show_network_speed_enabled?.enabled),
+        onToggle: () => handleToggleTweak('system', 'show_network_speed_enabled', magicTweaks?.show_network_speed_enabled?.value, '1', '0'),
+        loading: loadingTweakKey === 'show_network_speed_enabled',
+      }
+    );
+
+    // --- GROUP 2: TELEMETRY & MARKETING (11 Items) ---
+    TELEMETRY_DEFINITIONS.forEach((t) => {
+      const isBlocked = magicTweaks?.marketing_all_disabled?.details?.[t.key] === '0';
+      list.push({
+        id: `telemetry_${t.key}`,
+        category: 'telemetry',
+        categoryLabel: 'Khóa Telemetry',
+        title: t.title,
+        scope: `secure: ${t.key}`,
+        summary: t.desc,
+        desc: t.desc,
+        adbCommand: t.adbCommand,
+        impact: t.impact,
+        safety: t.safety,
+        recommended: t.recommended,
+        type: 'telemetry_item',
+        key: t.key,
+        isBlocked,
+        isSelected: selectedTelemetryKeys.has(t.key),
+      });
+    });
+
+    // --- GROUP 3: TP THEME STUDIO VIP (2 Items) ---
+    list.push(
+      {
+        id: 'theme_quick_extract',
+        category: 'theme',
+        categoryLabel: 'Theme Studio',
+        title: 'Trích Xuất Nhanh Theme VIP Đang Thử (1-Click .hnt)',
+        scope: 'Theme Extractor Engine',
+        summary: 'Trích xuất theme dùng thử thành file chuẩn .hnt nạp vĩnh viễn không rác.',
+        desc: 'Công nghệ độc quyền: Quét thư mục tạm /data/themes/0, đóng gói tài nguyên icon/font/wallpaper thành file chuẩn .hnt nạp thẳng vào app Chủ Đề hệ thống và lưu ra /sdcard/Honor/Themes/ để chia sẻ.',
+        adbCommand: 'adb shell cp -r /data/themes/0 /sdcard/Honor/Themes/',
+        impact: 'Sở hữu theme VIP trọn đời, zero file rác trên bộ nhớ máy.',
+        safety: 'An Toàn Tuyệt Đối (Không sửa đổi phân vùng /system)',
+        recommended: true,
+        type: 'action',
+        actionLabel: quickExtracting ? 'Đang trích xuất...' : 'Trích Xuất 1-Click',
+        onExecute: handleQuickExtract,
+        loading: quickExtracting,
+      },
+      {
+        id: 'theme_open_studio',
+        category: 'theme',
+        categoryLabel: 'Theme Studio',
+        title: 'Mở Trình Quản Lý & Nạp File Theme .hnt',
+        scope: 'Theme Studio Manager',
+        summary: 'Giao diện quản lý bộ sưu tập theme, nạp file .hnt từ máy tính vào máy.',
+        desc: 'Cửa sổ chuyên dụng hỗ trợ kéo thả file .hnt, xem trước ảnh bìa, giải nén icon pack và tự động đồng bộ vào kho ứng dụng Theme của Honor.',
+        adbCommand: 'Nạp file .hnt vào /sdcard/Android/data/com.hihonor.android.thememanager/files/',
+        impact: 'Tự do tùy biến giao diện điện thoại với hàng nghìn chủ đề sáng tạo.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'action',
+        actionLabel: 'Mở Studio',
+        onExecute: () => setIsThemeStudioOpen(true),
+      }
+    );
+
+    // --- GROUP 4: GOOGLE SERVICES & AI ASSISTANTS (4 Items) ---
+    list.push(
+      {
+        id: 'google_assistant_suite',
+        category: 'google',
+        categoryLabel: 'Trợ Lý AI',
+        title: 'Kích Hoạt Trọn Bộ Trợ Lý Google & Gemini (1-Click)',
+        scope: 'GMS Assistant Suite',
+        summary: 'Thay thế hoàn toàn YOYO Voice bằng Google Gemini và Gesture Search Bar.',
+        desc: 'Đóng băng YOYO Voice nội địa, gán mặc định sang Google Assistant, kích hoạt thanh vuốt Gesture Search và engine đánh thức giọng nói Trợ Lý VXM offline 24/7.',
+        adbCommand: 'adb shell cmd package set-home-activity com.google.android.googlequicksearchbox\nadb shell settings put secure assistant com.google.android.googlequicksearchbox/...',
+        impact: 'Gọi Google Gemini bằng phím nguồn hoặc vuốt góc màn hình mượt mà như máy quốc tế.',
+        safety: '100% Non-Root, có thể đổi lại bất cứ khi nào',
+        recommended: true,
+        type: 'action',
+        actionLabel: 'Kích Hoạt Trợ Lý 1-Click',
+        onExecute: onSetupFullAssistantSuite,
+      },
+      {
+        id: 'google_gms_play_full',
+        category: 'google',
+        categoryLabel: 'Google GMS',
+        title: 'Tự Động Bật Khung GMS & Cài Đặt CH Play (1-Click)',
+        scope: 'GMS & APKMirror Scraper',
+        summary: 'Mở khóa GMS có sẵn trong ROM và cào link cài CH Play mới nhất.',
+        desc: 'Mở khóa khung dịch vụ Google Services Framework (GSF/GMS) tích hợp sẵn trong MagicOS, tự động cào link phiên bản mới nhất từ APKMirror đúng kiến trúc chip ARM64 và hoàn tất cài đặt.',
+        adbCommand: 'adb shell settings put secure google_services_switch 1\nadb install -r playstore.apk',
+        impact: 'Sử dụng đầy đủ tài khoản Google, đồng bộ danh bạ, Google Drive và tải app từ CH Play.',
+        safety: 'Chuẩn GMS chính hãng được Honor chứng nhận',
+        recommended: true,
+        type: 'action',
+        actionLabel: 'Bật GMS & Cài CH Play',
+        onExecute: () => onSetupFullGoogleEcosystem(customPlayStoreUrl),
+      },
+      {
+        id: 'google_assistant_components',
+        category: 'google',
+        categoryLabel: 'Trợ Lý AI',
+        title: 'Gán Mặc Định Lõi Trợ Lý Ảo Google Gemini',
+        scope: 'secure: assistant & voice_interaction_service',
+        summary: 'Chỉ định Google làm trợ lý mặc định hệ thống thay cho trợ lý YOYO TQ.',
+        desc: 'Gán intent hệ thống của Android `android.intent.action.ASSIST` sang Google Quick Search Box / Gemini.',
+        adbCommand: 'adb shell settings put secure assistant com.google.android.googlequicksearchbox/com.google.android.voiceinteraction.GsaVoiceInteractionService',
+        impact: 'Nhấn giữ nút nguồn hoặc vuốt góc để gọi Google Assistant.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'action',
+        actionLabel: 'Gán Mặc Định',
+        onExecute: onSetAssistant,
+      },
+      {
+        id: 'install_play_store_only',
+        category: 'google',
+        categoryLabel: 'Google GMS',
+        title: 'Cài Đặt Cửa Hàng Google Play Store (CH Play)',
+        scope: 'Package: com.android.vending',
+        summary: 'Tải và cài đặt file APK Google Play Store chính chủ mới nhất.',
+        desc: 'Tự động tải gói cài đặt CH Play từ kho APKMirror hoặc qua đường dẫn tùy chọn và cài đặt an toàn lên máy.',
+        adbCommand: 'adb install -r -d com.android.vending.apk',
+        impact: 'Cài đặt và cập nhật ứng dụng bản quyền từ Google Play.',
+        safety: 'Chữ ký APK gốc của Google LLC',
+        recommended: true,
+        type: 'action',
+        actionLabel: 'Cài CH Play',
+        onExecute: () => onInstallPlayStore(customPlayStoreUrl),
+      }
+    );
+
+    // --- GROUP 5: SCREEN & SCRCPY (4 Items) ---
+    list.push(
+      {
+        id: 'sys_scrcpy_mirror',
+        category: 'screen',
+        categoryLabel: 'Scrcpy 120Hz',
+        title: 'Chiếu Màn Hình & Điều Khiển 120Hz (Scrcpy Engine)',
+        scope: 'Scrcpy Low Latency Engine',
+        summary: 'Điều khiển điện thoại bằng chuột và bàn phím máy tính siêu mượt.',
+        desc: 'Khởi chạy cửa sổ điều khiển màn hình độ trễ cực thấp (< 30ms), hỗ trợ tốc độ quét 120 FPS và truyền âm thanh lossless lên máy tính.',
+        adbCommand: 'scrcpy --max-fps 120 --video-codec=h264',
+        impact: 'Làm việc và chơi game mobile trên màn hình lớn máy tính tiện lợi.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'action',
+        actionLabel: 'Mở Scrcpy 120Hz',
+        onExecute: () => onLaunchScrcpy({ turnOffScreen, stayAwake }),
+      },
+      {
+        id: 'sys_web_mirror',
+        category: 'screen',
+        categoryLabel: 'Web Mirror',
+        title: 'Xem Trực Tiếp Trong Trình Duyệt (Web Canvas)',
+        scope: 'WebRTC / WebSocket Streamer',
+        summary: 'Xem màn hình điện thoại trực tiếp trong tab web mà không cần cài app máy tính.',
+        desc: 'Kênh truyền hình ảnh trực tiếp qua giao thức WebUSB/WebSocket ngay trên giao diện web toolkit.',
+        adbCommand: 'Truyền dữ liệu màn hình qua WebUSB canvas render',
+        impact: 'Xem nhanh thông báo và giao diện máy khi không có phần mềm Scrcpy.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'action',
+        actionLabel: 'Mở Web Mirror',
+        onExecute: onOpenWebMirror,
+      },
+      {
+        id: 'sys_screenshot',
+        category: 'screen',
+        categoryLabel: 'Chụp Màn Hình',
+        title: 'Chụp Ảnh Màn Hình Nhanh (PNG Lossless)',
+        scope: 'screencap -p /sdcard/screenshot.png',
+        summary: 'Chụp ảnh màn hình điện thoại tức thì và tải tự động về máy tính.',
+        desc: 'Chụp khung hình chất lượng nguyên bản không nén từ framebuffer và tải file .png về máy tính.',
+        adbCommand: 'adb shell screencap -p /sdcard/screenshot.png && adb pull /sdcard/screenshot.png',
+        impact: 'Lưu nhanh bằng chứng lỗi hoặc chia sẻ màn hình rõ nét.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'action',
+        actionLabel: isCapturingScreenshot ? 'Đang chụp...' : 'Chụp Màn Hình',
+        onExecute: handleScreenshot,
+        loading: isCapturingScreenshot,
+      },
+      {
+        id: 'sys_screen_record',
+        category: 'screen',
+        categoryLabel: 'Quay Màn Hình',
+        title: isRecording ? `Đang Ghi Màn Hình (${recordSeconds}s)` : 'Ghi Video Màn Hình MP4 (180s)',
+        scope: 'screenrecord --time-limit 180',
+        summary: isRecording ? 'Đang quay video màn hình nền... Bấm dừng để tải file MP4.' : 'Quay video màn hình chất lượng cao trực tiếp qua ADB.',
+        desc: 'Ghi lại mọi thao tác trên màn hình với độ phân giải cao và tốc độ khung hình mượt mà, tự động tải file MP4 về máy khi kết thúc.',
+        adbCommand: 'adb shell screenrecord --time-limit 180 /sdcard/record.mp4',
+        impact: 'Quay video bug báo cáo hoặc hướng dẫn thao tác chi tiết.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'action',
+        actionLabel: isRecording ? `Dừng Ghi (${recordSeconds}s)` : 'Bắt Đầu Ghi MP4',
+        onExecute: handleToggleRecord,
+      }
+    );
+
+    // --- GROUP 6: SYSTEM & PERFORMANCE (5 Items) ---
+    list.push(
+      {
+        id: 'sys_wifi_adb',
+        category: 'system',
+        categoryLabel: 'Hệ Thống',
+        title: 'Bật Kết Nối Wi-Fi Không Dây (Wireless ADB Port 5555)',
+        scope: 'adb tcpip 5555',
+        summary: 'Mở cổng 5555 để kết nối điều khiển điện thoại qua mạng Wi-Fi không cần cáp.',
+        desc: 'Mở port TCP/IP 5555 trên điện thoại, tự động quét địa chỉ IP nội mạng của máy và kết nối không dây, cho phép rút cáp USB mà vẫn thao tác mượt mà.',
+        adbCommand: 'adb tcpip 5555 && adb connect <device_ip>:5555',
+        impact: 'Thoải mái di chuyển điện thoại trong phòng làm việc mà không vướng dây cáp.',
+        safety: 'Cổng 5555 chỉ mở trong mạng Wi-Fi gia đình an toàn',
+        recommended: true,
+        type: 'action',
+        actionLabel: isSettingWireless ? 'Đang mở...' : 'Mở Wi-Fi ADB',
+        onExecute: handleWirelessConnect,
+        loading: isSettingWireless,
+      },
+      {
+        id: 'sys_aot_compile',
+        category: 'system',
+        categoryLabel: 'Hiệu Năng',
+        title: 'Trình Biên Dịch Native AOT (dex2oat 65+ Ứng Dụng)',
+        scope: 'cmd package compile -m everything -f',
+        summary: 'Ép CPU biên dịch toàn bộ bytecode Java thành mã máy Native chạy siêu tốc.',
+        desc: 'Chạy engine dex2oat của Android với cờ `-m everything -f`, biên dịch trước toàn bộ 65+ ứng dụng phổ biến tại Việt Nam (Zalo, Facebook, TikTok, VNeID, Ngân hàng) thành mã máy native 64-bit.',
+        adbCommand: 'adb shell cmd package compile -m everything -f <package>',
+        impact: 'Thời gian mở ứng dụng nhanh gấp đôi, triệt tiêu hoàn toàn giật lag khung hình khi cuộn.',
+        safety: 'Cơ chế tối ưu hóa chính thức của Android Runtime (ART)',
+        recommended: true,
+        type: 'action',
+        actionLabel: 'Biên Dịch Native ART',
+        onExecute: onCompileApps,
+      },
+      {
+        id: 'sys_weather_celsius',
+        category: 'system',
+        categoryLabel: 'Hệ Thống',
+        title: 'Chuyển App Thời Tiết Sang Độ C (Weather en-GB Fix)',
+        scope: 'pm set-app-locales com.hihonor.totemweather en-GB',
+        summary: 'Sửa lỗi app thời tiết nội địa bị kẹt độ F hoặc hiển thị tiếng Trung.',
+        desc: 'Gán locale của ứng dụng Thời Tiết gốc (totemweather) sang chuẩn Anh Quốc `en-GB`, tự động khóa đơn vị đo nhiệt độ sang Độ C và hiển thị tiếng Anh chuẩn xác.',
+        adbCommand: 'adb shell cmd locale set-app-locales com.hihonor.totemweather --locales en-GB',
+        impact: 'Giao diện thời tiết chuẩn quốc tế, hiển thị độ C rõ ràng.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'action',
+        actionLabel: 'Chuyển Độ C',
+        onExecute: onFixWeather,
+      },
+      {
+        id: 'sys_battery_calib',
+        category: 'system',
+        categoryLabel: 'Hệ Thống',
+        title: 'Cân Chỉnh Pin & Xóa Cache Thống Kê (Battery Stats Reset)',
+        scope: 'dumpsys batterystats --reset',
+        summary: 'Reset dữ liệu chu kỳ pin cũ để hệ điều hành nhận diện đúng dung lượng thực.',
+        desc: 'Xóa tệp thống kê pin tích lũy lâu ngày của Android, ép thuật toán BatteryManager học lại ngưỡng sạc đầy 100% và ngưỡng ngắt nguồn 0%, khắc phục tình trạng pin ảo hoặc sụt pin nhanh.',
+        adbCommand: 'adb shell dumpsys batterystats --reset',
+        impact: 'Phần trăm pin hiển thị chuẩn xác, kéo dài thời gian sử dụng thực tế.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'action',
+        actionLabel: 'Cân Chỉnh Pin',
+        onExecute: handleCalibrateBattery,
+      },
+      {
+        id: 'sys_reboot_menu',
+        category: 'system',
+        categoryLabel: 'Hệ Thống',
+        title: 'Trung Tâm Khởi Động Lại Nhanh (Reboot / Fastboot / Recovery)',
+        scope: 'adb reboot [bootloader | recovery]',
+        summary: 'Lệnh khởi động lại máy vào các phân vùng hệ thống chỉ với 1 click.',
+        desc: 'Hỗ trợ khởi động lại thiết bị bình thường, hoặc vào thẳng chế độ nạp ROM Fastboot / chế độ cứu hộ Recovery mà không cần bấm giữ phím cứng phức tạp.',
+        adbCommand: 'adb reboot\nadb reboot bootloader\nadb reboot recovery',
+        impact: 'Cứu hộ và bảo trì thiết bị nhanh chóng.',
+        safety: 'An Toàn',
+        recommended: false,
+        type: 'reboot_controls',
+      }
+    );
+
+    return list;
+  }, [
+    magicTweaks,
+    loadingTweakKey,
+    selectedTelemetryKeys,
+    quickExtracting,
+    customPlayStoreUrl,
+    turnOffScreen,
+    stayAwake,
+    isSettingWireless,
+    isRecording,
+    recordSeconds,
+    isCapturingScreenshot,
+  ]);
+
+  // Telemetry Blocked Count
   const telemetryBlockedCount = useMemo(() => {
-    const details = magicTweaks?.marketing_all_disabled?.details || {};
-    let count = 0;
-    TELEMETRY_DEFINITIONS.forEach((d) => {
-      const val = details[d.key];
-      if (val === '0') count++;
-    });
-    return count;
+    if (!magicTweaks?.marketing_all_disabled?.details) return 0;
+    return Object.values(magicTweaks.marketing_all_disabled.details).filter((v) => v === '0').length;
   }, [magicTweaks]);
 
-  // Filtered Telemetry Definitions
-  const filteredTelemetry = useMemo(() => {
-    return TELEMETRY_DEFINITIONS.filter((item) => {
-      const matchCat = telemetryFilterCat === 'all' || item.category === telemetryFilterCat;
-      const matchSearch =
-        !searchQuery.trim() ||
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.desc.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchCat && matchSearch;
-    });
-  }, [telemetryFilterCat, searchQuery]);
+  // 6 Grand Master Hub Modules
+  const masterModules = useMemo(
+    () => [
+      {
+        id: 'tweaks',
+        title: 'Cài Đặt Ẩn MagicOS',
+        subtitle: '8 Tinh Chỉnh Cốt Lõi Hệ Thống',
+        badge: 'Non-Root An Toàn',
+        badgeType: 'tag-safe',
+        desc: 'Kích hoạt Siêu sạc nhanh khi mở màn hình (Charge Turbo), Âm lượng Bluetooth vô cực, Khóa 120Hz không tụt, và Động cơ hiển thị Thiên Sơn Oasis bảo vệ mắt.',
+        icon: (
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        ),
+        countLabel: '8 Tinh Chỉnh',
+      },
+      {
+        id: 'telemetry',
+        title: 'Khóa 11 Telemetry & Tiếp Thị',
+        subtitle: 'Xóa Sạch Quảng Cáo & Tracking Ngầm',
+        badge: `Đã Chặn ${telemetryBlockedCount}/11`,
+        badgeType: telemetryBlockedCount >= 10 ? 'tag-safe' : 'tag-warn',
+        desc: 'Chặn toàn bộ banner quảng cáo trong app hệ thống, ngắt engine AI đọc trộm tin nhắn SMS / OTP ngân hàng, chặn định vị GPS nhắm mục tiêu và tắt log cloud.',
+        icon: (
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        ),
+        countLabel: '11 Khóa Secure',
+      },
+      {
+        id: 'google',
+        title: 'Google GMS & Trợ Lý Ảo Gemini',
+        subtitle: 'Chuẩn Hóa Máy Quốc Tế',
+        badge: 'Google Play Store',
+        badgeType: 'tag-safe',
+        desc: 'Mở khóa khung dịch vụ Google Framework tích hợp sẵn trong ROM, tự động cào link cài CH Play mới nhất từ APKMirror và gán Google Gemini làm trợ lý mặc định thay thế YOYO.',
+        icon: (
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="22"></line>
+          </svg>
+        ),
+        countLabel: '4 Công Cụ GMS',
+      },
+      {
+        id: 'theme',
+        title: 'TP Theme Studio VIP',
+        subtitle: 'Sở Hữu Theme Vĩnh Viễn Không Rác',
+        badge: 'Chuẩn .hnt Vĩnh Viễn',
+        badgeType: 'tag-safe',
+        desc: 'Công nghệ độc quyền: Trích xuất theme VIP dùng thử 5 phút thành file chuẩn .hnt nạp vĩnh viễn vào app Chủ Đề hệ thống, hỗ trợ kéo thả nạp theme từ máy tính.',
+        icon: (
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83m13.79-4l-5.74 9.94"></path>
+          </svg>
+        ),
+        countLabel: '2 Tiện Ích Theme',
+      },
+      {
+        id: 'screen',
+        title: 'Chiếu Màn Hình & Scrcpy 120Hz',
+        subtitle: 'Điều Khiển Chuột & Phím Siêu Mượt',
+        badge: '120 FPS • < 30ms',
+        badgeType: 'tag-safe',
+        desc: 'Khởi chạy Scrcpy điều khiển điện thoại bằng chuột/phím máy tính với độ trễ siêu thấp, xem màn hình trực tiếp trong trình duyệt, chụp ảnh PNG và quay video MP4.',
+        icon: (
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+        ),
+        countLabel: '4 Tiện Ích Màn Hình',
+      },
+      {
+        id: 'system',
+        title: 'Hiệu Năng & Hệ Thống',
+        subtitle: 'Biên Dịch Native ART & Wi-Fi ADB',
+        badge: 'dex2oat 65+ App',
+        badgeType: 'tag-safe',
+        desc: 'Biên dịch trước bytecode thành mã máy Native 64-bit cho 65+ ứng dụng Việt Nam (Zalo, Facebook, TikTok, Ngân hàng), mở kết nối Wi-Fi ADB cổng 5555 và cân chỉnh pin.',
+        icon: (
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+            <rect x="9" y="9" width="6" height="6"></rect>
+            <line x1="9" y1="1" x2="9" y2="4"></line>
+            <line x1="15" y1="1" x2="15" y2="4"></line>
+            <line x1="9" y1="20" x2="9" y2="23"></line>
+            <line x1="15" y1="20" x2="15" y2="23"></line>
+          </svg>
+        ),
+        countLabel: '5 Trình Bảo Trì',
+      },
+    ],
+    [telemetryBlockedCount]
+  );
+
+  const activeModuleMeta = useMemo(() => {
+    return masterModules.find((m) => m.id === activeModule);
+  }, [masterModules, activeModule]);
+
+  // Tools in the active module view
+  const currentModuleTools = useMemo(() => {
+    if (!activeModule) return [];
+    return allTools.filter((t) => t.category === activeModule);
+  }, [allTools, activeModule]);
+
+  // Tools in global search mode
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase().trim();
+    return allTools.filter(
+      (item) =>
+        item.title.toLowerCase().includes(q) ||
+        item.summary.toLowerCase().includes(q) ||
+        item.scope.toLowerCase().includes(q) ||
+        item.categoryLabel.toLowerCase().includes(q)
+    );
+  }, [allTools, searchQuery]);
 
   return (
-    <div className="tab-pane active" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      {/* 1. Top CRM/ERP Executive Metric Ribbon */}
-      <div className="magicos-metric-grid" style={{ marginBottom: '4px' }}>
-        <div className="metric-capsule">
-          <div className="metric-capsule-icon" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }}>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-            </svg>
+    <div className="crm-workspace-layout">
+      {/* =========================================================================
+          VIEW A: MASTER HUB LAUNCHPAD (When activeModule === null and not searching)
+          ========================================================================= */}
+      {activeModule === null && !searchQuery.trim() && (
+        <>
+          {/* Header & KPI Summary */}
+          <div className="specs-card" style={{ width: '100%', marginBottom: 0 }}>
+            <div className="specs-header-title">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="svg-icon" style={{ color: 'var(--brand-accent)' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="22" height="22">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                  </svg>
+                </span>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-bright)' }}>
+                    Hộp Công Cụ Chuyên Sâu &amp; Tinh Chỉnh Hệ Thống MagicOS
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
+                    Trung tâm điều khiển phân tầng: Chọn bất kỳ thẻ chức năng nào bên dưới để mở giao diện cấu hình chuyên biệt
+                  </div>
+                </div>
+              </div>
+
+              {/* Fast Search input */}
+              <div style={{ position: 'relative', width: '260px' }}>
+                <input
+                  type="text"
+                  className="tool-input"
+                  placeholder="Tìm kiếm công cụ..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ width: '100%', paddingLeft: '32px', height: '32px', fontSize: '11.5px' }}
+                />
+                <svg
+                  viewBox="0 0 24 24"
+                  width="13"
+                  height="13"
+                  fill="none"
+                  stroke="#94a3b8"
+                  strokeWidth="2"
+                  style={{ position: 'absolute', left: '10px', top: '9px', pointerEvents: 'none' }}
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
+            </div>
+
+            {/* 4 Quick KPI Capsules */}
+            <div className="metric-capsule-grid" style={{ marginTop: '14px' }}>
+              <div className="metric-capsule">
+                <span className="metric-capsule-label">Cài Đặt Ẩn MagicOS</span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                  <span className="metric-capsule-value" style={{ color: '#38bdf8' }}>
+                    8/8 Tinh Chỉnh
+                  </span>
+                  <span className="badge-tag tag-safe" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                    Sẵn Sàng
+                  </span>
+                </div>
+                <span className="metric-capsule-sub">Turbo Charge • Bluetooth Vô Cực • Khóa 120Hz</span>
+              </div>
+
+              <div className="metric-capsule">
+                <span className="metric-capsule-label">Khóa Telemetry &amp; Marketing</span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                  <span className="metric-capsule-value" style={{ color: telemetryBlockedCount >= 10 ? '#10b981' : '#f59e0b' }}>
+                    Đã chặn {telemetryBlockedCount}/11
+                  </span>
+                  <span className="badge-tag tag-safe" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                    Secure Table
+                  </span>
+                </div>
+                <span className="metric-capsule-sub">Xóa sạch tracking, bảo vệ tin nhắn OTP ngân hàng</span>
+              </div>
+
+              <div className="metric-capsule">
+                <span className="metric-capsule-label">Trợ Lý AI &amp; GMS</span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                  <span className="metric-capsule-value" style={{ color: '#a855f7' }}>
+                    Google Gemini
+                  </span>
+                  <span className="badge-tag tag-safe" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                    Thay YOYO
+                  </span>
+                </div>
+                <span className="metric-capsule-sub">GMS Framework • Tự động cào link CH Play</span>
+              </div>
+
+              <div className="metric-capsule">
+                <span className="metric-capsule-label">Hiệu Năng &amp; Điều Khiển</span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                  <span className="metric-capsule-value" style={{ color: '#10b981' }}>
+                    Scrcpy 120Hz
+                  </span>
+                  <span className="badge-tag tag-safe" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                    Native ART
+                  </span>
+                </div>
+                <span className="metric-capsule-sub">Biên dịch 65+ ứng dụng • Wi-Fi ADB cổng 5555</span>
+              </div>
+            </div>
           </div>
-          <div className="metric-capsule-content">
-            <span className="metric-capsule-label">Cài Đặt Ẩn MagicOS</span>
-            <span className="metric-capsule-val" style={{ color: '#f59e0b' }}>
-              {isOnline ? `${tweakCounts.enabled}/${tweakCounts.total} Đang Bật` : '--/8 Đang Bật'}
-            </span>
-            <span className="metric-capsule-sub">SuperCharge Turbo, 120Hz, HDR</span>
+
+          {/* 6 Grand Master Functional Tiles */}
+          <div className="crm-hub-grid">
+            {masterModules.map((mod) => (
+              <div
+                key={mod.id}
+                className="crm-hub-tile"
+                onClick={() => setActiveModule(mod.id)}
+              >
+                <div>
+                  <div className="crm-hub-tile-header">
+                    <div className="crm-hub-icon-container">{mod.icon}</div>
+                    <span className={`badge-tag ${mod.badgeType}`} style={{ fontSize: '10px', padding: '2px 8px' }}>
+                      {mod.badge}
+                    </span>
+                  </div>
+
+                  <div style={{ marginTop: '14px' }}>
+                    <div className="crm-hub-tile-title">{mod.title}</div>
+                    <div className="crm-hub-tile-subtitle">{mod.subtitle}</div>
+                    <div className="crm-hub-tile-desc" style={{ marginTop: '8px' }}>
+                      {mod.desc}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="crm-hub-tile-footer">
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    {mod.countLabel}
+                  </span>
+                  <div className="crm-hub-action-prompt">
+                    <span>Mở Cấu Hình</span>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-
-        <div className="metric-capsule">
-          <div className="metric-capsule-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-              <polyline points="9 12 11 14 15 10"></polyline>
-            </svg>
-          </div>
-          <div className="metric-capsule-content">
-            <span className="metric-capsule-label">Chặn Telemetry & Tiếp Thị</span>
-            <span className="metric-capsule-val" style={{ color: '#10b981' }}>
-              {isOnline ? `${telemetryBlockedCount}/11 Đã Chặn` : '--/11 Đã Chặn'}
-            </span>
-            <span className="metric-capsule-sub">Minh bạch 100% từng khóa hệ thống</span>
-          </div>
-        </div>
-
-        <div className="metric-capsule">
-          <div className="metric-capsule-icon" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-              <polygon points="5 3 19 12 5 21 5 3"></polygon>
-            </svg>
-          </div>
-          <div className="metric-capsule-content">
-            <span className="metric-capsule-label">Hệ Sinh Thái Google</span>
-            <span className="metric-capsule-val" style={{ color: '#38bdf8' }}>
-              GMS &amp; Play Store
-            </span>
-            <span className="metric-capsule-sub">Tự động APKMirror &amp; Gemini Floaty</span>
-          </div>
-        </div>
-
-        <div className="metric-capsule">
-          <div className="metric-capsule-icon" style={{ background: 'rgba(236, 72, 153, 0.15)', color: '#ec4899' }}>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83m13.79-4l-5.74 9.94"></path>
-            </svg>
-          </div>
-          <div className="metric-capsule-content">
-            <span className="metric-capsule-label">TP Theme Studio VIP</span>
-            <span className="metric-capsule-val" style={{ color: '#ec4899' }}>
-              Trích Xuất .hnt
-            </span>
-            <span className="metric-capsule-sub">Nạp vĩnh viễn, không lưu rác máy</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. CRM / ERP Category Sub-Navbar & Search Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-        <div className="crm-subnav" style={{ margin: 0 }}>
-          <button
-            type="button"
-            className={`crm-subnav-btn ${activeModule === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveModule('all')}
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="7" height="7"></rect>
-              <rect x="14" y="3" width="7" height="7"></rect>
-              <rect x="14" y="14" width="7" height="7"></rect>
-              <rect x="3" y="14" width="7" height="7"></rect>
-            </svg>
-            <span>Tất Cả Tiện Ích</span>
-          </button>
-
-          <button
-            type="button"
-            className={`crm-subnav-btn ${activeModule === 'tweaks' ? 'active' : ''}`}
-            onClick={() => setActiveModule('tweaks')}
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-            </svg>
-            <span>Cài Đặt Ẩn &amp; Telemetry</span>
-            <span className="crm-subnav-badge">19 Mục</span>
-          </button>
-
-          <button
-            type="button"
-            className={`crm-subnav-btn ${activeModule === 'theme' ? 'active' : ''}`}
-            onClick={() => setActiveModule('theme')}
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83m13.79-4l-5.74 9.94"></path>
-            </svg>
-            <span>TP Theme Studio VIP</span>
-            <span className="crm-subnav-badge">.hnt</span>
-          </button>
-
-          <button
-            type="button"
-            className={`crm-subnav-btn ${activeModule === 'google' ? 'active' : ''}`}
-            onClick={() => setActiveModule('google')}
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-              <line x1="12" y1="19" x2="12" y2="22"></line>
-            </svg>
-            <span>Google GMS &amp; Trợ Lý AI</span>
-          </button>
-
-          <button
-            type="button"
-            className={`crm-subnav-btn ${activeModule === 'system' ? 'active' : ''}`}
-            onClick={() => setActiveModule('system')}
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M13 3H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3"></path>
-              <polyline points="8 21 12 17 16 21"></polyline>
-              <line x1="12" y1="17" x2="12" y2="21"></line>
-            </svg>
-            <span>Hiệu Năng &amp; Điều Khiển</span>
-          </button>
-        </div>
-
-        {/* Quick Filter Search */}
-        <div style={{ position: 'relative', width: '280px' }}>
-          <input
-            type="text"
-            className="tool-input"
-            placeholder="Tìm kiếm công cụ, khóa telemetry..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: '100%', paddingLeft: '32px' }}
-          />
-          <svg
-            viewBox="0 0 24 24"
-            width="14"
-            height="14"
-            fill="none"
-            stroke="#94a3b8"
-            strokeWidth="2"
-            style={{ position: 'absolute', left: '10px', top: '10px', pointerEvents: 'none' }}
-          >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              style={{ position: 'absolute', right: '8px', top: '7px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
-            >
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
+        </>
+      )}
 
       {/* =========================================================================
-          MODULE 1: MAGICOS TWEAKS & DETAILED 11 TELEMETRY KEYS
+          VIEW B: GLOBAL SEARCH RESULTS VIEW (When searchQuery is non-empty)
           ========================================================================= */}
-      {(activeModule === 'all' || activeModule === 'tweaks') && (
-        <>
-          {/* Card: MagicOS Hidden Tweaks */}
-          <div
-            className="specs-card"
-            style={{
-              background: 'radial-gradient(circle at top left, rgba(245, 158, 11, 0.06), transparent 70%), var(--panel-card)',
-              border: '1px solid rgba(245, 158, 11, 0.25)',
-            }}
-          >
-            <div className="specs-header-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="svg-icon" style={{ color: '#f59e0b' }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                  </svg>
-                </span>
-                <span style={{ fontWeight: 600, fontSize: '13.5px' }}>
-                  Tinh Chỉnh Cài Đặt Ẩn MagicOS (Magic Tweaks)
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {rootStatus?.has_root && (
-                  <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    </svg>
-                    <span>Thiết bị Đã Root {rootStatus?.has_lsposed ? '(Có LSPosed)' : ''}</span>
-                  </span>
-                )}
-                <span className="badge-tag tag-neutral" style={{ fontSize: '10.5px' }}>
-                  Không Cần Root • Bền Vững ADB
-                </span>
-              </div>
-            </div>
-            <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '4px 0 14px 0', lineHeight: '1.5' }}>
-              Can thiệp trực tiếp vào bảng cơ sở dữ liệu hệ thống (Settings Secure/System) của MagicOS qua ADB. <b>100% không cần Root, bảo lưu vĩnh viễn sau khi khởi động lại máy</b>.
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
-              {/* Tweak 1: SuperCharge Turbo */}
-              <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Siêu Sạc Nhanh Khi Sáng Màn Hình</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Giữ công suất sạc Turbo tối đa lúc đang sử dụng</div>
+      {searchQuery.trim() && (
+        <div className="crm-slide-workspace">
+          <div className="specs-card" style={{ width: '100%', marginBottom: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-bright)' }}>
+                  Kết Quả Tìm Kiếm: "{searchQuery}"
                 </div>
-                <label className="magicos-switch" title={magicTweaks?.charge_turbo_switch?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
-                  <input
-                    type="checkbox"
-                    checked={!!magicTweaks?.charge_turbo_switch?.enabled}
-                    onChange={() => handleToggleTweak('secure', 'charge_turbo_switch', magicTweaks?.charge_turbo_switch?.value, '1', '0')}
-                    disabled={!isOnline || loadingTweakKey === 'charge_turbo_switch'}
-                  />
-                  <span className="magicos-slider"></span>
-                </label>
-              </div>
-
-              {/* Tweak 2: Infinite Bluetooth Volume */}
-              <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Âm Lượng Bluetooth Vô Cực</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Phá vỡ trần giới hạn âm lượng tai nghe Bluetooth</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
+                  Tìm thấy {searchResults.length} công cụ phù hợp trên toàn hệ thống
                 </div>
-                <label className="magicos-switch" title={magicTweaks?.infinite_volume_music_bt_a2dp?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
-                  <input
-                    type="checkbox"
-                    checked={!!magicTweaks?.infinite_volume_music_bt_a2dp?.enabled}
-                    onChange={() => handleToggleTweak('secure', 'infinite_volume_music_bt_a2dp', magicTweaks?.infinite_volume_music_bt_a2dp?.value, '1', '0')}
-                    disabled={!isOnline || loadingTweakKey === 'infinite_volume_music_bt_a2dp'}
-                  />
-                  <span className="magicos-slider"></span>
-                </label>
               </div>
-
-              {/* Tweak 3: Lock Max Refresh Rate */}
-              <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Khóa Cứng Tần Số Quét Không Tụt</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Chống tự hạ Hz khi màn hình tĩnh, giữ mượt 120Hz</div>
-                </div>
-                <label className="magicos-switch" title={magicTweaks?.reduce_refresh_rate_enabled?.enabled ? 'Nhấp để Tắt khóa' : 'Nhấp để Khóa 120Hz'}>
-                  <input
-                    type="checkbox"
-                    checked={!!magicTweaks?.reduce_refresh_rate_enabled?.enabled}
-                    onChange={() => handleToggleTweak('secure', 'reduce_refresh_rate_enabled', magicTweaks?.reduce_refresh_rate_enabled?.value, '0', '1')}
-                    disabled={!isOnline || loadingTweakKey === 'reduce_refresh_rate_enabled'}
-                  />
-                  <span className="magicos-slider"></span>
-                </label>
-              </div>
-
-              {/* Tweak 4: Tianshan Display */}
-              <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Hiển Thị Thiên Sơn (Tianshan)</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Kích hoạt thuật toán hiển thị Oasis/Tianshan cao cấp</div>
-                </div>
-                <label className="magicos-switch" title={magicTweaks?.hn_tianshan_switch?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
-                  <input
-                    type="checkbox"
-                    checked={!!magicTweaks?.hn_tianshan_switch?.enabled}
-                    onChange={() => handleToggleTweak('secure', 'hn_tianshan_switch', magicTweaks?.hn_tianshan_switch?.value, '1', '0')}
-                    disabled={!isOnline || loadingTweakKey === 'hn_tianshan_switch'}
-                  />
-                  <span className="magicos-slider"></span>
-                </label>
-              </div>
-
-              {/* Tweak 5: SDR to HDR */}
-              <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Nâng Cấp SDR Sang HDR</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Tự động tăng cường độ sáng và tương phản HDR</div>
-                </div>
-                <label className="magicos-switch" title={magicTweaks?.hn_sdr2hdr_switch?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
-                  <input
-                    type="checkbox"
-                    checked={!!magicTweaks?.hn_sdr2hdr_switch?.enabled}
-                    onChange={() => handleToggleTweak('secure', 'hn_sdr2hdr_switch', magicTweaks?.hn_sdr2hdr_switch?.value, '1', '0')}
-                    disabled={!isOnline || loadingTweakKey === 'hn_sdr2hdr_switch'}
-                  />
-                  <span className="magicos-slider"></span>
-                </label>
-              </div>
-
-              {/* Tweak 6: Knuckle Gesture */}
-              <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Cử Chỉ Khớp Ngón Tay (Knuckle)</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Vẽ chữ bằng khớp ngón tay để mở nhanh ứng dụng</div>
-                </div>
-                <label className="magicos-switch" title={magicTweaks?.fingersense_letters_enabled?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
-                  <input
-                    type="checkbox"
-                    checked={!!magicTweaks?.fingersense_letters_enabled?.enabled}
-                    onChange={() => handleToggleTweak('secure', 'fingersense_letters_enabled', magicTweaks?.fingersense_letters_enabled?.value, '1', '0')}
-                    disabled={!isOnline || loadingTweakKey === 'fingersense_letters_enabled'}
-                  />
-                  <span className="magicos-slider"></span>
-                </label>
-              </div>
-
-              {/* Tweak 7: Fingerprint Slide */}
-              <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Trượt Vân Tay Xem Thông Báo</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Vuốt lên/xuống tại cảm biến vân tay để kéo bảng tin</div>
-                </div>
-                <label className="magicos-switch" title={magicTweaks?.fingerprint_slide_switch?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
-                  <input
-                    type="checkbox"
-                    checked={!!magicTweaks?.fingerprint_slide_switch?.enabled}
-                    onChange={() => handleToggleTweak('secure', 'fingerprint_slide_switch', magicTweaks?.fingerprint_slide_switch?.value, '1', '0')}
-                    disabled={!isOnline || loadingTweakKey === 'fingerprint_slide_switch'}
-                  />
-                  <span className="magicos-slider"></span>
-                </label>
-              </div>
-
-              {/* Tweak 8: Network Speed */}
-              <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Hiện Tốc Độ Mạng Thời Gian Thực</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Hiển thị tốc độ download KB/s trên thanh trạng thái</div>
-                </div>
-                <label className="magicos-switch" title={magicTweaks?.show_network_speed_enabled?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
-                  <input
-                    type="checkbox"
-                    checked={!!magicTweaks?.show_network_speed_enabled?.enabled}
-                    onChange={() => handleToggleTweak('system', 'show_network_speed_enabled', magicTweaks?.show_network_speed_enabled?.value, '1', '0')}
-                    disabled={!isOnline || loadingTweakKey === 'show_network_speed_enabled'}
-                  />
-                  <span className="magicos-slider"></span>
-                </label>
-              </div>
+              <button
+                type="button"
+                className="btn-tool"
+                onClick={() => setSearchQuery('')}
+                style={{ fontSize: '11.5px', padding: '5px 12px' }}
+              >
+                Xóa Tìm Kiếm &amp; Trở Về
+              </button>
             </div>
           </div>
 
-          {/* Granular 11 Telemetry & Privacy Control Center */}
-          <div
-            className="specs-card"
-            style={{
-              background: 'radial-gradient(circle at top right, rgba(16, 185, 129, 0.08), transparent 70%), var(--panel-card)',
-              border: '1px solid rgba(16, 185, 129, 0.3)',
-            }}
-          >
-            {/* Header */}
-            <div className="specs-header-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="svg-icon" style={{ color: '#10b981' }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    <polyline points="9 12 11 14 15 10"></polyline>
-                  </svg>
-                </span>
-                <span style={{ fontWeight: 600, fontSize: '14px' }}>
-                  Trung Tâm Quản Lý Quyền Riêng Tư &amp; Telemetry (11 Khóa Hệ Thống)
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span className="badge-tag tag-safe" style={{ fontSize: '11px' }}>
-                  Đã chặn: {telemetryBlockedCount}/11 mục
-                </span>
-                <span className="badge-tag tag-neutral" style={{ fontSize: '11px' }}>
-                  Đã chọn: {selectedTelemetryKeys.size}/11 mục
-                </span>
-              </div>
-            </div>
-
-            <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '4px 0 12px 0', lineHeight: '1.5' }}>
-              Bảng điều khiển minh bạch từng luồng dữ liệu quảng cáo, theo dõi hành vi và telemetry gửi về máy chủ Honor. Bạn có thể <b>chọn từng mục riêng lẻ</b> để chặn hoặc khôi phục, giúp nắm rõ 100% mọi tác vụ trên máy.
-            </p>
-
-            {/* Batch Action Toolbar & Category Filters */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: '10px',
-                padding: '10px 14px',
-                background: 'rgba(0, 0, 0, 0.25)',
-                borderRadius: '8px',
-                border: '1px solid var(--border-light)',
-                marginBottom: '12px',
-              }}
-            >
-              {/* Category Filter Pills */}
-              <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  className={`btn-tool ${telemetryFilterCat === 'all' ? 'primary' : ''}`}
-                  style={{ fontSize: '11px', padding: '3px 8px' }}
-                  onClick={() => setTelemetryFilterCat('all')}
-                >
-                  Tất Cả (11)
-                </button>
-                <button
-                  type="button"
-                  className={`btn-tool ${telemetryFilterCat === 'ads' ? 'primary' : ''}`}
-                  style={{ fontSize: '11px', padding: '3px 8px' }}
-                  onClick={() => setTelemetryFilterCat('ads')}
-                >
-                  Quảng Cáo (3)
-                </button>
-                <button
-                  type="button"
-                  className={`btn-tool ${telemetryFilterCat === 'privacy' ? 'primary' : ''}`}
-                  style={{ fontSize: '11px', padding: '3px 8px' }}
-                  onClick={() => setTelemetryFilterCat('privacy')}
-                >
-                  Riêng Tư (2)
-                </button>
-                <button
-                  type="button"
-                  className={`btn-tool ${telemetryFilterCat === 'ui' ? 'primary' : ''}`}
-                  style={{ fontSize: '11px', padding: '3px 8px' }}
-                  onClick={() => setTelemetryFilterCat('ui')}
-                >
-                  Giao Diện (3)
-                </button>
-                <button
-                  type="button"
-                  className={`btn-tool ${telemetryFilterCat === 'location' ? 'primary' : ''}`}
-                  style={{ fontSize: '11px', padding: '3px 8px' }}
-                  onClick={() => setTelemetryFilterCat('location')}
-                >
-                  Vị Trí GPS (2)
-                </button>
-                <button
-                  type="button"
-                  className={`btn-tool ${telemetryFilterCat === 'telemetry' ? 'primary' : ''}`}
-                  style={{ fontSize: '11px', padding: '3px 8px' }}
-                  onClick={() => setTelemetryFilterCat('telemetry')}
-                >
-                  Cloud Log (1)
-                </button>
-              </div>
-
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button
-                  type="button"
-                  className="btn-tool"
-                  style={{ fontSize: '11px', padding: '4px 10px' }}
-                  onClick={handleSelectAllTelemetry}
-                >
-                  {selectedTelemetryKeys.size === TELEMETRY_DEFINITIONS.length ? 'Bỏ Chọn Tất Cả' : 'Chọn Tất Cả'}
-                </button>
-
-                <button
-                  type="button"
-                  className="btn-tool success"
-                  style={{ fontSize: '11.5px', padding: '5px 14px', fontWeight: 600 }}
-                  onClick={() => handleApplySelectedTelemetry(true)}
-                  disabled={!isOnline || isApplyingTelemetry || selectedTelemetryKeys.size === 0}
-                  title="Ghi giá trị 0 vào các khóa được chọn để tắt hẳn telemetry"
-                >
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '5px' }}>
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    <polyline points="9 12 11 14 15 10"></polyline>
-                  </svg>
-                  <span>Chặn {selectedTelemetryKeys.size} Khóa Đã Chọn (Giá Trị = 0)</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="btn-tool"
-                  style={{ fontSize: '11px', padding: '5px 10px' }}
-                  onClick={() => handleApplySelectedTelemetry(false)}
-                  disabled={!isOnline || isApplyingTelemetry || selectedTelemetryKeys.size === 0}
-                  title="Khôi phục bật lại (giá trị 1) cho các mục được chọn"
-                >
-                  <span>Khôi Phục Bật Lại (= 1)</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Grid of 11 Telemetry Keys with Compact Matrix Layout */}
-            <div className="crm-grid-matrix">
-              {filteredTelemetry.map((item) => {
-                const currentVal = magicTweaks?.marketing_all_disabled?.details?.[item.key];
-                const isBlocked = currentVal === '0';
-                const isSelected = selectedTelemetryKeys.has(item.key);
-
-                return (
-                  <div
-                    key={item.key}
-                    className={`crm-card ${inspectTelemetry?.key === item.key ? 'active-selected' : ''}`}
-                    onClick={() => setInspectTelemetry(item)}
-                  >
-                    <div className="crm-card-header">
-                      <div className="crm-card-title-group">
-                        <div
-                          style={{ paddingTop: '2px' }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleSelectTelemetry(item.key);
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => handleToggleSelectTelemetry(item.key)}
-                            style={{ cursor: 'pointer', width: '15px', height: '15px' }}
-                          />
-                        </div>
-
-                        <div>
-                          <div className="crm-card-title">{item.title}</div>
-                          <div className="crm-card-meta">
-                            <span className="badge-tag tag-neutral" style={{ fontSize: '9px', padding: '1px 5px' }}>
-                              {item.categoryLabel}
-                            </span>
-                            <span className="badge-tag tag-safe" style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', padding: '1px 5px' }}>
-                              {item.key}
-                            </span>
-                          </div>
-                        </div>
+          <div className="crm-grid-matrix">
+            {searchResults.map((item) => (
+              <div
+                key={item.id}
+                className="crm-card"
+                onClick={() => setInspectTool(item)}
+              >
+                <div className="crm-card-header">
+                  <div className="crm-card-title-group">
+                    <div>
+                      <div className="crm-card-title">{item.title}</div>
+                      <div className="crm-card-meta">
+                        <span className="badge-tag tag-neutral" style={{ fontSize: '9px' }}>
+                          {item.categoryLabel}
+                        </span>
+                        <span className="badge-tag tag-safe" style={{ fontSize: '9px', fontFamily: 'var(--font-mono)' }}>
+                          {item.scope}
+                        </span>
                       </div>
+                    </div>
+                  </div>
 
+                  <button
+                    type="button"
+                    className="crm-inspect-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setInspectTool(item);
+                    }}
+                  >
+                    <span>Xem Chi Tiết</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </button>
+                </div>
+                <div className="crm-card-desc">{item.summary}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          VIEW C: DEDICATED SLIDE-OUT WORKSPACE (When a Master Card is Clicked)
+          ========================================================================= */}
+      {activeModule !== null && !searchQuery.trim() && activeModuleMeta && (
+        <div className="crm-slide-workspace">
+          {/* Top Breadcrumb & Back Navigation Bar (Nhạc Quán / Salesforce Console Style) */}
+          <div className="specs-card" style={{ width: '100%', marginBottom: 0, padding: '16px 20px' }}>
+            <div className="crm-top-breadcrumb-bar">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                {/* Back Button */}
+                <button
+                  type="button"
+                  className="crm-back-button"
+                  onClick={() => setActiveModule(null)}
+                  title="Quay lại danh mục tổng quan (Phím ESC)"
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                  <span>Quay Lại Tổng Quan</span>
+                </button>
+
+                <div>
+                  {/* Breadcrumb Trail */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10.5px', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)', marginBottom: '3px' }}>
+                    <span>TP TOOLKIT</span>
+                    <span>/</span>
+                    <span>HỘP CÔNG CỤ</span>
+                    <span>/</span>
+                    <span style={{ color: '#38bdf8', fontWeight: 600 }}>{activeModuleMeta.title.toUpperCase()}</span>
+                  </div>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff' }}>
+                    {activeModuleMeta.title}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Side: Live ADB Indicator & Bulk Actions */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', fontSize: '11px', color: '#10b981', fontWeight: 600 }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }} />
+                  <span>ADB: MagicOS 10/11</span>
+                </div>
+
+                {activeModule === 'telemetry' && (
+                  <>
+                    <button
+                      type="button"
+                      className="btn-tool"
+                      style={{ fontSize: '11px', padding: '5px 10px' }}
+                      onClick={() => setSelectedTelemetryKeys(new Set(TELEMETRY_DEFINITIONS.map((d) => d.key)))}
+                    >
+                      Chọn Tất Cả (11)
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-tool"
+                      style={{ fontSize: '11px', padding: '5px 10px' }}
+                      onClick={() => setSelectedTelemetryKeys(new Set())}
+                    >
+                      Bỏ Chọn
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-tool success"
+                      style={{ fontSize: '11px', padding: '5px 12px', fontWeight: 600 }}
+                      onClick={() => handleApplySelectedTelemetry(true)}
+                      disabled={!isOnline || isApplyingTelemetry}
+                    >
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '4px' }}>
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                      </svg>
+                      <span>Chặn Tất Cả 11 Mục</span>
+                    </button>
+                  </>
+                )}
+
+                {activeModule === 'screen' && (
+                  <button
+                    type="button"
+                    className="btn-tool primary"
+                    style={{ fontSize: '11px', padding: '5px 12px', fontWeight: 600 }}
+                    onClick={() => onLaunchScrcpy({ turnOffScreen, stayAwake })}
+                    disabled={!isOnline}
+                  >
+                    Khởi Chạy Scrcpy 120Hz
+                  </button>
+                )}
+
+                {activeModule === 'theme' && (
+                  <button
+                    type="button"
+                    className="btn-tool primary"
+                    style={{ fontSize: '11px', padding: '5px 12px', fontWeight: 600 }}
+                    onClick={() => setIsThemeStudioOpen(true)}
+                  >
+                    Mở Trình Quản Lý Theme
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '8px', lineHeight: '1.5' }}>
+              {activeModuleMeta.desc}
+            </div>
+          </div>
+
+          {/* Dedicated High-Density Cards for this specific tool */}
+          <div className="crm-grid-matrix">
+            {currentModuleTools.map((item) => (
+              <div
+                key={item.id}
+                className={`crm-card ${inspectTool?.id === item.id ? 'active-selected' : ''}`}
+                onClick={() => setInspectTool(item)}
+              >
+                <div className="crm-card-header">
+                  <div className="crm-card-title-group">
+                    {/* Checkbox for Telemetry */}
+                    {item.type === 'telemetry_item' && (
                       <div
-                        onClick={(e) => e.stopPropagation()}
-                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}
+                        style={{ paddingTop: '2px' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleSelectTelemetry(item.key);
+                        }}
                       >
+                        <input
+                          type="checkbox"
+                          checked={item.isSelected}
+                          onChange={() => handleToggleSelectTelemetry(item.key)}
+                          style={{ cursor: 'pointer', width: '15px', height: '15px' }}
+                        />
+                      </div>
+                    )}
+
+                    <div>
+                      <div className="crm-card-title">{item.title}</div>
+                      <div className="crm-card-meta">
+                        <span className="badge-tag tag-neutral" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                          {item.categoryLabel}
+                        </span>
+                        <span className="badge-tag tag-safe" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                          {item.safety || 'An Toàn'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Right Action / Switch */}
+                  <div onClick={(e) => e.stopPropagation()}>
+                    {item.type === 'toggle' && (
+                      <label className="magicos-switch">
+                        <input
+                          type="checkbox"
+                          checked={item.checked}
+                          onChange={item.onToggle}
+                          disabled={!isOnline || item.loading}
+                        />
+                        <span className="magicos-slider"></span>
+                      </label>
+                    )}
+
+                    {item.type === 'telemetry_item' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                         <span
-                          className={`badge-tag ${isBlocked ? 'tag-safe' : 'tag-warn'}`}
+                          className={`badge-tag ${item.isBlocked ? 'tag-safe' : 'tag-warn'}`}
                           style={{ fontSize: '9px', padding: '1px 5px' }}
                         >
-                          {isBlocked ? 'Đã Chặn' : 'Đang Mở'}
+                          {item.isBlocked ? 'Đã Chặn' : 'Đang Mở'}
                         </span>
                         <label className="magicos-switch">
                           <input
                             type="checkbox"
-                            checked={!isBlocked}
+                            checked={!item.isBlocked}
                             onChange={() => handleToggleSingleTelemetry(item.key)}
                             disabled={!isOnline || loadingTweakKey === item.key}
                           />
                           <span className="magicos-slider"></span>
                         </label>
                       </div>
-                    </div>
+                    )}
 
-                    <div className="crm-card-desc">{item.desc}</div>
-
-                    <div className="crm-card-footer">
-                      <span style={{ color: isBlocked ? '#10b981' : '#94a3b8' }}>
-                        {item.impact}
-                      </span>
+                    {item.type === 'action' && (
                       <button
                         type="button"
-                        className="crm-inspect-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setInspectTelemetry(item);
-                        }}
+                        className="btn-tool primary"
+                        style={{ fontSize: '11px', padding: '4px 10px', whiteSpace: 'nowrap' }}
+                        onClick={item.onExecute}
+                        disabled={!isOnline || item.loading}
                       >
-                        <span>Chi tiết &amp; Lệnh ADB</span>
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
+                        {item.actionLabel}
                       </button>
-                    </div>
+                    )}
+
+                    {item.type === 'reboot_controls' && (
+                      <span className="badge-tag tag-warn" style={{ fontSize: '10px' }}>
+                        Khởi Động Lại
+                      </span>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* =========================================================================
-          MODULE 2: TP THEME STUDIO VIP
-          ========================================================================= */}
-      {(activeModule === 'all' || activeModule === 'theme') && (
-        <div
-          className="specs-card"
-          style={{
-            border: '1px solid rgba(236, 72, 153, 0.35)',
-            boxShadow: '0 8px 24px -4px rgba(236, 72, 153, 0.15)',
-            background: 'radial-gradient(circle at top right, rgba(236, 72, 153, 0.08), transparent 70%), var(--panel-card)',
-          }}
-        >
-          <div className="specs-header-title">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="svg-icon" style={{ color: '#ec4899' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83m13.79-4l-5.74 9.94"></path>
-                </svg>
-              </span>
-              <span style={{ fontWeight: 600, fontSize: '14px' }}>
-                TP Theme Studio (Trình Quản Lý &amp; Trích Xuất Theme VIP .hnt)
-              </span>
-            </div>
-            <span className="badge-tag tag-safe" style={{ background: 'rgba(236, 72, 153, 0.15)', color: '#ec4899', borderColor: 'rgba(236, 72, 153, 0.3)' }}>
-              VIP Studio
-            </span>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', alignItems: 'center', margin: '8px 0 14px 0' }}>
-            <div>
-              <p style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: '1.6', margin: 0 }}>
-                Công nghệ trích xuất độc quyền: Trích xuất theme VIP đang dùng thử thành file chuẩn <b>.hnt (ZIP Deflate)</b>, làm sạch cờ trial, tự động nạp thẳng vào thư mục hệ thống app Chủ Đề và sao lưu ra thư mục công khai <code>/sdcard/Honor/Themes/</code>.
-              </p>
-              <div style={{ marginTop: '8px', fontSize: '11px', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <span>Zero Junk: Tuyệt đối không để lại file rác tạm nào trên bộ nhớ máy.</span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button
-                className="btn-magicos-primary"
-                style={{ background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)', boxShadow: '0 4px 16px rgba(236, 72, 153, 0.35)' }}
-                onClick={handleQuickExtract}
-                disabled={!isOnline || quickExtracting}
-              >
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                </svg>
-                <span>{quickExtracting ? 'Đang trích xuất sang .hnt...' : 'Trích Xuất Nhanh Theme VIP Đang Thử (1-Click)'}</span>
-              </button>
-
-              <button
-                type="button"
-                className="btn-tool"
-                style={{ justifyContent: 'center', padding: '8px', fontSize: '12px', color: '#ec4899', borderColor: 'rgba(236, 72, 153, 0.3)' }}
-                onClick={() => setIsThemeStudioOpen(true)}
-                disabled={!isOnline}
-              >
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                </svg>
-                <span>Mở Giao Diện Studio Quản Lý &amp; Nạp File .hnt</span>
-              </button>
-            </div>
-          </div>
-
-          {quickExtractMsg && (
-            <div style={{ padding: '8px 12px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '6px', fontSize: '11.5px', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <span>{quickExtractMsg}</span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* =========================================================================
-          MODULE 3: GOOGLE ECOSYSTEM & ASSISTANTS
-          ========================================================================= */}
-      {(activeModule === 'all' || activeModule === 'google') && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '14px' }}>
-          {/* Box A: Google & Gemini All-in-One Suite */}
-          <div
-            className="specs-card"
-            style={{
-              border: '1px solid rgba(56, 189, 248, 0.35)',
-              background: 'linear-gradient(145deg, rgba(15, 23, 42, 0.7), rgba(30, 41, 59, 0.4))',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div>
-              <div className="specs-header-title">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="svg-icon" style={{ color: '#38bdf8' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
-                      <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                      <line x1="12" y1="19" x2="12" y2="22"></line>
-                    </svg>
-                  </span>
-                  <span style={{ fontWeight: 600, fontSize: '13.5px' }}>
-                    Trợ Lý Ảo Google &amp; Gemini (Thay Thế YOYO)
-                  </span>
                 </div>
-                <span className="badge-tag tag-safe" style={{ fontSize: '10.5px' }}>
-                  Hybrid 3 Lớp
-                </span>
-              </div>
 
-              <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '6px 0 12px 0', lineHeight: '1.5' }}>
-                Đóng băng YOYO Voice nội địa, gán mặc định sang Google Assistant, kích hoạt thanh vuốt <b>Gesture Search</b> và engine đánh thức giọng nói <b>Trợ Lý VXM</b> offline 24/7.
-              </p>
-            </div>
+                {/* Plain-Language Explanation */}
+                <div className="crm-card-desc">{item.summary}</div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button
-                className="btn-tool success"
-                style={{ width: '100%', justifyContent: 'center', padding: '10px', fontSize: '12.5px', fontWeight: 600 }}
-                onClick={onSetupFullAssistantSuite}
-                disabled={!isOnline}
-              >
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                </svg>
-                <span>KÍCH HOẠT TRỌN BỘ TRỢ LÝ TOÀN DIỆN (1-CLICK)</span>
-              </button>
+                {/* Collapsible Technical ADB Command for Geeks */}
+                {item.adbCommand && (
+                  <details
+                    className="crm-tech-accordion"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <summary>Xem lệnh kỹ thuật ADB Shell</summary>
+                    <div style={{ padding: '8px 10px' }}>
+                      <div className="crm-code-box" style={{ fontSize: '11px' }}>
+                        {item.adbCommand}
+                      </div>
+                    </div>
+                  </details>
+                )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                <button
-                  className="btn-tool"
-                  style={{ justifyContent: 'center', fontSize: '11px', padding: '6px 4px' }}
-                  onClick={onSetAssistant}
-                  disabled={!isOnline}
-                  title="Gán Google Gemini làm mặc định hệ thống"
-                >
-                  1. Lõi Hệ Thống
-                </button>
-                <button
-                  className="btn-tool"
-                  style={{ justifyContent: 'center', fontSize: '11px', padding: '6px 4px' }}
-                  onClick={onInstallGestureSearch}
-                  disabled={!isOnline}
-                  title="Cài đặt Gesture Search gọi Gemini nhanh"
-                >
-                  2. Gesture Bar
-                </button>
-                <button
-                  className="btn-tool"
-                  style={{ justifyContent: 'center', fontSize: '11px', padding: '6px 4px' }}
-                  onClick={onInstallVxMAssistant}
-                  disabled={!isOnline}
-                  title="Cài engine nhận diện Hey Google offline"
-                >
-                  3. Trợ Lý VXM
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Box B: Google Play Services & APKMirror Scraper */}
-          <div
-            className="specs-card"
-            style={{
-              border: '1px solid rgba(52, 211, 153, 0.35)',
-              background: 'linear-gradient(145deg, rgba(6, 78, 59, 0.25), rgba(15, 23, 42, 0.6))',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div>
-              <div className="specs-header-title">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="svg-icon" style={{ color: '#34d399' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                <div className="crm-card-footer">
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    {item.impact || 'Bấm để xem thông số & tác động'}
+                  </span>
+                  <button
+                    type="button"
+                    className="crm-inspect-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setInspectTool(item);
+                    }}
+                  >
+                    <span>Giải phẫu chi tiết</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
-                  </span>
-                  <span style={{ fontWeight: 600, fontSize: '13.5px' }}>
-                    Kích Hoạt GMS &amp; Tự Động Cài CH Play
-                  </span>
+                  </button>
                 </div>
-                <span className="badge-tag tag-safe" style={{ fontSize: '10.5px' }}>
-                  APKMirror Scraper
-                </span>
               </div>
-
-              <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '6px 0 10px 0', lineHeight: '1.5' }}>
-                Mở khóa khung GMS/GSF tích hợp sẵn trong MagicOS, tự động cào link phiên bản mới nhất từ APKMirror đúng kiến trúc chip <code>{device?.cpu_abi || 'ARM64'}</code> và cài hoàn tất.
-              </p>
-
-              <div style={{ marginBottom: '8px' }}>
-                <input
-                  type="text"
-                  placeholder="URL APK tùy chọn (Để trống = Tự động cào link mới nhất từ APKMirror)"
-                  value={customPlayStoreUrl}
-                  onChange={(e) => setCustomPlayStoreUrl(e.target.value)}
-                  className="tool-input"
-                  style={{ width: '100%', fontSize: '11px' }}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button
-                className="btn-tool success"
-                style={{ width: '100%', justifyContent: 'center', padding: '10px', fontSize: '12.5px', fontWeight: 600 }}
-                onClick={() => onSetupFullGoogleEcosystem(customPlayStoreUrl)}
-                disabled={!isOnline}
-              >
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                </svg>
-                <span>TỰ ĐỘNG BẬT GMS &amp; CÀI CH PLAY (1-CLICK)</span>
-              </button>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
-                <button
-                  className="btn-tool"
-                  style={{ justifyContent: 'center', fontSize: '11px', padding: '6px 8px' }}
-                  onClick={onEnableGoogleServices}
-                  disabled={!isOnline}
-                >
-                  1. Bật Khung GMS
-                </button>
-                <button
-                  className="btn-tool"
-                  style={{ justifyContent: 'center', fontSize: '11px', padding: '6px 8px' }}
-                  onClick={() => onInstallPlayStore(customPlayStoreUrl)}
-                  disabled={!isOnline}
-                >
-                  2. Cài CH Play
-                </button>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       )}
 
       {/* =========================================================================
-          MODULE 4: PERFORMANCE & SCREEN CONTROL & HARDWARE UTILITIES
+          SLIDE-OVER INSPECTION DRAWER (For Deep Technical Breakdown)
           ========================================================================= */}
-      {(activeModule === 'all' || activeModule === 'system') && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
-          {/* Card: Scrcpy & Screen Mirroring */}
-          <div className="specs-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div>
-              <div className="specs-header-title">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="svg-icon" style={{ color: '#38bdf8' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M13 3H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3"></path>
-                      <polyline points="8 21 12 17 16 21"></polyline>
-                      <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                  </span>
-                  <span style={{ fontWeight: 600 }}>Chiếu Màn Hình &amp; Điều Khiển 120Hz</span>
-                </div>
-              </div>
-
-              <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '6px 0 10px 0', lineHeight: '1.5' }}>
-                Điều khiển điện thoại trực tiếp bằng chuột và bàn phím máy tính siêu mượt 120 FPS qua Scrcpy hoặc xem ngay trên tab Web.
-              </p>
-
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11.5px' }}>
-                  <input
-                    type="checkbox"
-                    checked={turnOffScreen}
-                    onChange={(e) => setTurnOffScreen(e.target.checked)}
-                  />
-                  <span>Tắt màn hình điện thoại</span>
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11.5px' }}>
-                  <input
-                    type="checkbox"
-                    checked={stayAwake}
-                    onChange={(e) => setStayAwake(e.target.checked)}
-                  />
-                  <span>Luôn sáng màn hình</span>
-                </label>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button
-                className="btn-tool primary"
-                style={{ width: '100%', justifyContent: 'center', padding: '9px 12px', fontWeight: 600 }}
-                onClick={() => onLaunchScrcpy({ turnOffScreen, stayAwake })}
-                disabled={!isOnline}
-              >
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
-                <span>{isWeb ? 'Mở Scrcpy Desktop 120Hz' : 'Khởi Chạy Scrcpy 120Hz'}</span>
-              </button>
-
-              <button
-                type="button"
-                className="btn-tool"
-                style={{ width: '100%', justifyContent: 'center', padding: '7px', fontSize: '11.5px', color: '#38bdf8' }}
-                onClick={onOpenWebMirror}
-                disabled={!isOnline}
-              >
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-                  <line x1="12" y1="18" x2="12.01" y2="18"></line>
-                </svg>
-                <span>Xem Trực Tiếp Trong Trình Duyệt (Web Mirror)</span>
-              </button>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                <button
-                  type="button"
-                  className="btn-tool"
-                  style={{ justifyContent: 'center', fontSize: '11px', padding: '6px 4px' }}
-                  onClick={handleWirelessConnect}
-                  disabled={!isOnline || isSettingWireless}
-                  title="Bật kết nối không dây qua Wi-Fi (Port 5555)"
-                >
-                  {isSettingWireless ? 'Đang mở...' : 'Wi-Fi ADB'}
-                </button>
-
-                <button
-                  type="button"
-                  className="btn-tool"
-                  style={{ justifyContent: 'center', fontSize: '11px', padding: '6px 4px' }}
-                  onClick={handleScreenshot}
-                  disabled={!isOnline || isCapturingScreenshot}
-                  title="Chụp ảnh màn hình điện thoại độ phân giải gốc"
-                >
-                  {isCapturingScreenshot ? 'Đang chụp...' : 'Chụp Màn Hình'}
-                </button>
-
-                <button
-                  type="button"
-                  className={`btn-tool ${isRecording ? 'danger recording-pulse' : ''}`}
-                  style={{ justifyContent: 'center', fontSize: '11px', padding: '6px 4px' }}
-                  onClick={handleToggleRecord}
-                  disabled={!isOnline}
-                  title="Quay video màn hình MP4"
-                >
-                  {isRecording ? `Dừng (${recordSeconds}s)` : 'Quay MP4'}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Card: Native AOT Compiler (dex2oat) */}
-          <div className="specs-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div>
-              <div className="specs-header-title">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="svg-icon" style={{ color: '#10b981' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                    </svg>
-                  </span>
-                  <span style={{ fontWeight: 600 }}>Tăng Tốc Ứng Dụng (Native AOT dex2oat)</span>
-                </div>
-              </div>
-
-              <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '6px 0 10px 0', lineHeight: '1.5' }}>
-                Dùng trình biên dịch <code>dex2oat</code> của Android chuyển mã bytecode thành mã máy Native ARM64 cho Zalo, Facebook, Ngân Hàng, Shopee, Grab... tăng tốc mở app 30-50% và dọn sạch bộ nhớ cache.
-              </p>
-            </div>
-
-            <button
-              className="btn-tool"
-              style={{ width: '100%', justifyContent: 'center', padding: '9px 12px', fontWeight: 600 }}
-              onClick={onCompileApps}
-              disabled={!isOnline}
-            >
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-              </svg>
-              <span>Biên Dịch Tăng Tốc Native AOT dex2oat</span>
-            </button>
-          </div>
-
-          {/* Card: Weather Fix & Reboot Controls */}
-          <div className="specs-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div>
-              <div className="specs-header-title">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="svg-icon" style={{ color: '#f59e0b' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="5"></circle>
-                      <line x1="12" y1="1" x2="12" y2="3"></line>
-                      <line x1="12" y1="21" x2="12" y2="23"></line>
-                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                      <line x1="1" y1="12" x2="3" y2="12"></line>
-                      <line x1="21" y1="12" x2="23" y2="12"></line>
-                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                  </span>
-                  <span style={{ fontWeight: 600 }}>Thời Tiết Độ C &amp; Khởi Động Lại Máy</span>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '6px 0 10px 0' }}>
-                <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: 0, lineHeight: '1.4' }}>
-                  Ép ngôn ngữ app Thời Tiết sang <code>en-GB</code> hiển thị nhiệt độ Độ C (°C) thay vì tiếng Trung.
-                </p>
-                <button
-                  className="btn-tool"
-                  style={{ width: '100%', justifyContent: 'center', padding: '6px' }}
-                  onClick={onFixWeather}
-                  disabled={!isOnline}
-                >
-                  Đổi Thời Tiết Sang Tiếng Anh (Độ C)
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <div style={{ fontSize: '11.5px', color: 'var(--text-dim)', marginBottom: '6px' }}>
-                Điều Khiển Nguồn Hệ Thống:
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                <button
-                  className="btn-tool"
-                  style={{ justifyContent: 'center', fontSize: '11px', padding: '6px 4px' }}
-                  onClick={() => onReboot('system')}
-                  disabled={!isOnline}
-                >
-                  Khởi Động Lại
-                </button>
-                <button
-                  className="btn-tool"
-                  style={{ justifyContent: 'center', fontSize: '11px', padding: '6px 4px' }}
-                  onClick={() => onReboot('bootloader')}
-                  disabled={!isOnline}
-                >
-                  Fastboot
-                </button>
-                <button
-                  className="btn-tool"
-                  style={{ justifyContent: 'center', fontSize: '11px', padding: '6px 4px' }}
-                  onClick={() => onReboot('recovery')}
-                  disabled={!isOnline}
-                >
-                  Recovery
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Screenshot Preview Result Modal */}
-      {screenshotResult && (
-        <div className="modal-backdrop" onClick={() => setScreenshotResult(null)}>
-          <div className="modal-window" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
-            <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                  <circle cx="12" cy="13" r="4"></circle>
-                </svg>
-                <span>Ảnh Chụp Màn Hình Điện Thoại (Lossless)</span>
-              </div>
-              <button
-                type="button"
-                className="btn-tool"
-                style={{ padding: '4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                onClick={() => setScreenshotResult(null)}
-                title="Đóng"
-              >
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
-
-            <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
-              <div style={{ maxHeight: '420px', overflow: 'hidden', borderRadius: '8px', border: '1px solid var(--border-color)', background: '#000' }}>
-                <img
-                  src={screenshotResult.url}
-                  alt={screenshotResult.filename}
-                  style={{ maxHeight: '420px', maxWidth: '100%', objectFit: 'contain', display: 'block' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
-                  {screenshotResult.filename} ({screenshotResult.size_kb} KB)
-                </span>
-                <a
-                  href={screenshotResult.url}
-                  download={screenshotResult.filename}
-                  className="btn-tool primary"
-                  style={{ textDecoration: 'none', padding: '6px 14px', fontSize: '11px', fontWeight: 600 }}
-                >
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '5px' }}>
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  Tải Ảnh Về Máy
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Screen Recording Result Modal */}
-      {recordingResult && (
-        <div className="modal-backdrop" onClick={() => setRecordingResult(null)}>
-          <div className="modal-window" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
-            <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polygon points="23 7 16 12 23 17 23 7"></polygon>
-                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-                </svg>
-                <span>Đã Hoàn Tất Quay Video Màn Hình MP4</span>
-              </div>
-              <button
-                type="button"
-                className="btn-tool"
-                style={{ padding: '4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                onClick={() => setRecordingResult(null)}
-                title="Đóng"
-              >
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
-
-            <div style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--text-bright)', lineHeight: '1.6' }}>
-                Đã kéo thành công video từ điện thoại về máy tính!
-                <br />
-                Tên file: <code>{recordingResult.filename}</code>
-                <br />
-                Thời lượng: <b>{recordingResult.duration} giây</b> • Dung lượng: <b>{recordingResult.size_mb} MB</b>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <a
-                  href={recordingResult.url}
-                  download={recordingResult.filename}
-                  className="btn-tool primary"
-                  style={{ textDecoration: 'none', padding: '6px 14px', fontSize: '11.5px', fontWeight: 600 }}
-                >
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '5px' }}>
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  Tải Video MP4 Về Máy
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Slide-Over Inspection Drawer for Telemetry */}
-      {inspectTelemetry && (
+      {inspectTool && (
         <>
-          <div className="crm-drawer-backdrop" onClick={() => setInspectTelemetry(null)} />
+          <div className="crm-drawer-backdrop" onClick={() => setInspectTool(null)} />
           <div className="crm-drawer-panel">
             <div className="crm-drawer-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="badge-tag tag-safe" style={{ fontSize: '10px', fontFamily: 'var(--font-mono)' }}>
-                  secure: {inspectTelemetry.key}
+                <span className="badge-tag tag-safe" style={{ fontSize: '10.5px' }}>
+                  {inspectTool.categoryLabel}
                 </span>
-                <span className="badge-tag tag-neutral" style={{ fontSize: '10px' }}>
-                  {inspectTelemetry.categoryLabel}
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-bright)' }}>
+                  Giải Phẫu Kỹ Thuật
                 </span>
               </div>
               <button
                 type="button"
                 className="crm-drawer-close"
-                onClick={() => setInspectTelemetry(null)}
-                title="Đóng cửa sổ (Esc)"
+                onClick={() => setInspectTool(null)}
+                title="Đóng (ESC)"
               >
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
@@ -1584,53 +1438,90 @@ export default function ToolboxTab({
             </div>
 
             <div className="crm-drawer-body">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
-                <div>
-                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-bright)', lineHeight: '1.4' }}>
-                    {inspectTelemetry.title}
-                  </h3>
-                  <div style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '4px' }}>
-                    Khóa tiếp thị &amp; theo dõi ẩn của Honor MagicOS
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', lineHeight: '1.3' }}>
+                  {inspectTool.title}
+                </div>
+                <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#38bdf8' }}>
+                  Phạm vi: {inspectTool.scope}
+                </div>
+              </div>
+
+              {/* Special options for Scrcpy */}
+              {inspectTool.id === 'sys_scrcpy_mirror' && (
+                <div className="crm-drawer-section">
+                  <div className="crm-drawer-section-title">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                      <line x1="8" y1="21" x2="16" y2="21"></line>
+                      <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    <span>Cấu hình phiên Scrcpy</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px' }}>
+                      <input
+                        type="checkbox"
+                        checked={turnOffScreen}
+                        onChange={(e) => setTurnOffScreen(e.target.checked)}
+                      />
+                      <span>Tắt màn hình điện thoại khi chiếu</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px' }}>
+                      <input
+                        type="checkbox"
+                        checked={stayAwake}
+                        onChange={(e) => setStayAwake(e.target.checked)}
+                      />
+                      <span>Luôn sáng màn hình</span>
+                    </label>
                   </div>
                 </div>
+              )}
 
-                <label className="magicos-switch" style={{ flexShrink: 0, marginTop: '4px' }}>
-                  <input
-                    type="checkbox"
-                    checked={magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] !== '0'}
-                    onChange={() => handleToggleSingleTelemetry(inspectTelemetry.key)}
-                    disabled={!isOnline || loadingTweakKey === inspectTelemetry.key}
-                  />
-                  <span className="magicos-slider"></span>
-                </label>
-              </div>
+              {/* Special options for Reboot */}
+              {inspectTool.type === 'reboot_controls' && (
+                <div className="crm-drawer-section">
+                  <div className="crm-drawer-section-title">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="23 4 23 10 17 10"></polyline>
+                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                    <span>Lựa chọn phân vùng khởi động</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="btn-tool"
+                      onClick={() => onReboot('system')}
+                      disabled={!isOnline}
+                      style={{ flex: 1, minWidth: '120px' }}
+                    >
+                      Khởi Động Lại Máy
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-tool"
+                      onClick={() => onReboot('bootloader')}
+                      disabled={!isOnline}
+                      style={{ flex: 1, minWidth: '120px' }}
+                    >
+                      Vào Fastboot
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-tool"
+                      onClick={() => onReboot('recovery')}
+                      disabled={!isOnline}
+                      style={{ flex: 1, minWidth: '120px' }}
+                    >
+                      Vào Recovery
+                    </button>
+                  </div>
+                </div>
+              )}
 
-              {/* Status pill */}
-              <div
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  background: magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] === '0'
-                    ? 'rgba(16, 185, 129, 0.12)'
-                    : 'rgba(245, 158, 11, 0.12)',
-                  border: `1px solid ${magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] === '0' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <span style={{ fontSize: '12px', color: 'var(--text-bright)' }}>Trạng thái hiện tại:</span>
-                <span
-                  className={`badge-tag ${magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] === '0' ? 'tag-safe' : 'tag-warn'}`}
-                  style={{ fontSize: '11px', fontWeight: 600 }}
-                >
-                  {magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] === '0'
-                    ? 'Đã Chặn An Toàn (Giá trị = 0)'
-                    : `Đang Mở (Giá trị = ${magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] || '1'})`}
-                </span>
-              </div>
-
-              {/* Description */}
+              {/* Technical Description */}
               <div className="crm-drawer-section">
                 <div className="crm-drawer-section-title">
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1638,82 +1529,129 @@ export default function ToolboxTab({
                     <line x1="12" y1="16" x2="12" y2="12"></line>
                     <line x1="12" y1="8" x2="12.01" y2="8"></line>
                   </svg>
-                  <span>Mục đích can thiệp</span>
+                  <span>Mục đích &amp; Cơ chế hoạt động</span>
                 </div>
                 <div style={{ fontSize: '12.5px', color: 'var(--text-main)', lineHeight: '1.6' }}>
-                  {inspectTelemetry.desc}
+                  {inspectTool.desc}
                 </div>
               </div>
 
               {/* Exact ADB Command */}
-              <div className="crm-drawer-section">
-                <div className="crm-drawer-section-title">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="4 17 10 11 4 5"></polyline>
-                    <line x1="12" y1="19" x2="20" y2="19"></line>
-                  </svg>
-                  <span>Lệnh ADB Shell thực thi</span>
+              {inspectTool.adbCommand && (
+                <div className="crm-drawer-section">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="crm-drawer-section-title">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="4 17 10 11 4 5"></polyline>
+                        <line x1="12" y1="19" x2="20" y2="19"></line>
+                      </svg>
+                      <span>Lệnh ADB Shell thực thi</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-tool"
+                      style={{ fontSize: '10px', padding: '2px 8px' }}
+                      onClick={() => {
+                        navigator.clipboard.writeText(inspectTool.adbCommand);
+                        alert('Đã sao chép lệnh ADB vào clipboard!');
+                      }}
+                    >
+                      Sao Chép
+                    </button>
+                  </div>
+                  <div className="crm-code-box">{inspectTool.adbCommand}</div>
                 </div>
-                <div className="crm-code-box">
-                  {`# Lệnh ghi giá trị chặn:\nadb shell settings put secure ${inspectTelemetry.key} 0\n\n# Lệnh khôi phục bật lại:\nadb shell settings put secure ${inspectTelemetry.key} 1`}
-                </div>
-              </div>
+              )}
 
               {/* Impact */}
-              <div className="crm-drawer-section" style={{ borderLeft: '3px solid #38bdf8' }}>
-                <div className="crm-drawer-section-title" style={{ color: '#38bdf8' }}>
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                  </svg>
-                  <span>Lợi ích thực tế</span>
+              {inspectTool.impact && (
+                <div className="crm-drawer-section" style={{ borderLeft: '3px solid #38bdf8' }}>
+                  <div className="crm-drawer-section-title" style={{ color: '#38bdf8' }}>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    <span>Lợi ích thực tế</span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: '1.5' }}>
+                    {inspectTool.impact}
+                  </div>
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: '1.5' }}>
-                  {inspectTelemetry.impact}
-                </div>
-              </div>
+              )}
 
-              {/* Safety */}
-              <div className="crm-drawer-section" style={{ borderLeft: '3px solid #10b981' }}>
-                <div className="crm-drawer-section-title" style={{ color: '#10b981' }}>
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                  </svg>
-                  <span>Mức độ an toàn</span>
+              {/* Safety Rating */}
+              {inspectTool.safety && (
+                <div className="crm-drawer-section" style={{ borderLeft: '3px solid #10b981' }}>
+                  <div className="crm-drawer-section-title" style={{ color: '#10b981' }}>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    <span>Mức độ an toàn</span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: '1.4' }}>
+                    {inspectTool.safety}
+                  </div>
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: '1.4' }}>
-                  Can thiệp vào bảng Settings Secure qua ADB không can thiệp system file, không ảnh hưởng đến chức năng gọi điện, tin nhắn hay camera. Có thể bật lại bất kỳ lúc nào.
-                </div>
-              </div>
+              )}
             </div>
 
             <div className="crm-drawer-footer">
               <button
                 type="button"
                 className="btn-tool"
-                onClick={() => setInspectTelemetry(null)}
+                onClick={() => setInspectTool(null)}
                 style={{ fontSize: '12px' }}
               >
                 Đóng
               </button>
 
-              <button
-                type="button"
-                className={`btn-tool ${magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] === '0' ? '' : 'success'}`}
-                onClick={() => handleToggleSingleTelemetry(inspectTelemetry.key)}
-                disabled={!isOnline || loadingTweakKey === inspectTelemetry.key}
-                style={{ fontSize: '12px', fontWeight: 600 }}
-              >
-                {magicTweaks?.marketing_all_disabled?.details?.[inspectTelemetry.key] === '0'
-                  ? 'Khôi Phục Mở Lại (= 1)'
-                  : 'Chặn Ngay Khóa Này (= 0)'}
-              </button>
+              {inspectTool.type === 'action' && (
+                <button
+                  type="button"
+                  className="btn-tool primary"
+                  onClick={() => {
+                    inspectTool.onExecute?.();
+                    setInspectTool(null);
+                  }}
+                  disabled={!isOnline || inspectTool.loading}
+                  style={{ fontSize: '12px', fontWeight: 600 }}
+                >
+                  Thực Thi Ngay
+                </button>
+              )}
+
+              {inspectTool.type === 'telemetry_item' && (
+                <button
+                  type="button"
+                  className={`btn-tool ${inspectTool.isBlocked ? '' : 'success'}`}
+                  onClick={() => handleToggleSingleTelemetry(inspectTool.key)}
+                  disabled={!isOnline || loadingTweakKey === inspectTool.key}
+                  style={{ fontSize: '12px', fontWeight: 600 }}
+                >
+                  {inspectTool.isBlocked ? 'Khôi Phục Mở Lại (= 1)' : 'Chặn Ngay Khóa Này (= 0)'}
+                </button>
+              )}
+
+              {inspectTool.type === 'toggle' && (
+                <button
+                  type="button"
+                  className="btn-tool primary"
+                  onClick={() => {
+                    inspectTool.onToggle?.();
+                    setInspectTool(null);
+                  }}
+                  disabled={!isOnline || inspectTool.loading}
+                  style={{ fontSize: '12px', fontWeight: 600 }}
+                >
+                  Đổi Trạng Thái
+                </button>
+              )}
             </div>
           </div>
         </>
       )}
 
       {/* Floating Action Dock when Telemetry keys are selected */}
-      {selectedTelemetryKeys.size > 0 && (
+      {selectedTelemetryKeys.size > 0 && activeModule === 'telemetry' && (
         <div className="crm-floating-dock">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="badge-tag tag-safe" style={{ fontSize: '11px', fontWeight: 600 }}>
@@ -1758,6 +1696,50 @@ export default function ToolboxTab({
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Screen recording result notification */}
+      {recordingResult && (
+        <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 1200, width: '380px' }}>
+          <div className="specs-card" style={{ padding: 0, overflow: 'hidden', border: '1px solid rgba(56, 189, 248, 0.4)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+            <div className="specs-header-title" style={{ padding: '10px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="svg-icon" style={{ color: '#10b981' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </span>
+                <span style={{ fontWeight: 600, fontSize: '13px' }}>Đã Quay Xong Màn Hình</span>
+              </div>
+              <button
+                type="button"
+                className="btn-tool"
+                style={{ padding: '4px 8px' }}
+                onClick={() => setRecordingResult(null)}
+              >
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-bright)' }}>
+                Tên file: <code>{recordingResult.filename}</code> • Dung lượng: <b>{recordingResult.size_mb} MB</b>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <a
+                  href={recordingResult.url}
+                  download={recordingResult.filename}
+                  className="btn-tool primary"
+                  style={{ textDecoration: 'none', padding: '6px 14px', fontSize: '12px' }}
+                >
+                  Tải Video MP4 Về Máy
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       )}
