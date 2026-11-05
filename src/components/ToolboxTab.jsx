@@ -665,7 +665,17 @@ export default function ToolboxTab({
         </div>
 
         {/* Card 5: TP Theme Studio */}
-        <div className="specs-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div
+          className="specs-card"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            border: '1px solid rgba(236, 72, 153, 0.35)',
+            boxShadow: '0 8px 24px -4px rgba(236, 72, 153, 0.15)',
+            background: 'radial-gradient(circle at top right, rgba(236, 72, 153, 0.08), transparent 70%), var(--panel-card)',
+          }}
+        >
           <div>
             <div className="specs-header-title">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -677,6 +687,9 @@ export default function ToolboxTab({
                 </span>
                 <span>TP Theme Studio (Trích Xuất Theme VIP .hnt)</span>
               </div>
+              <span className="badge-tag tag-safe" style={{ background: 'rgba(236, 72, 153, 0.15)', color: '#ec4899', borderColor: 'rgba(236, 72, 153, 0.3)' }}>
+                VIP Studio
+              </span>
             </div>
             <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '10px 0 12px 0', lineHeight: '1.5' }}>
               Trích xuất 1-Click theme VIP đang dùng thử thành file <b>.hnt</b> vĩnh viễn, nạp vào thư mục hệ thống và sao lưu chia sẻ, không để lại rác trên điện thoại.
@@ -722,7 +735,14 @@ export default function ToolboxTab({
         </div>
 
         {/* Card 6: Tinh Chỉnh Cài Đặt Ẩn MagicOS (Magic Tweaks) */}
-        <div className="specs-card" style={{ gridColumn: '1 / -1', background: 'var(--panel)' }}>
+        <div
+          className="specs-card"
+          style={{
+            gridColumn: '1 / -1',
+            background: 'radial-gradient(circle at top left, rgba(245, 158, 11, 0.06), transparent 70%), var(--panel-card)',
+            border: '1px solid rgba(245, 158, 11, 0.25)',
+          }}
+        >
           <div className="specs-header-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="svg-icon" style={{ color: '#f59e0b' }}>
@@ -747,131 +767,139 @@ export default function ToolboxTab({
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px', marginBottom: '14px' }}>
             {/* Tweak 1: SuperCharge Turbo */}
-            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Siêu Sạc Nhanh Khi Sáng Màn Hình</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Giữ công suất sạc Turbo tối đa lúc đang sử dụng</div>
               </div>
-              <button
-                className={`btn-tool ${magicTweaks?.charge_turbo_switch?.enabled ? 'primary' : ''}`}
-                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
-                onClick={() => handleToggleTweak('secure', 'charge_turbo_switch', magicTweaks?.charge_turbo_switch?.value, '1', '0')}
-                disabled={!isOnline || loadingTweakKey === 'charge_turbo_switch'}
-              >
-                {magicTweaks?.charge_turbo_switch?.enabled ? 'BẬT' : 'TẮT'}
-              </button>
+              <label className="magicos-switch" title={magicTweaks?.charge_turbo_switch?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
+                <input
+                  type="checkbox"
+                  checked={!!magicTweaks?.charge_turbo_switch?.enabled}
+                  onChange={() => handleToggleTweak('secure', 'charge_turbo_switch', magicTweaks?.charge_turbo_switch?.value, '1', '0')}
+                  disabled={!isOnline || loadingTweakKey === 'charge_turbo_switch'}
+                />
+                <span className="magicos-slider"></span>
+              </label>
             </div>
 
             {/* Tweak 2: Infinite Bluetooth Volume */}
-            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Âm Lượng Bluetooth Vô Cực</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Phá vỡ trần giới hạn âm lượng tai nghe Bluetooth</div>
               </div>
-              <button
-                className={`btn-tool ${magicTweaks?.infinite_volume_music_bt_a2dp?.enabled ? 'primary' : ''}`}
-                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
-                onClick={() => handleToggleTweak('secure', 'infinite_volume_music_bt_a2dp', magicTweaks?.infinite_volume_music_bt_a2dp?.value, '1', '0')}
-                disabled={!isOnline || loadingTweakKey === 'infinite_volume_music_bt_a2dp'}
-              >
-                {magicTweaks?.infinite_volume_music_bt_a2dp?.enabled ? 'BẬT' : 'TẮT'}
-              </button>
+              <label className="magicos-switch" title={magicTweaks?.infinite_volume_music_bt_a2dp?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
+                <input
+                  type="checkbox"
+                  checked={!!magicTweaks?.infinite_volume_music_bt_a2dp?.enabled}
+                  onChange={() => handleToggleTweak('secure', 'infinite_volume_music_bt_a2dp', magicTweaks?.infinite_volume_music_bt_a2dp?.value, '1', '0')}
+                  disabled={!isOnline || loadingTweakKey === 'infinite_volume_music_bt_a2dp'}
+                />
+                <span className="magicos-slider"></span>
+              </label>
             </div>
 
             {/* Tweak 3: Lock Max Refresh Rate */}
-            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Khóa Cứng Tần Số Quét Không Tụt</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Chống tự hạ Hz khi màn hình tĩnh, giữ mượt 120Hz</div>
               </div>
-              <button
-                className={`btn-tool ${magicTweaks?.reduce_refresh_rate_enabled?.enabled ? 'primary' : ''}`}
-                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
-                onClick={() => handleToggleTweak('secure', 'reduce_refresh_rate_enabled', magicTweaks?.reduce_refresh_rate_enabled?.value, '0', '1')}
-                disabled={!isOnline || loadingTweakKey === 'reduce_refresh_rate_enabled'}
-              >
-                {magicTweaks?.reduce_refresh_rate_enabled?.enabled ? 'KHÓA' : 'TỰ ĐỘNG'}
-              </button>
+              <label className="magicos-switch" title={magicTweaks?.reduce_refresh_rate_enabled?.enabled ? 'Nhấp để Tắt khóa' : 'Nhấp để Khóa 120Hz'}>
+                <input
+                  type="checkbox"
+                  checked={!!magicTweaks?.reduce_refresh_rate_enabled?.enabled}
+                  onChange={() => handleToggleTweak('secure', 'reduce_refresh_rate_enabled', magicTweaks?.reduce_refresh_rate_enabled?.value, '0', '1')}
+                  disabled={!isOnline || loadingTweakKey === 'reduce_refresh_rate_enabled'}
+                />
+                <span className="magicos-slider"></span>
+              </label>
             </div>
 
             {/* Tweak 4: Tianshan Display */}
-            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Hiển Thị Thiên Sơn (Tianshan)</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Kích hoạt thuật toán hiển thị Oasis/Tianshan cao cấp</div>
               </div>
-              <button
-                className={`btn-tool ${magicTweaks?.hn_tianshan_switch?.enabled ? 'primary' : ''}`}
-                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
-                onClick={() => handleToggleTweak('secure', 'hn_tianshan_switch', magicTweaks?.hn_tianshan_switch?.value, '1', '0')}
-                disabled={!isOnline || loadingTweakKey === 'hn_tianshan_switch'}
-              >
-                {magicTweaks?.hn_tianshan_switch?.enabled ? 'BẬT' : 'TẮT'}
-              </button>
+              <label className="magicos-switch" title={magicTweaks?.hn_tianshan_switch?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
+                <input
+                  type="checkbox"
+                  checked={!!magicTweaks?.hn_tianshan_switch?.enabled}
+                  onChange={() => handleToggleTweak('secure', 'hn_tianshan_switch', magicTweaks?.hn_tianshan_switch?.value, '1', '0')}
+                  disabled={!isOnline || loadingTweakKey === 'hn_tianshan_switch'}
+                />
+                <span className="magicos-slider"></span>
+              </label>
             </div>
 
             {/* Tweak 5: SDR to HDR */}
-            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Nâng Cấp SDR Sang HDR</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Tự động tăng cường độ sáng và tương phản HDR</div>
               </div>
-              <button
-                className={`btn-tool ${magicTweaks?.hn_sdr2hdr_switch?.enabled ? 'primary' : ''}`}
-                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
-                onClick={() => handleToggleTweak('secure', 'hn_sdr2hdr_switch', magicTweaks?.hn_sdr2hdr_switch?.value, '1', '0')}
-                disabled={!isOnline || loadingTweakKey === 'hn_sdr2hdr_switch'}
-              >
-                {magicTweaks?.hn_sdr2hdr_switch?.enabled ? 'BẬT' : 'TẮT'}
-              </button>
+              <label className="magicos-switch" title={magicTweaks?.hn_sdr2hdr_switch?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
+                <input
+                  type="checkbox"
+                  checked={!!magicTweaks?.hn_sdr2hdr_switch?.enabled}
+                  onChange={() => handleToggleTweak('secure', 'hn_sdr2hdr_switch', magicTweaks?.hn_sdr2hdr_switch?.value, '1', '0')}
+                  disabled={!isOnline || loadingTweakKey === 'hn_sdr2hdr_switch'}
+                />
+                <span className="magicos-slider"></span>
+              </label>
             </div>
 
             {/* Tweak 6: Knuckle Gesture */}
-            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Cử Chỉ Khớp Ngón Tay (Knuckle)</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Vẽ chữ bằng khớp ngón tay để mở nhanh ứng dụng</div>
               </div>
-              <button
-                className={`btn-tool ${magicTweaks?.fingersense_letters_enabled?.enabled ? 'primary' : ''}`}
-                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
-                onClick={() => handleToggleTweak('secure', 'fingersense_letters_enabled', magicTweaks?.fingersense_letters_enabled?.value, '1', '0')}
-                disabled={!isOnline || loadingTweakKey === 'fingersense_letters_enabled'}
-              >
-                {magicTweaks?.fingersense_letters_enabled?.enabled ? 'BẬT' : 'TẮT'}
-              </button>
+              <label className="magicos-switch" title={magicTweaks?.fingersense_letters_enabled?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
+                <input
+                  type="checkbox"
+                  checked={!!magicTweaks?.fingersense_letters_enabled?.enabled}
+                  onChange={() => handleToggleTweak('secure', 'fingersense_letters_enabled', magicTweaks?.fingersense_letters_enabled?.value, '1', '0')}
+                  disabled={!isOnline || loadingTweakKey === 'fingersense_letters_enabled'}
+                />
+                <span className="magicos-slider"></span>
+              </label>
             </div>
 
             {/* Tweak 7: Fingerprint Slide */}
-            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Trượt Vân Tay Xem Thông Báo</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Vuốt lên/xuống tại cảm biến vân tay để kéo bảng tin</div>
               </div>
-              <button
-                className={`btn-tool ${magicTweaks?.fingerprint_slide_switch?.enabled ? 'primary' : ''}`}
-                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
-                onClick={() => handleToggleTweak('secure', 'fingerprint_slide_switch', magicTweaks?.fingerprint_slide_switch?.value, '1', '0')}
-                disabled={!isOnline || loadingTweakKey === 'fingerprint_slide_switch'}
-              >
-                {magicTweaks?.fingerprint_slide_switch?.enabled ? 'BẬT' : 'TẮT'}
-              </button>
+              <label className="magicos-switch" title={magicTweaks?.fingerprint_slide_switch?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
+                <input
+                  type="checkbox"
+                  checked={!!magicTweaks?.fingerprint_slide_switch?.enabled}
+                  onChange={() => handleToggleTweak('secure', 'fingerprint_slide_switch', magicTweaks?.fingerprint_slide_switch?.value, '1', '0')}
+                  disabled={!isOnline || loadingTweakKey === 'fingerprint_slide_switch'}
+                />
+                <span className="magicos-slider"></span>
+              </label>
             </div>
 
             {/* Tweak 8: Network Speed */}
-            <div style={{ padding: '10px 12px', background: 'var(--panel-alt)', borderRadius: '6px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '12px 14px', background: 'var(--panel-alt)', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-bright)' }}>Hiện Tốc Độ Mạng Thời Gian Thực</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Hiển thị tốc độ download KB/s trên thanh trạng thái</div>
               </div>
-              <button
-                className={`btn-tool ${magicTweaks?.show_network_speed_enabled?.enabled ? 'primary' : ''}`}
-                style={{ fontSize: '11px', padding: '4px 10px', minWidth: '60px', justifyContent: 'center' }}
-                onClick={() => handleToggleTweak('system', 'show_network_speed_enabled', magicTweaks?.show_network_speed_enabled?.value, '1', '0')}
-                disabled={!isOnline || loadingTweakKey === 'show_network_speed_enabled'}
-              >
-                {magicTweaks?.show_network_speed_enabled?.enabled ? 'BẬT' : 'TẮT'}
-              </button>
+              <label className="magicos-switch" title={magicTweaks?.show_network_speed_enabled?.enabled ? 'Nhấp để Tắt' : 'Nhấp để Bật'}>
+                <input
+                  type="checkbox"
+                  checked={!!magicTweaks?.show_network_speed_enabled?.enabled}
+                  onChange={() => handleToggleTweak('system', 'show_network_speed_enabled', magicTweaks?.show_network_speed_enabled?.value, '1', '0')}
+                  disabled={!isOnline || loadingTweakKey === 'show_network_speed_enabled'}
+                />
+                <span className="magicos-slider"></span>
+              </label>
             </div>
           </div>
 

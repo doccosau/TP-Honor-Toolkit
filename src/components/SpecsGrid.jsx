@@ -1,22 +1,119 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function SpecsGrid({ device }) {
+  const [copiedKey, setCopiedKey] = useState(null);
   const isOnline = device && device.connected;
+
+  const handleCopy = (text, key) => {
+    if (!text || text === '--') return;
+    navigator.clipboard?.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 1800);
+  };
 
   return (
     <main className="device-detail-pane">
-      {/* Hardware Specs Table */}
+      {/* 1. Top 4 MagicOS 10/11 Metric Capsules */}
+      <div className="magicos-metric-grid">
+        {/* Metric 1: SoC */}
+        <div className="metric-capsule">
+          <div className="metric-capsule-icon" style={{ background: 'rgba(37, 99, 235, 0.15)', color: '#38bdf8' }}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+              <rect x="9" y="9" width="6" height="6"></rect>
+              <line x1="9" y1="1" x2="9" y2="4"></line>
+              <line x1="15" y1="1" x2="15" y2="4"></line>
+              <line x1="9" y1="20" x2="9" y2="23"></line>
+              <line x1="15" y1="20" x2="15" y2="23"></line>
+              <line x1="20" y1="9" x2="23" y2="9"></line>
+              <line x1="20" y1="14" x2="23" y2="14"></line>
+              <line x1="1" y1="9" x2="4" y2="9"></line>
+              <line x1="1" y1="14" x2="4" y2="14"></line>
+            </svg>
+          </div>
+          <div className="metric-capsule-content">
+            <span className="metric-capsule-label">Vi Xử Lý (CPU / SoC)</span>
+            <span className="metric-capsule-val">
+              {isOnline ? (device.soc || device.cpu_display || 'Snapdragon / Dimensity') : '--'}
+            </span>
+            <span className="metric-capsule-sub">
+              {isOnline ? `${device.cpu_abi || 'arm64-v8a'} • Android ${device.android_version}` : 'Chờ thiết bị'}
+            </span>
+          </div>
+        </div>
+
+        {/* Metric 2: Battery */}
+        <div className="metric-capsule">
+          <div className="metric-capsule-icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect>
+              <line x1="22" y1="11" x2="22" y2="13"></line>
+              <polygon points="10 9 7 12 11 12 8 15 13 11 9 11 10 9" fill="currentColor"></polygon>
+            </svg>
+          </div>
+          <div className="metric-capsule-content">
+            <span className="metric-capsule-label">Pin & Năng Lượng</span>
+            <span className="metric-capsule-val" style={{ color: isOnline && device.battery_level <= 20 ? '#f59e0b' : 'var(--text-bright)' }}>
+              {isOnline ? `${device.battery_level}% • ${device.battery_temp}°C` : '--'}
+            </span>
+            <span className="metric-capsule-sub">
+              {isOnline ? (device.battery_status || device.battery_desc || 'Sẵn sàng') : 'Chưa nhận diện'}
+            </span>
+          </div>
+        </div>
+
+        {/* Metric 3: Display */}
+        <div className="metric-capsule">
+          <div className="metric-capsule-icon" style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#c084fc' }}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+          </div>
+          <div className="metric-capsule-content">
+            <span className="metric-capsule-label">Màn Hình & Tần Số Quét</span>
+            <span className="metric-capsule-val">
+              {isOnline ? `${device.screen_width} × ${device.screen_height}` : '--'}
+            </span>
+            <span className="metric-capsule-sub" style={{ color: '#c084fc' }}>
+              {isOnline ? `${device.max_hz || 120}Hz • Chuẩn: ${device.sweet_spot_dpi || 385} DPI` : 'Chờ thiết bị'}
+            </span>
+          </div>
+        </div>
+
+        {/* Metric 4: OS & ROM */}
+        <div className="metric-capsule">
+          <div className="metric-capsule-icon" style={{ background: 'rgba(6, 182, 212, 0.15)', color: '#06b6d4' }}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <polyline points="9 12 11 14 15 10"></polyline>
+            </svg>
+          </div>
+          <div className="metric-capsule-content">
+            <span className="metric-capsule-label">Hệ Điều Hành MagicOS</span>
+            <span className="metric-capsule-val" style={{ color: '#38bdf8' }}>
+              {isOnline ? device.magic_version : '--'}
+            </span>
+            <span className="metric-capsule-sub">
+              {isOnline ? (device.rom_region || 'Nội Địa TQ (C00)') : 'Chờ thiết bị'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Hardware Specs Matrix Card */}
       <div className="specs-card">
         <div className="specs-header-title">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="svg-icon">
+            <span className="svg-icon" style={{ color: '#38bdf8' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="3" y1="9" x2="21" y2="9"></line>
                 <line x1="9" y1="21" x2="9" y2="9"></line>
               </svg>
             </span>
-            <span>Thông Số Kỹ Thuật Phần Cứng & Hệ Thống</span>
+            <span>Thông Số Kỹ Thuật Phần Cứng & Hệ Thống Chi Tiết</span>
           </div>
           <span id="txtDeviceStatusBadge" className={`badge-tag ${isOnline ? 'tag-safe' : 'tag-danger'}`}>
             {isOnline ? 'ADB Trực Tuyến' : 'Chưa Kết Nối'}
@@ -32,7 +129,20 @@ export default function SpecsGrid({ device }) {
               </td>
               <td className="label-col">Mã kỹ thuật (Model / SKU):</td>
               <td id="specModelCode" className="val-col highlight">
-                {isOnline ? device.model : '--'}
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <span>{isOnline ? device.model : '--'}</span>
+                  {isOnline && (
+                    <button
+                      type="button"
+                      className="btn-tool"
+                      style={{ padding: '2px 6px', fontSize: '10px' }}
+                      onClick={() => handleCopy(device.model, 'model')}
+                      title="Sao chép Model"
+                    >
+                      {copiedKey === 'model' ? 'Đã chép' : 'Chép'}
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
             <tr>
@@ -42,7 +152,20 @@ export default function SpecsGrid({ device }) {
               </td>
               <td className="label-col">Số Serial / Định danh:</td>
               <td id="specSerial" className="val-col highlight">
-                {isOnline ? device.serial : '--'}
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <span>{isOnline ? device.serial : '--'}</span>
+                  {isOnline && (
+                    <button
+                      type="button"
+                      className="btn-tool"
+                      style={{ padding: '2px 6px', fontSize: '10px' }}
+                      onClick={() => handleCopy(device.serial, 'serial')}
+                      title="Sao chép Serial"
+                    >
+                      {copiedKey === 'serial' ? 'Đã chép' : 'Chép'}
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
             <tr>
@@ -108,7 +231,7 @@ export default function SpecsGrid({ device }) {
 
         {/* Storage Breakdown */}
         <div className="storage-progress-container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-dim)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: 'var(--text-dim)' }}>
             <span>
               Bộ Nhớ Trong: <b id="txtStorageUsed" style={{ color: 'var(--text-bright)' }}>{isOnline ? (device.storage_used_str || '--') : '--'}</b> / {isOnline ? (device.storage_total_str || '--') : '--'} {isOnline && device.storage_percent ? `(Đã dùng ~${device.storage_percent}%)` : ''}
             </span>
@@ -141,16 +264,16 @@ export default function SpecsGrid({ device }) {
         </div>
       </div>
 
-      {/* Health & Diagnostic Assessment (Exact matching screenshot) */}
+      {/* 3. Health & Cleanliness Diagnostic Assessment */}
       <div className="specs-card">
         <div className="specs-header-title">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="svg-icon">
+            <span className="svg-icon" style={{ color: '#10b981' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               </svg>
             </span>
-            <span>Đánh Giá Độ Sạch & Tối Ưu Hệ Thống</span>
+            <span>Đánh Giá Độ Sạch & Tối Ưu Hệ Thống MagicOS</span>
           </div>
           <span
             id="txtHealthScoreBadge"
@@ -160,24 +283,24 @@ export default function SpecsGrid({ device }) {
             {isOnline && typeof device.health_score === 'number' ? `${device.health_score}/100 Điểm` : '--/100 Điểm'}
           </span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '6px' }}>
-          <div style={{ background: 'var(--panel-alt)', padding: '10px', borderRadius: '3px', border: '1px solid var(--border-light)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Dịch Vụ Rác TQ:</div>
-            <div id="statBloatStatus" style={{ fontWeight: 600, color: '#10b981', marginTop: '4px' }}>
-              {isOnline ? (device.bloat_summary || 'Đã dọn sạch 12 app') : '--'}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginTop: '6px' }}>
+          <div style={{ background: 'var(--panel-alt)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '4px' }}>Dịch Vụ Rác Nội Địa TQ:</div>
+            <div id="statBloatStatus" style={{ fontWeight: 600, color: '#10b981', fontSize: '13px' }}>
+              {isOnline ? (device.bloat_summary || 'Đã dọn sạch bloatware') : '--'}
             </div>
           </div>
-          <div style={{ background: 'var(--panel-alt)', padding: '10px', borderRadius: '3px', border: '1px solid var(--border-light)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>FCM Thông Báo App VN:</div>
-            <div id="statFcmStatus" style={{ fontWeight: 600, color: '#38bdf8', marginTop: '4px' }}>
+          <div style={{ background: 'var(--panel-alt)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '4px' }}>FCM Thông Báo App VN:</div>
+            <div id="statFcmStatus" style={{ fontWeight: 600, color: '#38bdf8', fontSize: '13px' }}>
               {isOnline ? (device.fcm_summary || 'Đang đồng bộ...') : '--'}
             </div>
           </div>
-          <div style={{ background: 'var(--panel-alt)', padding: '10px', borderRadius: '3px', border: '1px solid var(--border-light)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>Kết Nối Mạng & DNS:</div>
-            <div id="statDnsStatus" style={{ fontWeight: 600, color: '#10b981', marginTop: '4px' }}>
+          <div style={{ background: 'var(--panel-alt)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '4px' }}>Bảo Mật DNS DoT:</div>
+            <div id="statDnsStatus" style={{ fontWeight: 600, color: '#10b981', fontSize: '13px' }}>
               {isOnline
-                ? (device.current_dns_spec || (device.current_dns_mode === 'off' ? 'Chưa cấu hình DoT (Đang tắt)' : 'Tự động (Opportunistic)'))
+                ? (device.current_dns_spec || (device.current_dns_mode === 'off' ? 'Chưa bật DoT' : 'Tự động (Opportunistic)'))
                 : '--'}
             </div>
           </div>

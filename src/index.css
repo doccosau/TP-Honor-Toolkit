@@ -1,26 +1,34 @@
 /* ==========================================================================
-   TP HONOR TOOLKIT - Native Desktop Utility Theme
-   Pure Professional Hardware Management Tool UI
+   TP HONOR TOOLKIT - MagicOS 10/11 Native Design System
+   Professional Hardware Management Toolkit UI
    ========================================================================== */
 
 :root {
-  /* Desktop Tool Color System (IntelliJ / HiSuite Dark Style) */
-  --win-bg: #181b24;
-  --win-header: #1e222e;
-  --panel-bg: #212634;
-  --panel-alt: #1c202c;
-  --panel-card: #252b3b;
+  /* MagicOS 10/11 Glassmorphism & Obsidian Dark Theme */
+  --win-bg: #080c14;
+  --win-header: rgba(12, 17, 29, 0.88);
+  --panel-bg: rgba(16, 23, 38, 0.72);
+  --panel-alt: rgba(13, 19, 32, 0.65);
+  --panel-card: rgba(20, 28, 46, 0.78);
   
-  --border-light: #2e3547;
-  --border-dark: #141720;
-  --border-highlight: #3d465d;
+  --border-light: rgba(255, 255, 255, 0.08);
+  --border-dark: rgba(0, 0, 0, 0.5);
+  --border-highlight: rgba(56, 189, 248, 0.35);
+  --border-accent: rgba(59, 130, 246, 0.4);
   
   --text-main: #e2e8f0;
   --text-dim: #94a3b8;
   --text-muted: #64748b;
   --text-bright: #ffffff;
   
-  /* Standard Functional Colors */
+  /* MagicOS Brand & Functional Accents */
+  --magicos-blue: #2563eb;
+  --magicos-cyan: #06b6d4;
+  --magicos-indigo: #6366f1;
+  --magicos-purple: #8b5cf6;
+  --magicos-gradient: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+  --magicos-glow: 0 0 20px rgba(37, 99, 235, 0.3);
+  
   --tool-blue: #2563eb;
   --tool-blue-hover: #1d4ed8;
   --tool-green: #10b981;
@@ -29,7 +37,11 @@
   --tool-red: #ef4444;
   --tool-red-hover: #dc2626;
   
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --magicos-card-radius: 14px;
+  --magicos-pill-radius: 20px;
+  --magicos-btn-radius: 8px;
+  
+  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
 
@@ -42,6 +54,7 @@
 body {
   font-family: var(--font-family);
   background-color: var(--win-bg);
+  background-image: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.1) 0%, transparent 65%);
   color: var(--text-main);
   height: 100vh;
   display: flex;
@@ -49,21 +62,41 @@ body {
   overflow: hidden;
   user-select: none;
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom MagicOS Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* ==========================================================================
-   Window Titlebar & Top Navigation (Standard Desktop Utility Tab-Bar)
+   Window Titlebar & Top Navigation (MagicOS Capsule Style)
    ========================================================================== */
 .window-titlebar {
-  height: 38px;
+  height: 42px;
   background: var(--win-header);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px;
+  padding: 0 16px;
   flex-shrink: 0;
+  z-index: 50;
 }
 
 .window-brand {
@@ -73,34 +106,39 @@ body {
 }
 
 .app-logo {
-  width: 24px;
-  height: 24px;
-  border-radius: 5px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
   object-fit: cover;
   display: block;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
 }
 
 .app-title-text {
   font-size: 13px;
-  font-weight: 600;
-  color: var(--text-bright);
-  letter-spacing: 0.3px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .app-version-badge {
   font-size: 10px;
-  background: #2a3142;
-  color: var(--text-dim);
-  padding: 2px 6px;
-  border-radius: 3px;
+  background: rgba(37, 99, 235, 0.18);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  padding: 2px 7px;
+  border-radius: 12px;
   font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
 .connection-indicator {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 12px;
 }
 
@@ -113,42 +151,47 @@ body {
 
 .conn-led.online {
   background: var(--tool-green);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
 }
 
 /* Main Ribbon Navigation */
 .main-nav-ribbon {
-  height: 48px;
+  height: 46px;
   background: var(--panel-alt);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-light);
   display: flex;
-  align-items: stretch;
-  padding: 0 10px;
+  align-items: center;
+  padding: 0 12px;
   flex-shrink: 0;
+  gap: 4px;
 }
 
 .ribbon-tab {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 18px;
+  padding: 7px 14px;
   cursor: pointer;
   color: var(--text-dim);
   font-weight: 500;
-  font-size: 13px;
-  border-bottom: 3px solid transparent;
-  transition: all 0.15s ease;
+  font-size: 12.5px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ribbon-tab:hover {
   color: var(--text-bright);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .ribbon-tab.active {
-  color: var(--text-bright);
-  background: var(--panel-bg);
-  border-bottom-color: var(--tool-blue);
+  color: #38bdf8;
+  background: rgba(37, 99, 235, 0.16);
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.2);
   font-weight: 600;
 }
 
@@ -224,18 +267,33 @@ body {
 }
 
 /* ==========================================================================
-   Toolkit Left Device Pane (Realistic Phone View)
+   Toolkit Left Device Pane (MagicOS Product Showcase)
    ========================================================================== */
 .device-sidebar-pane {
-  width: 280px;
-  background: var(--panel-bg);
+  width: 290px;
+  background: var(--panel-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-light);
-  border-radius: 4px;
+  border-radius: var(--magicos-card-radius);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 18px 14px;
+  padding: 18px 16px;
   flex-shrink: 0;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.device-sidebar-pane::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .device-render-container {
@@ -248,12 +306,12 @@ body {
 
 .device-view-switcher {
   display: flex;
-  background: #181d29;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-light);
+  border-radius: var(--magicos-pill-radius);
   padding: 3px;
   gap: 3px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .btn-view-toggle {
@@ -262,25 +320,26 @@ body {
   color: var(--text-dim);
   font-size: 11px;
   font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 4px;
+  padding: 4px 12px;
+  border-radius: var(--magicos-pill-radius);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-view-toggle:hover:not(.active) {
   color: var(--text-bright);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .btn-view-toggle.active {
-  background: #2b3347;
+  background: rgba(37, 99, 235, 0.25);
   color: #38bdf8;
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 }
 
 .device-render-stage {
@@ -299,25 +358,26 @@ body {
   max-width: 190px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.65));
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  filter: drop-shadow(0 16px 30px rgba(0, 0, 0, 0.75));
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
   user-select: none;
 }
 
 .device-render-img:hover {
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-4px) scale(1.025);
 }
 
 .device-name-heading {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-bright);
   text-align: center;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
+  letter-spacing: 0.2px;
 }
 
 .device-sku-sub {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-dim);
   text-align: center;
   font-family: var(--font-mono);
@@ -332,34 +392,140 @@ body {
   margin-top: auto;
 }
 
+/* Radiant MagicOS Primary Button */
+.btn-magicos-primary {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--magicos-btn-radius);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-magicos-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8 0%, #0369a1 100%);
+  box-shadow: 0 6px 22px rgba(37, 99, 235, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-magicos-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 /* ==========================================================================
-   Right Detail Grid Pane (Specs Table Style)
+   Right Detail Grid Pane (MagicOS Dashboard Style)
    ========================================================================== */
 .device-detail-pane {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   overflow-y: auto;
 }
 
 .specs-card {
-  background: var(--panel-bg);
+  background: var(--panel-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-light);
-  border-radius: 4px;
-  padding: 14px;
+  border-radius: var(--magicos-card-radius);
+  padding: 16px;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.35);
 }
 
 .specs-header-title {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--text-bright);
   border-bottom: 1px solid var(--border-light);
-  padding-bottom: 8px;
+  padding-bottom: 10px;
   margin-bottom: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* Metric Capsules Grid (Top of Device Specs) */
+.magicos-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.metric-capsule {
+  background: rgba(13, 19, 32, 0.7);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.metric-capsule:hover {
+  border-color: rgba(56, 189, 248, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+.metric-capsule-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #38bdf8;
+}
+
+.metric-capsule-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.metric-capsule-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metric-capsule-val {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-bright);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metric-capsule-sub {
+  font-size: 10.5px;
+  color: #94a3b8;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .specs-table {
@@ -372,7 +538,7 @@ body {
 }
 
 .specs-table td {
-  padding: 7px 8px;
+  padding: 8px 10px;
   font-size: 12px;
 }
 
@@ -396,19 +562,21 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .storage-bar {
   height: 10px;
-  background: #141720;
-  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
   overflow: hidden;
   display: flex;
+  border: 1px solid var(--border-light);
 }
 
 .storage-segment {
   height: 100%;
+  transition: width 0.4s ease;
 }
 
 .seg-apps { background: #3b82f6; width: 35%; }
@@ -421,22 +589,25 @@ body {
    ========================================================================== */
 .data-panel-card {
   flex: 1;
-  background: var(--panel-bg);
+  background: var(--panel-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-light);
-  border-radius: 4px;
+  border-radius: var(--magicos-card-radius);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.35);
 }
 
 .panel-toolbar {
-  height: 42px;
+  height: 46px;
   background: var(--panel-alt);
   border-bottom: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 0 14px;
   flex-shrink: 0;
   gap: 10px;
 }
@@ -448,63 +619,79 @@ body {
 }
 
 .tool-input {
-  background: #141720;
+  background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--border-light);
   color: var(--text-main);
-  padding: 5px 10px;
-  border-radius: 3px;
+  padding: 6px 12px;
+  border-radius: var(--magicos-btn-radius);
   font-size: 12px;
   outline: none;
+  transition: border-color 0.2s ease;
 }
 
 .tool-input:focus {
-  border-color: var(--tool-blue);
+  border-color: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
 }
 
 .tool-select {
-  background: #141720;
+  background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--border-light);
   color: var(--text-main);
-  padding: 5px 8px;
-  border-radius: 3px;
+  padding: 6px 10px;
+  border-radius: var(--magicos-btn-radius);
   font-size: 12px;
   outline: none;
+  transition: border-color 0.2s ease;
 }
 
-/* Standard Buttons (Solid, Crisp, No Neon Glow) */
+.tool-select:focus {
+  border-color: #38bdf8;
+}
+
+/* MagicOS Modern Button */
 .btn-tool {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
+  padding: 6px 14px;
   font-size: 12px;
   font-weight: 500;
-  border-radius: 3px;
-  border: 1px solid transparent;
+  border-radius: var(--magicos-btn-radius);
+  border: 1px solid var(--border-light);
   cursor: pointer;
-  background: #2a3142;
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text-bright);
-  transition: all 0.1s ease;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-tool:hover {
-  background: #353d52;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+.btn-tool:active {
+  transform: translateY(0);
 }
 
 .btn-tool.primary {
   background: var(--tool-blue);
-  border-color: #1d4ed8;
+  border-color: rgba(56, 189, 248, 0.4);
   color: #fff;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
 }
 
 .btn-tool.primary:hover {
   background: var(--tool-blue-hover);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
 }
 
 .btn-tool.success {
   background: var(--tool-green);
-  border-color: #059669;
+  border-color: rgba(16, 185, 129, 0.4);
   color: #fff;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
 }
 
 .btn-tool.success:hover {
@@ -513,8 +700,62 @@ body {
 
 .btn-tool.danger {
   background: var(--tool-red);
-  border-color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.4);
   color: #fff;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
+}
+
+.btn-tool.danger:hover {
+  background: var(--tool-red-hover);
+}
+
+/* MagicOS 10/11 Native Switch */
+.magicos-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.magicos-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.magicos-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.12);
+  transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.magicos-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #ffffff;
+  transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.magicos-switch input:checked + .magicos-slider {
+  background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+  border-color: rgba(6, 182, 212, 0.4);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.35);
+}
+
+.magicos-switch input:checked + .magicos-slider:before {
+  transform: translateX(20px);
 }
 
 .btn-tool.danger:hover {

@@ -8,23 +8,35 @@ export default function TitleBar({ device, isConnecting, onConnectWebUsb, onRefr
       <div className="window-brand">
         <img src="/logo.png" alt="TP Honor Toolkit" className="app-logo" />
         <span className="app-title-text">TP HONOR TOOLKIT</span>
-        <span className="app-version-badge">v2.0-PRO</span>
+        <span className="app-version-badge">MagicOS 10/11 Ready</span>
       </div>
 
       <div className="connection-indicator">
-        <span className={`conn-led ${isOnline ? 'online' : ''}`}></span>
-        <span style={{ color: 'var(--text-dim)', fontSize: '11px' }}>
-          {isOnline
-            ? `Thiết bị kết nối: ${device.serial} (${device.mode === 'webusb' ? 'WebUSB Trực Tiếp' : 'Local ADB'})`
-            : isConnecting
-            ? 'Đang bắt tay kết nối USB...'
-            : 'Chưa phát hiện thiết bị (Cần cắm cáp USB)'}
-        </span>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'rgba(0, 0, 0, 0.35)',
+            border: '1px solid var(--border-light)',
+            padding: '4px 12px',
+            borderRadius: '20px',
+          }}
+        >
+          <span className={`conn-led ${isOnline ? 'online' : ''}`}></span>
+          <span style={{ color: isOnline ? '#38bdf8' : 'var(--text-dim)', fontSize: '11.5px', fontWeight: isOnline ? 600 : 400 }}>
+            {isOnline
+              ? `${device.commercial_name || device.model} (${device.serial} • ${device.mode === 'webusb' ? 'WebUSB' : 'Local ADB'})`
+              : isConnecting
+              ? 'Đang bắt tay kết nối USB...'
+              : 'Chưa phát hiện thiết bị (Cần cắm cáp USB)'}
+          </span>
+        </div>
 
         {!isOnline && (
           <button
             className="btn-tool primary"
-            style={{ padding: '3px 10px', fontSize: '11px', marginLeft: '10px' }}
+            style={{ padding: '4px 12px', fontSize: '11.5px', marginLeft: '6px' }}
             onClick={onConnectWebUsb}
             disabled={isConnecting}
           >
@@ -40,7 +52,7 @@ export default function TitleBar({ device, isConnecting, onConnectWebUsb, onRefr
 
         <button
           className="btn-tool"
-          style={{ padding: '3px 8px', fontSize: '11px', marginLeft: '6px' }}
+          style={{ padding: '4px 10px', fontSize: '11.5px', marginLeft: '4px' }}
           onClick={onRefresh}
           title="Làm mới trạng thái thiết bị"
         >
@@ -56,7 +68,7 @@ export default function TitleBar({ device, isConnecting, onConnectWebUsb, onRefr
 
         <button
           className="btn-tool"
-          style={{ padding: '3px 8px', fontSize: '11px', marginLeft: '4px' }}
+          style={{ padding: '4px 10px', fontSize: '11.5px', marginLeft: '4px' }}
           onClick={onOpenGuide}
           title="Hướng dẫn bật gỡ lỗi USB trên MagicOS"
         >

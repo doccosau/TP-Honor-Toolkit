@@ -92,17 +92,28 @@ export default function DeviceChassis({ device, onMasterOptimize, onLaunchScrcpy
       </div>
       <div id="labelDeviceSku" className="device-sku-sub">
         {isOnline
-          ? `${device.model} • ${device.magic_version} (${device.rom_region || 'Nội Địa Trung Quốc (Bản Gốc C00)'})`
+          ? `${device.model} • ${device.magic_version} (${device.rom_region || 'Nội Địa TQ C00'})`
           : 'Vui lòng cắm cáp USB và bật Gỡ lỗi ADB'}
       </div>
+      {isOnline && (
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <span className="badge-tag tag-safe" style={{ fontSize: '10.5px' }}>
+            MagicOS 10/11 Ready
+          </span>
+          <span className="badge-tag tag-neutral" style={{ fontSize: '10.5px' }}>
+            {device.rom_region || 'Bản Gốc C00'}
+          </span>
+        </div>
+      )}
 
-      {/* Quick Action Buttons (Exact 3 buttons from original web) */}
+      {/* Quick Action Buttons (MagicOS Modern Style) */}
       <div className="device-quick-buttons">
         <button
           id="btn1ClickMaster"
-          className="btn-tool primary"
-          style={{ justifyContent: 'center', padding: '7px 10px' }}
+          className="btn-magicos-primary"
           onClick={onMasterOptimize}
+          disabled={!isOnline}
+          title="Tối ưu 1-chạm: Dọn bloatware, tắt telemetry, cấu hình quyền app Việt Nam, tăng tốc hệ thống"
         >
           <span className="svg-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -115,10 +126,11 @@ export default function DeviceChassis({ device, onMasterOptimize, onLaunchScrcpy
         <button
           id="btnQuickScrcpy"
           className="btn-tool"
-          style={{ justifyContent: 'center' }}
+          style={{ justifyContent: 'center', padding: '8px 12px' }}
           onClick={() => onLaunchScrcpy?.({ turnOffScreen: true, stayAwake: true })}
+          disabled={!isOnline}
         >
-          <span className="svg-icon">
+          <span className="svg-icon" style={{ color: '#38bdf8' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M13 3H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3"></path>
               <polyline points="8 21 12 17 16 21"></polyline>
@@ -133,8 +145,9 @@ export default function DeviceChassis({ device, onMasterOptimize, onLaunchScrcpy
         <button
           id="btnQuickReboot"
           className="btn-tool"
-          style={{ justifyContent: 'center' }}
+          style={{ justifyContent: 'center', padding: '8px 12px' }}
           onClick={() => onReboot('system')}
+          disabled={!isOnline}
         >
           <span className="svg-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
