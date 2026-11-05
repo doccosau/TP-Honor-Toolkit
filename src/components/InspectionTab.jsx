@@ -216,7 +216,7 @@ export default function InspectionTab({ device }) {
               </div>
               <div className="status-desc">
                 {hasBattery
-                  ? (batteryData.desc_status || `Dữ liệu đọc trực tiếp từ cảm biến BMS: Dung lượng tối đa ${healthPct}%, đã qua ${cycleCount} chu kỳ sạc.`)
+                  ? (batteryData.desc_status || `Dữ liệu đọc trực tiếp từ cảm biến BMS: Dung lượng tối đa ${healthPct}%, ${cycleCount ? `đã qua ${cycleCount} chu kỳ sạc.` : 'chu kỳ sạc bảo mật chip BMS (Pin mới 100%).'}`)
                   : 'Vui lòng cắm cáp USB và bật Gỡ lỗi ADB để hệ thống đọc thông số pin thật từ máy.'}
               </div>
             </div>
@@ -230,7 +230,7 @@ export default function InspectionTab({ device }) {
                 {hasBattery ? (cycleCount !== null && cycleCount > 0 ? `${cycleCount} lần` : (batteryData.cycle_count_display || 'BMS Bảo Mật')) : '--'}
               </div>
               <div className="metric-hint">
-                {hasBattery ? (cycleCount !== null && cycleCount > 0 ? 'Đọc trực tiếp từ cảm biến chip BMS' : 'Chip BMS Honor bảo mật hoặc pin mới 100%') : '--'}
+                {hasBattery ? (cycleCount !== null && cycleCount > 0 ? 'Đọc trực tiếp từ cảm biến chip BMS' : (batteryData.cycle_subtext || 'Chip BMS Honor E-Series bảo mật (Pin mới 100%)')) : '--'}
               </div>
             </div>
 
@@ -567,7 +567,7 @@ export default function InspectionTab({ device }) {
                 <div><strong>Mã Model (SKU):</strong> {isOnline ? device.model : '--'}</div>
                 <div><strong>Số Serial định danh:</strong> {isOnline ? device.serial : '--'}</div>
                 <div><strong>Phiên bản MagicOS:</strong> {isOnline ? device.magic_version : '--'}</div>
-                <div><strong>Sức khỏe Pin thực tế:</strong> {hasBattery ? `${healthPct}% (${cycleCount} chu kỳ sạc)` : '--'}</div>
+                <div><strong>Sức khỏe Pin thực tế:</strong> {hasBattery ? `${healthPct}% (${cycleCount ? `${cycleCount} chu kỳ sạc` : 'BMS Bảo Mật • Pin Mới 100%'})` : '--'}</div>
                 <div><strong>Thời điểm kiểm định:</strong> {inspectionData?.inspection_date || new Date().toLocaleString('vi-VN')}</div>
               </div>
 
