@@ -175,15 +175,26 @@ class AdbService {
 
   /**
    * Auto connect previously paired USB devices without prompting picker
+   * Includes intelligent delay & retry backoff to survive Chrome interface handover on page reload
    */
-  async autoConnectPairedDevice() {
+  async autoConnectPairedDevice(maxRetries = 4, initialDelayMs = 250) {
     if (!this.isWebUsbSupported()) return null;
-    try {
-      const manager = AdbDaemonWebUsbDeviceManager.BROWSER;
-      const devices = await manager.getDevices();
-      if (devices && devices.length > 0) {
+
+    if (initialDelayMs > 0) {
+      await new Promise((r) => setTimeout(r, initialDelayMs));
+    }
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const manager = AdbDaemonWebUsbDeviceManager.BROWSER;
+        const devices = await manager.getDevices();
+        if (!devices || devices.length === 0) {
+          return null;
+        }
+
         const device = devices[0];
-        this.addLog('info', `Phát hiện thiết bị đã ghép nối: ${device.raw.productName || 'Honor'}. Đang tự động kết nối...`);
+        this.addLog('info', `Phát hiện thiết bị đã ghép nối: ${device.raw.productName || 'Honor'} (Lần thử ${attempt}/${maxRetries}). Đang tự động kết nối...`);
+
         const connection = await device.connect();
         const credentialStore = new AdbWebCredentialStore();
         const transport = await AdbDaemonTransport.authenticate({
@@ -192,15 +203,30 @@ class AdbService {
           credentialStore,
           authenticators: ADB_DEFAULT_AUTHENTICATORS,
         });
+
         this.adbInstance = new Adb(transport);
         this.usbDevice = device;
         this.mode = 'webusb';
         this.addLog('success', `Tự động kết nối WebUSB thành công! Serial: ${device.serial}`);
         this.notify({ type: 'connected', mode: 'webusb', serial: device.serial });
         return await this.getDeviceInfo();
+      } catch (e) {
+        console.warn(`[WebUSB AutoConnect attempt ${attempt} failed]`, e);
+        const msg = (e && e.message) ? e.message : '';
+        // If the USB device is busy releasing previous session or claiming interface, retry with backoff
+        if (
+          attempt < maxRetries &&
+          (msg.includes('busy') ||
+           msg.includes('claimInterface') ||
+           msg.includes('NetworkError') ||
+           msg.includes('transferIn') ||
+           msg.includes('already open'))
+        ) {
+          await new Promise((r) => setTimeout(r, 350 * attempt));
+          continue;
+        }
+        break;
       }
-    } catch (e) {
-      console.warn('[WebUSB AutoConnect failed]', e);
     }
     return null;
   }

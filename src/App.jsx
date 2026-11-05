@@ -150,16 +150,63 @@ export default function App() {
     } catch (e) {}
   };
 
-  // Auto connect paired USB device on mount
+  // Auto connect paired USB device on mount & handle hotplug/reload handover
   useEffect(() => {
     let active = true;
-    adbService.autoConnectPairedDevice().then((dev) => {
-      if (dev && active) {
+    setIsConnecting(true);
+
+    adbService.autoConnectPairedDevice(4, 250).then((dev) => {
+      if (!active) return;
+      setIsConnecting(false);
+      if (dev) {
         setDevice(dev);
         addToast('success', 'Tự Động Kết Nối', `Đã đồng bộ thiết bị: ${dev.commercial_name}`);
       }
+    }).catch(() => {
+      if (active) setIsConnecting(false);
     });
-    return () => { active = false; };
+
+    const handleBeforeUnload = () => {
+      adbService.disconnect();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
+
+    // Auto-detect when device is re-plugged
+    let handleUsbConnect, handleUsbDisconnect;
+    if (typeof navigator !== 'undefined' && navigator.usb) {
+      handleUsbConnect = async () => {
+        setIsConnecting(true);
+        try {
+          const dev = await adbService.autoConnectPairedDevice(4, 300);
+          if (dev && active) {
+            setDevice(dev);
+            addToast('success', 'Thiết bị đã cắm lại', `Tự động đồng bộ: ${dev.commercial_name}`);
+          }
+        } finally {
+          if (active) setIsConnecting(false);
+        }
+      };
+      handleUsbDisconnect = () => {
+        adbService.disconnect();
+        if (active) {
+          setDevice(null);
+          addToast('warning', 'Mất kết nối', 'Cáp USB đã bị rút khỏi thiết bị.');
+        }
+      };
+      navigator.usb.addEventListener('connect', handleUsbConnect);
+      navigator.usb.addEventListener('disconnect', handleUsbDisconnect);
+    }
+
+    return () => {
+      active = false;
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleBeforeUnload);
+      if (typeof navigator !== 'undefined' && navigator.usb && handleUsbConnect) {
+        navigator.usb.removeEventListener('connect', handleUsbConnect);
+        navigator.usb.removeEventListener('disconnect', handleUsbDisconnect);
+      }
+    };
   }, [addToast]);
 
   // Auto scan when device connects
