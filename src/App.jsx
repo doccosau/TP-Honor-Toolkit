@@ -172,7 +172,7 @@ export default function App() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('pagehide', handleBeforeUnload);
 
-    // Auto-detect when device is re-plugged
+    // Auto-detect when device is re-plugged (Cắm vào là nhận ngay)
     let handleUsbConnect, handleUsbDisconnect;
     if (typeof navigator !== 'undefined' && navigator.usb) {
       handleUsbConnect = async () => {
@@ -181,7 +181,7 @@ export default function App() {
           const dev = await adbService.autoConnectPairedDevice(4, 300);
           if (dev && active) {
             setDevice(dev);
-            addToast('success', 'Thiết bị đã cắm lại', `Tự động đồng bộ: ${dev.commercial_name}`);
+            addToast('success', 'Tự Động Kết Nối', `Đã nhận diện: ${dev.commercial_name}`);
           }
         } finally {
           if (active) setIsConnecting(false);
@@ -191,15 +191,33 @@ export default function App() {
         adbService.disconnect();
         if (active) {
           setDevice(null);
-          addToast('warning', 'Mất kết nối', 'Cáp USB đã bị rút khỏi thiết bị.');
+          addToast('warning', 'Mất kết nối', 'Cáp USB đã rút. Cắm lại để tự động nhận.');
         }
       };
       navigator.usb.addEventListener('connect', handleUsbConnect);
       navigator.usb.addEventListener('disconnect', handleUsbDisconnect);
     }
 
+    // Always-on probe: when disconnected, check every 2s so if user toggles ADB or replugs, connects immediately
+    const backgroundProbe = setInterval(async () => {
+      if (!active) return;
+      if (!adbService.isConnected() && typeof navigator !== 'undefined' && navigator.usb) {
+        try {
+          const devices = await navigator.usb.getDevices();
+          if (devices && devices.length > 0 && !adbService.isConnecting) {
+            const dev = await adbService.autoConnectPairedDevice(2, 0);
+            if (dev && active) {
+              setDevice(dev);
+              addToast('success', 'Tự Động Kết Nối', `Đã nhận diện: ${dev.commercial_name}`);
+            }
+          }
+        } catch (e) {}
+      }
+    }, 2000);
+
     return () => {
       active = false;
+      clearInterval(backgroundProbe);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handleBeforeUnload);
       if (typeof navigator !== 'undefined' && navigator.usb && handleUsbConnect) {

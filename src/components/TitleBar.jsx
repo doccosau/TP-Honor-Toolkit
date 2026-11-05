@@ -28,8 +28,8 @@ export default function TitleBar({ device, isConnecting, onConnectWebUsb, onRefr
             {isOnline
               ? `${device.commercial_name || device.model} (${device.serial} • ${device.mode === 'webusb' ? 'WebUSB' : 'Local ADB'})`
               : isConnecting
-              ? 'Đang bắt tay kết nối USB...'
-              : 'Chưa phát hiện thiết bị (Cần cắm cáp USB)'}
+              ? 'Đang tự động nhận diện thiết bị...'
+              : 'Chờ kết nối (Cắm cáp USB để tự động nhận)'}
           </span>
         </div>
 
