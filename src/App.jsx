@@ -33,9 +33,10 @@ export default function App() {
   const [isExecuting, setIsExecuting] = useState(false);
   const [executingTask, setExecutingTask] = useState('');
 
-  // Dual Theme Engine: Default to 'light' (3uTools & MagicOS Suite Luminous)
+  // Dual Theme Engine: Default to 'dark' (MagicOS Deep Sapphire / Obsidian)
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('tp_honor_theme') || 'light';
+    const saved = localStorage.getItem('tp_honor_theme');
+    return saved === 'light' ? 'dark' : (saved || 'dark');
   });
 
   useEffect(() => {
