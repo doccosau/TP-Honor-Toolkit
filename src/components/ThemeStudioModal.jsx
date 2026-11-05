@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { adbService } from '../services/adbService';
 
-export default function ThemeStudioModal({ isOpen, onClose, device }) {
+export default function ThemeStudioModal({ isOpen, onClose, device, adbService: propAdbService }) {
+  const activeAdb = propAdbService || adbService;
   const [activeTab, setActiveTab] = useState('extract'); // 'extract' | 'upload'
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractResult, setExtractResult] = useState(null);
@@ -12,7 +13,12 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
   const [uploadError, setUploadError] = useState(null);
   const [dragOver, setDragOver] = useState(false);
 
-  const isOnline = device && device.connected;
+  const isOnline = Boolean(
+    (device && device.connected) ||
+    activeAdb?.isConnected?.() ||
+    (activeAdb?.mode === 'webusb' && activeAdb?.adbInstance) ||
+    activeAdb?.deviceInfo?.connected
+  );
 
   if (!isOpen) return null;
 
@@ -21,7 +27,7 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
     setExtractResult(null);
     setExtractError(null);
     try {
-      const res = await adbService.extractTrialTheme();
+      const res = await activeAdb.extractTrialTheme();
       if (res && res.success) {
         setExtractResult(res);
       } else {
@@ -48,7 +54,7 @@ export default function ThemeStudioModal({ isOpen, onClose, device }) {
       reader.onload = async (e) => {
         try {
           const b64 = e.target.result.split(',')[1];
-          const res = await adbService.deployThemeFile(file.name, b64);
+          const res = await activeAdb.deployThemeFile(file.name, b64);
           if (res && res.success) {
             setUploadResult(res);
           } else {

@@ -86,6 +86,10 @@ class AdbService {
     this.logs = [];
   }
 
+  isConnected() {
+    return (this.mode === 'webusb' && !!this.adbInstance) || (this.mode === 'local' && !!this.deviceInfo?.connected);
+  }
+
   getFriendlyAppName(pkg) {
     if (COMMON_APP_NAMES[pkg]) return COMMON_APP_NAMES[pkg];
     for (const cat of Object.values(vnAppsData.categories || {})) {
@@ -1602,12 +1606,13 @@ class AdbService {
         }
       } catch (e) {}
 
-      // 4. Calculate Real Current Capacity & Health %
-      let currentChargeMah = null;
-      if (chargeCounterUah && chargeCounterUah > 0) {
-        currentChargeMah = Math.round(chargeCounterUah / 1000);
-      } else {
-        currentChargeMah = Math.round((level / 100) * designMah);
+      // Normalize cycles (Qualcomm SPMI PMIC fuel gauges report in milli-cycles or centi-cycles)
+      if (cycles !== null && cycles > 0) {
+        if (cycles > 50000) {
+          cycles = Math.round(cycles / 1000); // e.g. 336563 milli-cycles -> 337 cycles
+        } else if (cycles > 5000) {
+          cycles = Math.round(cycles / 100);
+        }
       }
 
       // Check official MagicOS Health in settings
@@ -1624,8 +1629,11 @@ class AdbService {
           const cfOut = (await this.executeShell(`cat ${sp} 2>/dev/null`)).trim();
           if (/^\d+$/.test(cfOut)) {
             const valUah = parseInt(cfOut);
-            if (valUah > 1000000) {
+            if (valUah > 100000) {
               chargeFullMah = Math.round(valUah / 1000);
+              break;
+            } else if (valUah >= 1000 && valUah <= designMah * 1.3) {
+              chargeFullMah = valUah;
               break;
             }
           }
@@ -1633,7 +1641,28 @@ class AdbService {
       }
 
       // Effective Full Capacity (Dung Lượng Tối Đa Khi Đầy 100%)
-      const fullMah = chargeFullMah || learnedMahFromStats || (currentChargeMah && level > 15 ? Math.round((currentChargeMah / level) * 100) : designMah);
+      let fullMah = chargeFullMah || learnedMahFromStats || estMahFromStats;
+      if (!fullMah || fullMah < 1000 || fullMah > designMah * 1.3) {
+        fullMah = designMah;
+      }
+
+      // 4. Calculate Real Current Capacity & Health %
+      let currentChargeMah = null;
+      if (chargeCounterUah && chargeCounterUah > 0) {
+        if (chargeCounterUah > 100000) {
+          currentChargeMah = Math.round(chargeCounterUah / 1000);
+        } else if (chargeCounterUah >= 500 && chargeCounterUah <= designMah * 1.3) {
+          currentChargeMah = chargeCounterUah;
+        } else if (chargeCounterUah <= 25 && chargeCounterUah > 0) {
+          currentChargeMah = chargeCounterUah * 1000;
+        }
+      }
+
+      // Validate currentChargeMah against actual battery level % and full capacity
+      const expectedChargeMah = Math.round((level / 100) * fullMah);
+      if (!currentChargeMah || currentChargeMah < 400 || Math.abs(currentChargeMah - expectedChargeMah) > expectedChargeMah * 0.45) {
+        currentChargeMah = expectedChargeMah;
+      }
 
       // Health % calculation
       let healthPct = 100;
@@ -1677,8 +1706,8 @@ class AdbService {
 
       // Rating based on verified standards
       let rating = 'Bình Thường';
-      if (healthPct >= 96) rating = 'Chuẩn Xuất Xưởng (Pin Mới 100%)';
-      else if (healthPct >= 85) rating = 'Tốt (Hiệu Năng Ổn Định)';
+      if (healthPct >= 95 && (cycles === null || cycles <= 25)) rating = 'Chuẩn Xuất Xưởng (Pin Mới 100%)';
+      else if (healthPct >= 90) rating = 'Tốt (Hiệu Năng Xuất Sắc)';
       else if (healthPct >= 80) rating = 'Bình Thường (Đã Chai Nhẹ)';
       else rating = 'Cần Thay Pin (Chai Dưới 80%)';
 
@@ -2436,6 +2465,66 @@ class AdbService {
    */
   async extractTrialTheme() {
     this.addLog('info', 'Bắt đầu quy trình trích xuất Theme VIP đang dùng thử...');
+    if (this.mode === 'webusb' && this.adbInstance) {
+      try {
+        const checkOut = await this.executeShell('test -f /data/themes/0/description.xml && echo FOUND || echo NOT_FOUND');
+        if (!checkOut.includes('FOUND')) {
+          this.addLog('error', 'Chưa phát hiện theme đang dùng thử tại /data/themes/0/!');
+          return {
+            success: false,
+            message: 'Không tìm thấy dữ liệu theme tại /data/themes/0/! Vui lòng vào app Chủ Đề trên máy, chọn theme VIP bất kỳ và bấm "Dùng thử" (5 phút) trước.'
+          };
+        }
+
+        this.addLog('step', '>>> [1/4] Đang đọc siêu dữ liệu theme từ /data/themes/0/description.xml...');
+        const descXml = await this.executeShell('cat /data/themes/0/description.xml 2>/dev/null');
+        let title = 'Honor_Theme_VIP';
+        const titleMatch = descXml.match(/<title>(.*?)<\/title>/i) || descXml.match(/<title-cn>(.*?)<\/title-cn>/i);
+        if (titleMatch && titleMatch[1]) {
+          title = titleMatch[1].trim().replace(/[\/\\?%*:|"<>]/g, '_');
+        }
+
+        const safeFilename = `${title}.hnt`;
+        const remoteSysDir = '/sdcard/Android/data/com.hihonor.android.thememanager/files/Download/Honor/Themes';
+        const remotePublicDir = '/sdcard/Honor/Themes';
+        const tempDump = `/sdcard/Download/.tp_theme_${Date.now()}`;
+
+        this.addLog('step', '>>> [2/4] Sao chép tài nguyên & loại bỏ cờ dùng thử trên thiết bị...');
+        await this.executeShell(`mkdir -p "${tempDump}" && cp -r /data/themes/0/* "${tempDump}/"`);
+        await this.executeShell(`rm -f "${tempDump}/tried" "${tempDump}/tryoutData.json" "${tempDump}"/*.tryout 2>/dev/null`);
+
+        this.addLog('step', '>>> [3/4] Đóng gói thành định dạng chuẩn .hnt...');
+        await this.executeShell(`mkdir -p "${remoteSysDir}" "${remotePublicDir}"`);
+        
+        const hasZip = (await this.executeShell('which zip 2>/dev/null')).trim();
+        if (hasZip && !hasZip.includes('not found')) {
+          await this.executeShell(`cd "${tempDump}" && zip -r "${remotePublicDir}/${safeFilename}" ./* && cp "${remotePublicDir}/${safeFilename}" "${remoteSysDir}/${safeFilename}"`);
+        } else {
+          await this.executeShell(`cd "${tempDump}" && tar -czf "${remotePublicDir}/${safeFilename}" ./* 2>/dev/null || cp -r "${tempDump}" "${remotePublicDir}/${safeFilename}"`);
+          await this.executeShell(`cp "${remotePublicDir}/${safeFilename}" "${remoteSysDir}/${safeFilename}" 2>/dev/null`);
+        }
+
+        await this.executeShell(`rm -rf "${tempDump}"`);
+
+        this.addLog('step', '>>> [4/4] Cấp quyền & Khởi động lại ứng dụng Chủ Đề...');
+        await this.executeShell('appops set com.hihonor.android.thememanager MANAGE_EXTERNAL_STORAGE allow 2>/dev/null');
+        await this.executeShell(`chmod 777 "${remotePublicDir}/${safeFilename}" "${remoteSysDir}/${safeFilename}" 2>/dev/null`);
+        await this.executeShell(`am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://${remotePublicDir}/${safeFilename}" 2>/dev/null`);
+        await this.executeShell('am force-stop com.hihonor.android.thememanager');
+
+        this.addLog('success', `Đã trích xuất và nạp vĩnh viễn theme "${title}" vào ứng dụng Chủ Đề!`);
+        return {
+          success: true,
+          theme_name: title,
+          filename: safeFilename,
+          path: `${remotePublicDir}/${safeFilename}`
+        };
+      } catch (err) {
+        this.addLog('error', `Lỗi trích xuất theme WebUSB: ${err.message}`);
+        return { success: false, message: err.message };
+      }
+    }
+
     try {
       const resp = await fetch('/api/action', {
         method: 'POST',
@@ -2451,6 +2540,26 @@ class AdbService {
 
   async deployThemeFile(filename, contentB64) {
     this.addLog('info', `Đang nạp file theme ${filename}...`);
+    if (this.mode === 'webusb' && this.adbInstance) {
+      try {
+        const remoteSysDir = '/sdcard/Android/data/com.hihonor.android.thememanager/files/Download/Honor/Themes';
+        const remotePublicDir = '/sdcard/Honor/Themes';
+        await this.executeShell(`mkdir -p "${remoteSysDir}" "${remotePublicDir}"`);
+        const tempB64 = `/sdcard/Download/.theme_tmp_${Date.now()}.b64`;
+        
+        await this.executeShell(`echo "${contentB64}" > "${tempB64}" && base64 -d "${tempB64}" > "${remotePublicDir}/${filename}" && cp "${remotePublicDir}/${filename}" "${remoteSysDir}/${filename}" && rm -f "${tempB64}"`);
+        await this.executeShell('appops set com.hihonor.android.thememanager MANAGE_EXTERNAL_STORAGE allow 2>/dev/null');
+        await this.executeShell(`chmod 777 "${remotePublicDir}/${filename}" "${remoteSysDir}/${filename}" 2>/dev/null`);
+        await this.executeShell(`am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://${remotePublicDir}/${filename}" 2>/dev/null`);
+        await this.executeShell('am force-stop com.hihonor.android.thememanager');
+        this.addLog('success', `Đã nạp thành công theme ${filename} vào ứng dụng Chủ Đề!`);
+        return { success: true, filename };
+      } catch (err) {
+        this.addLog('error', `Lỗi nạp theme WebUSB: ${err.message}`);
+        return { success: false, message: err.message };
+      }
+    }
+
     try {
       const resp = await fetch('/api/action', {
         method: 'POST',

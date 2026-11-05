@@ -1607,6 +1607,7 @@ export default function ToolboxTab({
       <ThemeStudioModal
         isOpen={isThemeStudioOpen}
         onClose={() => setIsThemeStudioOpen(false)}
+        device={device}
         adbService={adbService}
       />
     </div>

@@ -832,6 +832,12 @@ def get_battery_health_details():
                 cycles = int(c_out.strip())
                 break
 
+    # Normalize cycles (Qualcomm SPMI PMIC fuel gauges report in milli-cycles or centi-cycles)
+    if cycles > 50000:
+        cycles = int(round(cycles / 1000.0))
+    elif cycles > 5000:
+        cycles = int(round(cycles / 100.0))
+
     # Calculate real health percentage
     if soh_val is not None:
         health_pct = soh_val
@@ -859,29 +865,42 @@ def get_battery_health_details():
     volts = round(voltage_mv / 1000.0, 2)
     wattage = round(volts * (abs(current_ma) / 1000.0), 2)
 
-    # Real capacity
+    # Real capacity calculation & database matching
     dev_info = get_device_info()
-    design_mah = est_mah or 5200
+    design_mah = 5200
+    matched_bat = dev_info.get('battery_desc', '')
+    digits = re.search(r'(\d{4,5})\s*mAh', matched_bat)
+    if digits:
+        design_mah = int(digits.group(1))
+    elif est_mah and est_mah > 1000:
+        design_mah = est_mah
+
     full_mah = learned_mah or design_mah
+    if not full_mah or full_mah < 1000 or full_mah > design_mah * 1.3:
+        full_mah = design_mah
+
+    current_capacity_mah = int(round((level / 100.0) * full_mah))
 
     # Real rating based on verified physical state
-    if health_pct >= 96 and cycles <= 15:
+    if health_pct >= 95 and cycles <= 25:
         rating = 'Chuẩn Xuất Xưởng (Pin Mới 100%)'
-    elif health_pct >= 85:
-        rating = 'Tốt (Hiệu Năng Ổn Định)'
+    elif health_pct >= 90:
+        rating = 'Tốt (Hiệu Năng Xuất Sắc)'
     elif health_pct >= 80:
         rating = 'Bình Thường (Đã Chai Nhẹ)'
     else:
-        rating = 'Cần Chú Ý (Pin Chai Dưới 80%)'
+        rating = 'Cần Thay Pin (Chai Dưới 80%)'
 
     cycle_str = f"{cycles} lần" if cycles > 0 else "BMS Bảo Mật"
-    desc_status = f"Dữ liệu đọc trực tiếp từ cảm biến quản lý nguồn BMS: Dung lượng thực {full_mah} mAh, chu kỳ sạc {cycle_str}, điện áp {volts}V, dòng điện {abs(current_ma)}mA ({wattage}W)."
+    desc_status = f"Dữ liệu đọc trực tiếp từ cảm biến quản lý nguồn BMS: Dung lượng hiện tại {current_capacity_mah} mAh (Thiết kế {design_mah} mAh), chu kỳ sạc {cycle_str}, điện áp {volts}V, dòng điện {abs(current_ma)}mA ({wattage}W)."
 
     return {
         'connected': True,
         'health_percent': health_pct,
         'cycle_count': cycles,
-        'current_capacity_mah': full_mah,
+        'cycle_count_display': cycle_str,
+        'current_capacity_mah': current_capacity_mah,
+        'full_capacity_mah': full_mah,
         'design_capacity_mah': design_mah,
         'battery_level': level,
         'temperature': temp,
