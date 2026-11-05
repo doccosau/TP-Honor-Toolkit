@@ -2061,10 +2061,34 @@ def handle_action(payload):
     elif action == 'apply_wifi_dns':
         captive = payload.get('captive', 'google')
         dns_mode = payload.get('dns', 'cloudflare')
+        custom_dns = payload.get('custom_dns', '').strip()
         disable_wifipro = payload.get('disable_wifipro', True)
+        disable_wifi_sleep = payload.get('disable_wifi_sleep', True)
+        google_rtt = payload.get('google_rtt', True)
+        disable_verbose_logging = payload.get('disable_verbose_logging', True)
+        network_mode_5g = str(payload.get('network_mode_5g', 'default'))
+        infinite_bluetooth = payload.get('infinite_bluetooth', False)
+        reset_defaults = payload.get('reset_defaults', False)
 
-        add_log('info', 'Bắt đầu cấu hình Wi-Fi Siêu Tốc & DoT DNS chống giật lag...')
-        # Captive portal
+        add_log('info', 'Bắt đầu cấu hình Tham số Mạng, 5G NR, Wi-Fi Siêu Tốc & DoT DNS...')
+
+        if reset_defaults:
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'global', 'captive_portal_http_url'])
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'global', 'captive_portal_https_url'])
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'global', 'captive_portal_fallback_url'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'captive_portal_mode', '1'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'private_dns_mode', 'off'])
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'global', 'private_dns_specifier'])
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'global', 'preferred_network_mode1'])
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'global', 'preferred_network_mode'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'wifi_power_save', '1'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'wifi_sleep_policy', '0'])
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'global', 'wifi_hidata_rtt_url'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'infinite_volume_music_bt_a2dp', '0'])
+            add_log('success', '=== [HOÀN TẤT] Đã khôi phục các tham số Mạng về mặc định gốc của máy! ===')
+            return {'success': True}
+
+        # 1. Captive portal
         if captive == 'google':
             add_log('cmd', '$ adb shell settings put global captive_portal_mode 1')
             run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'captive_portal_mode', '1'])
@@ -2072,10 +2096,21 @@ def handle_action(payload):
             run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'captive_portal_http_url', 'http://connectivitycheck.gstatic.com/generate_204'])
             run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'captive_portal_https_url', 'https://connectivitycheck.gstatic.com/generate_204'])
             run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'captive_portal_fallback_url', 'http://www.google.com/gen_204'])
-            add_log('success', '  ↳ Đã chuyển Captive Portal sang máy chủ Google 204.')
+            add_log('success', '  ↳ Đã chuyển Captive Portal sang máy chủ Google 204 (Dứt điểm chấm than Wi-Fi).')
+        elif captive == 'cloudflare':
+            add_log('cmd', '$ adb shell settings put global captive_portal_mode 1')
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'captive_portal_mode', '1'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'captive_portal_http_url', 'http://cp.cloudflare.com/generate_204'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'captive_portal_https_url', 'https://cp.cloudflare.com/generate_204'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'captive_portal_fallback_url', 'http://cp.cloudflare.com/generate_204'])
+            add_log('success', '  ↳ Đã chuyển Captive Portal sang máy chủ Cloudflare 204.')
+        elif captive == 'default':
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'global', 'captive_portal_http_url'])
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'global', 'captive_portal_https_url'])
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'global', 'captive_portal_fallback_url'])
+            add_log('info', '  ↳ Đã khôi phục Captive Portal về mặc định hãng.')
 
-        # Private DNS
-        custom_dns = payload.get('custom_dns', '').strip()
+        # 2. Private DNS
         if custom_dns and dns_mode != 'off':
             add_log('cmd', f'$ adb shell settings put global private_dns_mode hostname && specifier {custom_dns}')
             run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'private_dns_mode', 'hostname'])
@@ -2109,23 +2144,61 @@ def handle_action(payload):
         elif dns_mode == 'off':
             add_log('cmd', '$ adb shell settings put global private_dns_mode off')
             run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'private_dns_mode', 'off'])
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'global', 'private_dns_specifier'])
             add_log('info', '  ↳ Đã tắt Private DNS.')
 
-        # Wi-Fi Pro & Power Save
+        # 3. Wi-Fi Pro & Link Turbo
         if disable_wifipro:
             add_log('cmd', '$ adb shell settings put global hn_wifipro_enable false')
             run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'hn_wifipro_enable', 'false'])
             run_cmd(['adb', 'shell', 'settings', 'put', 'system', 'smart_network_switch', '0'])
             run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'settings_wlan_mt_axl', '0'])
             run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'wifi_cloud_security_check', '0'])
-            add_log('cmd', '$ adb shell settings put global wifi_power_save 0')
-            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'wifi_power_save', '0'])
-            add_log('cmd', '$ adb shell settings put global wifi_hidata_rtt_url connectivitycheck.gstatic.com|www.google.com')
-            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'wifi_hidata_rtt_url', 'connectivitycheck.gstatic.com|www.google.com'])
-            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'wifi_sleep_policy', '2'])
-            add_log('success', '  ↳ Đã vô hiệu hóa Wi-Fi Pro ngầm và tắt chế độ ngủ Wi-Fi Power Save (Ngăn drop socket FB/TikTok).')
+            add_log('success', '  ↳ Đã vô hiệu hóa Wi-Fi Pro & Link Turbo (Chống rớt mạng cuộc gọi Zalo/FB).')
+        else:
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'hn_wifipro_enable', 'true'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'system', 'smart_network_switch', '1'])
 
-        add_log('success', '=== [HOÀN TẤT 100%] Đã áp dụng toàn bộ cấu hình Mạng & DNS Siêu Tốc thành công! ===')
+        # 4. Wi-Fi Sleep Policy & Power Save (HonorHook discovery)
+        if disable_wifi_sleep:
+            add_log('cmd', '$ adb shell settings put global wifi_power_save 0 && wifi_sleep_policy 2')
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'wifi_power_save', '0'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'wifi_sleep_policy', '2'])
+            add_log('success', '  ↳ Đã tắt Wi-Fi Power Save & đặt Sleep Policy 2 (Card mạng luôn thức, chống rớt socket).')
+        else:
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'wifi_power_save', '1'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'wifi_sleep_policy', '0'])
+
+        # 5. Wi-Fi RTT Latency Check URL (HonorHook discovery: Đổi server Baidu sang Google)
+        if google_rtt:
+            add_log('cmd', '$ adb shell settings put global wifi_hidata_rtt_url connectivitycheck.gstatic.com|www.google.com|1.1.1.1')
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'wifi_hidata_rtt_url', 'connectivitycheck.gstatic.com|www.google.com|1.1.1.1'])
+            add_log('success', '  ↳ Đã cập nhật máy chủ đo độ trễ Wi-Fi RTT sang Google/Cloudflare.')
+
+        # 6. Disable Wi-Fi Verbose Logging
+        if disable_verbose_logging:
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'wifi_verbose_logging_enabled', '0'])
+            add_log('success', '  ↳ Đã tắt ghi nhật ký chi tiết Wi-Fi (wifi_verbose_logging_enabled = 0).')
+
+        # 7. Cellular 5G NR Preferred Network Mode (HonorHook discovery)
+        if network_mode_5g in ['26', '33', '10']:
+            add_log('cmd', f'$ adb shell settings put global preferred_network_mode1 {network_mode_5g}')
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'preferred_network_mode1', network_mode_5g])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'preferred_network_mode', network_mode_5g])
+            label_5g = '5G NR All-Bands (SA/NSA Khóa cứng)' if network_mode_5g == '26' else ('5G/LTE Ưu Tiên Toàn Dải' if network_mode_5g == '33' else 'LTE / 4G Ổn Định')
+            add_log('success', f'  ↳ Đã cấu hình Chế độ Mạng Di Động: {label_5g} (mode {network_mode_5g}).')
+        elif network_mode_5g == 'default':
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'global', 'preferred_network_mode1'])
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'global', 'preferred_network_mode'])
+            add_log('info', '  ↳ Đã khôi phục Chế độ Mạng Di Động về tự động theo SIM.')
+
+        # 8. Infinite Bluetooth Volume (HonorHook discovery)
+        bt_val = '1' if infinite_bluetooth else '0'
+        run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'infinite_volume_music_bt_a2dp', bt_val])
+        if infinite_bluetooth:
+            add_log('success', '  ↳ Đã mở khóa Âm Lượng Bluetooth Vô Cực (Phá vỡ giới hạn âm lượng tai nghe TWS).')
+
+        add_log('success', '=== [HOÀN TẤT 100%] Đã áp dụng toàn bộ cấu hình Mạng & 5G NR Tối Ưu thành công! ===')
         return {'success': True}
 
     elif action == 'disable_telemetry':
@@ -2144,10 +2217,39 @@ def handle_action(payload):
     elif action == 'apply_display':
         dpi = payload.get('dpi', 'auto_sweet')
         hz = str(payload.get('hz', 'auto'))
+        lock_high_hz = payload.get('lock_high_hz', True)
         anim = payload.get('anim', '1.0')
+        sdr2hdr = payload.get('sdr2hdr', False)
+        sdr_plus = payload.get('sdr_plus', False)
+        tianshan = payload.get('tianshan', False)
+        full_screen_aod = payload.get('full_screen_aod', False)
+        extend_aod_duration = payload.get('extend_aod_duration', False)
+        knuckle_gestures = payload.get('knuckle_gestures', False)
+        fingerprint_slide = payload.get('fingerprint_slide', False)
+        disable_low_res = payload.get('disable_low_res', True)
+        reset_defaults = payload.get('reset_defaults', False)
 
-        add_log('info', f'Bắt đầu cấu hình hiển thị màn hình (DPI: {dpi}, Hz: {hz}, Anim: {anim}x)...')
-        # Calculate or set DPI
+        add_log('info', f'Bắt đầu cấu hình hiển thị màn hình MagicOS (DPI: {dpi}, Hz: {hz}, Anim: {anim}x)...')
+
+        if reset_defaults:
+            run_cmd(['adb', 'shell', 'wm', 'density', 'reset'])
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'secure', 'display_density_forced'])
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'system', 'min_refresh_rate'])
+            run_cmd(['adb', 'shell', 'settings', 'delete', 'system', 'peak_refresh_rate'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'reduce_refresh_rate_enabled', '1'])
+            for k in ['window_animation_scale', 'transition_animation_scale', 'animator_duration_scale']:
+                run_cmd(['adb', 'shell', 'settings', 'put', 'global', k, '1.0'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'hn_sdr2hdr_switch', '0'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'hn_sdrplus_switch', '0'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'hn_tianshan_switch', '0'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'enable_full_screen_AOD', '0'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'lock_to_aod_duration', '30'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'fingersense_letters_enabled', '0'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'fingerprint_slide_switch', '0'])
+            add_log('success', '=== [HOÀN TẤT] Đã khôi phục thiết lập màn hình về mặc định gốc của máy! ===')
+            return {'success': True}
+
+        # 1. Calculate or set DPI
         chosen_dpi = None
         if dpi == 'auto_sweet':
             dev_info = get_device_info()
@@ -2171,13 +2273,15 @@ def handle_action(payload):
             except:
                 pass
 
-        # Disable low resolution smart downscaling
-        for k in ['low_resolution_switch', 'smart_resolution_mode', 'smart_screen_resolution_mode']:
-            run_cmd(['adb', 'shell', 'settings', 'put', 'system', k, '0'])
-            run_cmd(['adb', 'shell', 'settings', 'put', 'global', k, '0'])
-        run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'aps_display_resolution', '0'])
+        # 2. Disable low resolution smart downscaling
+        if disable_low_res:
+            for k in ['low_resolution_switch', 'smart_resolution_mode', 'smart_screen_resolution_mode']:
+                run_cmd(['adb', 'shell', 'settings', 'put', 'system', k, '0'])
+                run_cmd(['adb', 'shell', 'settings', 'put', 'global', k, '0'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'aps_display_resolution', '0'])
+            add_log('success', '  ↳ Đã vô hiệu hóa cờ tự động hạ độ phân giải thông minh (Giữ nét 100%).')
 
-        # Hz Dynamic Configuration
+        # 3. Refresh Rate (Hz)
         if hz == 'auto':
             add_log('cmd', '$ adb shell settings delete system min_refresh_rate && peak_refresh_rate')
             run_cmd(['adb', 'shell', 'settings', 'delete', 'system', 'min_refresh_rate'])
@@ -2189,22 +2293,65 @@ def handle_action(payload):
                 add_log('cmd', f'$ adb shell settings put system min_refresh_rate {hz_val} && peak_refresh_rate {hz_val}')
                 run_cmd(['adb', 'shell', 'settings', 'put', 'system', 'min_refresh_rate', str(hz_val)])
                 run_cmd(['adb', 'shell', 'settings', 'put', 'system', 'peak_refresh_rate', str(hz_val)])
-                add_log('success', f'  ↳ Đã khóa cứng tần số quét: {int(hz_val)}Hz')
+                add_log('success', f'  ↳ Đã đặt tần số quét đỉnh và đáy: {int(hz_val)}Hz')
             except Exception as e:
                 add_log('warning', f'  ↳ Không thể đặt tần số quét {hz}: {e}')
 
-        # Animations & Background Scans
+        # 4. No-Drop Refresh Rate (HonorHook discovery: secure: reduce_refresh_rate_enabled = 0)
+        reduce_val = '0' if lock_high_hz else '1'
+        run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'reduce_refresh_rate_enabled', reduce_val])
+        if lock_high_hz:
+            add_log('success', '  ↳ Đã bật Khóa Tần Số Quét Cao (reduce_refresh_rate_enabled = 0 - Không tụt khi xem video/lướt app).')
+
+        # 5. HonorHook Display Engine: SDR->HDR, SDR+ Peak, Tianshan Oasis
+        sdr2hdr_val = '1' if sdr2hdr else '0'
+        run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'hn_sdr2hdr_switch', sdr2hdr_val])
+        if sdr2hdr:
+            add_log('success', '  ↳ Đã kích hoạt Nâng cấp SDR sang HDR (hn_sdr2hdr_switch = 1).')
+
+        sdrplus_val = '1' if sdr_plus else '0'
+        run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'hn_sdrplus_switch', sdrplus_val])
+        if sdr_plus:
+            add_log('success', '  ↳ Đã kích hoạt SDR+ Tăng cường sáng đỉnh ngoài trời (hn_sdrplus_switch = 1).')
+
+        tianshan_val = '1' if tianshan else '0'
+        run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'hn_tianshan_switch', tianshan_val])
+        if tianshan:
+            add_log('success', '  ↳ Đã kích hoạt Động cơ Siêu Hiển Thị Thiên Sơn Oasis (hn_tianshan_switch = 1).')
+
+        # 6. AOD & Touch Gestures (HonorHook discovery)
+        aod_val = '1' if full_screen_aod else '0'
+        run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'enable_full_screen_AOD', aod_val])
+        if full_screen_aod:
+            add_log('success', '  ↳ Đã kích hoạt AOD Toàn Màn Hình (enable_full_screen_AOD = 1).')
+
+        aod_dur_val = '200' if extend_aod_duration else '30'
+        run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'lock_to_aod_duration', aod_dur_val])
+        if extend_aod_duration:
+            add_log('success', '  ↳ Đã kéo dài thời gian duy trì AOD lên 200 giây (lock_to_aod_duration = 200).')
+
+        knuckle_val = '1' if knuckle_gestures else '0'
+        run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'fingersense_letters_enabled', knuckle_val])
+        if knuckle_gestures:
+            add_log('success', '  ↳ Đã kích hoạt Cử chỉ vẽ khớp ngón tay Knuckle Gestures (fingersense_letters_enabled = 1).')
+
+        fp_val = '1' if fingerprint_slide else '0'
+        run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'fingerprint_slide_switch', fp_val])
+        if fingerprint_slide:
+            add_log('success', '  ↳ Đã kích hoạt Trượt vân tay kéo thanh thông báo (fingerprint_slide_switch = 1).')
+
+        # 7. Animations & Background Scans
         try:
             anim_val = str(float(anim))
             for k in ['window_animation_scale', 'transition_animation_scale', 'animator_duration_scale']:
                 run_cmd(['adb', 'shell', 'settings', 'put', 'global', k, anim_val])
             run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'wifi_scan_always_enabled', '0'])
             run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'ble_scan_always_enabled', '0'])
-            add_log('info', f'  ↳ Đã chỉnh tốc độ hiệu ứng (Animation): {anim_val}x và tắt quét nền Wi-Fi/Bluetooth.')
+            add_log('info', f'  ↳ Đã chỉnh tốc độ hiệu ứng (Animation): {anim_val}x và tối ưu quét nền.')
         except:
             pass
 
-        add_log('success', '=== [HOÀN TẤT 100%] Đã áp dụng độ phân giải và tần số quét màn hình thành công! ===')
+        add_log('success', '=== [HOÀN TẤT 100%] Đã áp dụng toàn bộ cấu hình Màn hình MagicOS thành công! ===')
         return {'success': True}
 
     elif action == 'compile_apps':

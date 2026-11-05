@@ -498,10 +498,21 @@ class AdbService {
   }
 
   /**
-   * Apply Network, Captive Portal and Private DNS
+   * Apply Network, Captive Portal, 5G NR and Private DNS
    */
-  async applyNetworkSettings({ captive = 'google', dns = 'cloudflare', customDns = '', disableWifipro = true }) {
-    this.addLog('info', `Đang cấu hình Mạng: Captive ${captive}, DNS ${dns} (${customDns || 'Tự động'})...`);
+  async applyNetworkSettings({
+    captive = 'google',
+    dns = 'cloudflare',
+    customDns = '',
+    disableWifipro = true,
+    disableWifiSleep = true,
+    googleRtt = true,
+    disableVerboseLogging = true,
+    networkMode5G = 'default',
+    infiniteBluetooth = false,
+    resetDefaults = false,
+  } = {}) {
+    this.addLog('info', `Đang cấu hình Mạng: Captive ${captive}, DNS ${dns}, 5G ${networkMode5G}...`);
     try {
       const resp = await fetch('/api/action', {
         method: 'POST',
@@ -512,6 +523,12 @@ class AdbService {
           dns,
           custom_dns: customDns,
           disable_wifipro: disableWifipro,
+          disable_wifi_sleep: disableWifiSleep,
+          google_rtt: googleRtt,
+          disable_verbose_logging: disableVerboseLogging,
+          network_mode_5g: networkMode5G,
+          infinite_bluetooth: infiniteBluetooth,
+          reset_defaults: resetDefaults,
         }),
       });
       if (resp.ok) {
@@ -521,34 +538,116 @@ class AdbService {
     } catch (e) {}
 
     // WebUSB fallback
+    if (resetDefaults) {
+      await this.runAdbCommand('settings delete global captive_portal_http_url');
+      await this.runAdbCommand('settings delete global captive_portal_https_url');
+      await this.runAdbCommand('settings delete global captive_portal_fallback_url');
+      await this.runAdbCommand('settings put global captive_portal_mode 1');
+      await this.runAdbCommand('settings put global private_dns_mode off');
+      await this.runAdbCommand('settings delete global private_dns_specifier');
+      await this.runAdbCommand('settings delete global preferred_network_mode1');
+      await this.runAdbCommand('settings delete global preferred_network_mode');
+      await this.runAdbCommand('settings put global wifi_power_save 1');
+      await this.runAdbCommand('settings put global wifi_sleep_policy 0');
+      await this.runAdbCommand('settings delete global wifi_hidata_rtt_url');
+      await this.runAdbCommand('settings put secure infinite_volume_music_bt_a2dp 0');
+      this.addLog('success', 'Đã khôi phục các tham số Mạng về mặc định gốc của máy.');
+      return { success: true };
+    }
+
     if (captive === 'google') {
       await this.runAdbCommand('settings put global captive_portal_mode 1');
       await this.runAdbCommand('settings put global captive_portal_http_url http://connectivitycheck.gstatic.com/generate_204');
       await this.runAdbCommand('settings put global captive_portal_https_url https://connectivitycheck.gstatic.com/generate_204');
       await this.runAdbCommand('settings put global captive_portal_fallback_url http://www.google.com/gen_204');
+    } else if (captive === 'cloudflare') {
+      await this.runAdbCommand('settings put global captive_portal_mode 1');
+      await this.runAdbCommand('settings put global captive_portal_http_url http://cp.cloudflare.com/generate_204');
+      await this.runAdbCommand('settings put global captive_portal_https_url https://cp.cloudflare.com/generate_204');
+      await this.runAdbCommand('settings put global captive_portal_fallback_url http://cp.cloudflare.com/generate_204');
+    } else if (captive === 'default') {
+      await this.runAdbCommand('settings delete global captive_portal_http_url');
+      await this.runAdbCommand('settings delete global captive_portal_https_url');
+      await this.runAdbCommand('settings delete global captive_portal_fallback_url');
     }
-    if (customDns && customDns.trim()) {
+
+    if (customDns && customDns.trim() && dns !== 'off') {
       await this.applyPrivateDns(customDns.trim());
     } else if (dns === 'cloudflare') {
-      await this.applyPrivateDns('1dot1dot1dot1.cloudflare-dns.com');
+      await this.applyPrivateDns('one.one.one.one');
+    } else if (dns === 'google') {
+      await this.applyPrivateDns('dns.google');
+    } else if (dns === 'adguard') {
+      await this.applyPrivateDns('dns.adguard-dns.com');
+    } else if (dns === 'nextdns') {
+      await this.applyPrivateDns('dns.nextdns.io');
+    } else if (dns === 'quad9') {
+      await this.applyPrivateDns('dns.quad9.net');
+    } else if (dns === 'off') {
+      await this.runAdbCommand('settings put global private_dns_mode off');
+      await this.runAdbCommand('settings delete global private_dns_specifier');
     }
+
     if (disableWifipro) {
       await this.runAdbCommand('settings put global hn_wifipro_enable false');
       await this.runAdbCommand('settings put system smart_network_switch 0');
       await this.runAdbCommand('settings put secure settings_wlan_mt_axl 0');
       await this.runAdbCommand('settings put global wifi_cloud_security_check 0');
-      await this.runAdbCommand('settings put global wifi_power_save 0');
-      await this.runAdbCommand('settings put global wifi_hidata_rtt_url connectivitycheck.gstatic.com|www.google.com');
-      await this.runAdbCommand('settings put global wifi_sleep_policy 2');
+    } else {
+      await this.runAdbCommand('settings put global hn_wifipro_enable true');
+      await this.runAdbCommand('settings put system smart_network_switch 1');
     }
+
+    if (disableWifiSleep) {
+      await this.runAdbCommand('settings put global wifi_power_save 0');
+      await this.runAdbCommand('settings put global wifi_sleep_policy 2');
+    } else {
+      await this.runAdbCommand('settings put global wifi_power_save 1');
+      await this.runAdbCommand('settings put global wifi_sleep_policy 0');
+    }
+
+    if (googleRtt) {
+      await this.runAdbCommand('settings put global wifi_hidata_rtt_url connectivitycheck.gstatic.com|www.google.com|1.1.1.1');
+    } else {
+      await this.runAdbCommand('settings delete global wifi_hidata_rtt_url');
+    }
+
+    if (disableVerboseLogging) {
+      await this.runAdbCommand('settings put global wifi_verbose_logging_enabled 0');
+    }
+
+    if (networkMode5G && ['26', '33', '10'].includes(networkMode5G)) {
+      await this.runAdbCommand(`settings put global preferred_network_mode1 ${networkMode5G}`);
+      await this.runAdbCommand(`settings put global preferred_network_mode ${networkMode5G}`);
+    } else if (networkMode5G === 'default') {
+      await this.runAdbCommand('settings delete global preferred_network_mode1');
+      await this.runAdbCommand('settings delete global preferred_network_mode');
+    }
+
+    await this.runAdbCommand(`settings put secure infinite_volume_music_bt_a2dp ${infiniteBluetooth ? 1 : 0}`);
+
     this.addLog('success', 'Đã lưu và áp dụng cấu hình Mạng & Private DNS thành công.');
     return { success: true };
   }
 
   /**
-   * Apply Display Refresh Rate, DPI and Animations
+   * Apply Display Refresh Rate, DPI, Engine and Animations
    */
-  async applyDisplaySettings({ hz = 'auto', anim = '1.0', dpi = 'auto_sweet' }) {
+  async applyDisplaySettings({
+    hz = 'auto',
+    lockHighHz = true,
+    anim = '1.0',
+    dpi = 'auto_sweet',
+    sdr2hdr = false,
+    sdrPlus = false,
+    tianshan = false,
+    fullScreenAod = false,
+    extendAodDuration = false,
+    knuckleGestures = false,
+    fingerprintSlide = false,
+    disableLowRes = true,
+    resetDefaults = false,
+  } = {}) {
     this.addLog('info', `Đang cấu hình màn hình: Tần số ${hz}Hz, Animation ${anim}x, DPI ${dpi}...`);
     try {
       const resp = await fetch('/api/action', {
@@ -557,8 +656,18 @@ class AdbService {
         body: JSON.stringify({
           action: 'apply_display',
           hz,
+          lock_high_hz: lockHighHz,
           anim,
           dpi,
+          sdr2hdr,
+          sdr_plus: sdrPlus,
+          tianshan,
+          full_screen_aod: fullScreenAod,
+          extend_aod_duration: extendAodDuration,
+          knuckle_gestures: knuckleGestures,
+          fingerprint_slide: fingerprintSlide,
+          disable_low_res: disableLowRes,
+          reset_defaults: resetDefaults,
         }),
       });
       if (resp.ok) {
@@ -568,6 +677,26 @@ class AdbService {
     } catch (e) {}
 
     // WebUSB fallback
+    if (resetDefaults) {
+      await this.runAdbCommand('wm density reset');
+      await this.runAdbCommand('settings delete secure display_density_forced');
+      await this.runAdbCommand('settings delete system min_refresh_rate');
+      await this.runAdbCommand('settings delete system peak_refresh_rate');
+      await this.runAdbCommand('settings put secure reduce_refresh_rate_enabled 1');
+      for (const k of ['window_animation_scale', 'transition_animation_scale', 'animator_duration_scale']) {
+        await this.runAdbCommand(`settings put global ${k} 1.0`);
+      }
+      await this.runAdbCommand('settings put secure hn_sdr2hdr_switch 0');
+      await this.runAdbCommand('settings put secure hn_sdrplus_switch 0');
+      await this.runAdbCommand('settings put secure hn_tianshan_switch 0');
+      await this.runAdbCommand('settings put secure enable_full_screen_AOD 0');
+      await this.runAdbCommand('settings put secure lock_to_aod_duration 30');
+      await this.runAdbCommand('settings put secure fingersense_letters_enabled 0');
+      await this.runAdbCommand('settings put secure fingerprint_slide_switch 0');
+      this.addLog('success', 'Đã khôi phục thiết lập màn hình về mặc định gốc của máy.');
+      return { success: true };
+    }
+
     if (hz === 'auto') {
       await this.runAdbCommand('settings delete system min_refresh_rate');
       await this.runAdbCommand('settings delete system peak_refresh_rate');
@@ -576,6 +705,8 @@ class AdbService {
       await this.runAdbCommand(`settings put system min_refresh_rate ${val}`);
       await this.runAdbCommand(`settings put system peak_refresh_rate ${val}`);
     }
+
+    await this.runAdbCommand(`settings put secure reduce_refresh_rate_enabled ${lockHighHz ? 0 : 1}`);
 
     if (anim) {
       const aVal = String(parseFloat(anim));
@@ -611,11 +742,21 @@ class AdbService {
       }
     }
 
-    for (const k of ['low_resolution_switch', 'smart_resolution_mode', 'smart_screen_resolution_mode']) {
-      await this.runAdbCommand(`settings put system ${k} 0`);
-      await this.runAdbCommand(`settings put global ${k} 0`);
+    if (disableLowRes) {
+      for (const k of ['low_resolution_switch', 'smart_resolution_mode', 'smart_screen_resolution_mode']) {
+        await this.runAdbCommand(`settings put system ${k} 0`);
+        await this.runAdbCommand(`settings put global ${k} 0`);
+      }
+      await this.runAdbCommand('settings put global aps_display_resolution 0');
     }
-    await this.runAdbCommand('settings put global aps_display_resolution 0');
+
+    await this.runAdbCommand(`settings put secure hn_sdr2hdr_switch ${sdr2hdr ? 1 : 0}`);
+    await this.runAdbCommand(`settings put secure hn_sdrplus_switch ${sdrPlus ? 1 : 0}`);
+    await this.runAdbCommand(`settings put secure hn_tianshan_switch ${tianshan ? 1 : 0}`);
+    await this.runAdbCommand(`settings put secure enable_full_screen_AOD ${fullScreenAod ? 1 : 0}`);
+    await this.runAdbCommand(`settings put secure lock_to_aod_duration ${extendAodDuration ? 200 : 30}`);
+    await this.runAdbCommand(`settings put secure fingersense_letters_enabled ${knuckleGestures ? 1 : 0}`);
+    await this.runAdbCommand(`settings put secure fingerprint_slide_switch ${fingerprintSlide ? 1 : 0}`);
 
     this.addLog('success', 'Đã áp dụng độ phân giải và tần số quét màn hình thành công.');
     return { success: true };
