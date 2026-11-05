@@ -13,6 +13,7 @@ import BackupTab from './components/BackupTab';
 import DeviceDatabaseTab from './components/DeviceDatabaseTab';
 import TerminalConsole from './components/TerminalConsole';
 import WebUsbGuideModal from './components/WebUsbGuideModal';
+import DonateModal from './components/DonateModal';
 import ToastContainer from './components/ToastContainer';
 import ScrcpyInstallModal from './components/ScrcpyInstallModal';
 import WebMirrorModal from './components/WebMirrorModal';
@@ -24,6 +25,7 @@ export default function App() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [logs, setLogs] = useState([]);
   const [showGuide, setShowGuide] = useState(false);
+  const [showDonateModal, setShowDonateModal] = useState(false);
   const [showScrcpyModal, setShowScrcpyModal] = useState(false);
   const [showWebMirrorModal, setShowWebMirrorModal] = useState(false);
   const [isDraggingApk, setIsDraggingApk] = useState(false);
@@ -686,6 +688,7 @@ export default function App() {
         onConnectWebUsb={handleConnectWebUsb}
         onRefresh={handleRefresh}
         onOpenGuide={() => setShowGuide(true)}
+        onOpenDonate={() => setShowDonateModal(true)}
         theme={theme}
         onToggleTheme={handleToggleTheme}
       />
@@ -703,7 +706,11 @@ export default function App() {
               onLaunchScrcpy={handleLaunchScrcpy}
               onReboot={handleReboot}
             />
-            <SpecsGrid device={device} />
+            <SpecsGrid
+              device={device}
+              onWhitelistApps={() => handleWhitelist([])}
+              onNavigateTab={setActiveTab}
+            />
           </div>
         )}
 
@@ -805,6 +812,12 @@ export default function App() {
         isOpen={showGuide}
         onClose={() => setShowGuide(false)}
         onConnect={handleConnectWebUsb}
+      />
+
+      {/* Donate Project Modal */}
+      <DonateModal
+        isOpen={showDonateModal}
+        onClose={() => setShowDonateModal(false)}
       />
 
       {/* Web Live Screen Mirror Modal */}

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function TitleBar({ device, isConnecting, onConnectWebUsb, onRefresh, onOpenGuide, theme = 'light', onToggleTheme }) {
+export default function TitleBar({ device, isConnecting, onConnectWebUsb, onRefresh, onOpenGuide, onOpenDonate, theme = 'light', onToggleTheme }) {
   const isOnline = device && device.connected;
 
   return (
@@ -80,6 +80,30 @@ export default function TitleBar({ device, isConnecting, onConnectWebUsb, onRefr
             </svg>
           </span>
           <span>Hướng dẫn</span>
+        </button>
+
+        {/* Donate Button */}
+        <button
+          type="button"
+          className="btn-tool"
+          style={{
+            padding: '4px 11px',
+            fontSize: '11.5px',
+            marginLeft: '4px',
+            fontWeight: 600,
+            color: '#f43f5e',
+            borderColor: 'rgba(244, 63, 94, 0.4)',
+            background: 'rgba(244, 63, 94, 0.08)',
+          }}
+          onClick={onOpenDonate}
+          title="Ủng hộ & tiếp lửa phát triển dự án TP Honor Toolkit"
+        >
+          <span className="svg-icon" style={{ color: '#f43f5e', display: 'flex', alignItems: 'center' }}>
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="13" height="13">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
+          </span>
+          <span>Ủng Hộ Dự Án</span>
         </button>
 
         {/* Theme Toggle Button: 3uTools Sáng / Tối */}

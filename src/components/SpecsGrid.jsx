@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function SpecsGrid({ device }) {
+export default function SpecsGrid({ device, onWhitelistApps, onNavigateTab }) {
   const [copiedKey, setCopiedKey] = useState(null);
   const isOnline = device && device.connected;
 
@@ -283,26 +283,88 @@ export default function SpecsGrid({ device }) {
             {isOnline && typeof device.health_score === 'number' ? `${device.health_score}/100 Điểm` : '--/100 Điểm'}
           </span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginTop: '6px' }}>
-          <div style={{ background: 'var(--panel-alt)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '4px' }}>Dịch Vụ Rác Nội Địa TQ:</div>
-            <div id="statBloatStatus" style={{ fontWeight: 600, color: isOnline ? '#059669' : 'var(--text-muted)', fontSize: '13px' }}>
-              {isOnline ? (device.bloat_summary || 'Đã dọn sạch bloatware') : 'Chờ thiết bị'}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginTop: '8px' }}>
+          {/* Tile 1: Bloatware */}
+          <div style={{ background: 'var(--panel-alt)', padding: '12px', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '4px' }}>Dịch Vụ Rác Nội Địa TQ:</div>
+              <div id="statBloatStatus" style={{ fontWeight: 600, color: isOnline ? '#10b981' : 'var(--text-muted)', fontSize: '12px', lineHeight: '1.4' }}>
+                {isOnline ? (device.bloat_summary || 'Đã dọn sạch bloatware') : 'Chờ thiết bị'}
+              </div>
             </div>
+            {isOnline && (
+              <button
+                type="button"
+                className="btn-tool"
+                style={{ marginTop: '8px', fontSize: '11px', padding: '3px 8px', width: '100%', justifyContent: 'center' }}
+                onClick={() => onNavigateTab?.('debloat')}
+              >
+                Dọn Rác Hệ Thống
+              </button>
+            )}
           </div>
-          <div style={{ background: 'var(--panel-alt)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '4px' }}>FCM Thông Báo App VN:</div>
-            <div id="statFcmStatus" style={{ fontWeight: 600, color: isOnline ? 'var(--magicos-blue)' : 'var(--text-muted)', fontSize: '13px' }}>
-              {isOnline ? (device.fcm_summary || 'Đang đồng bộ...') : 'Chờ thiết bị'}
+
+          {/* Tile 2: FCM Notification */}
+          <div style={{ background: 'var(--panel-alt)', padding: '12px', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '4px' }}>FCM Thông Báo App VN:</div>
+              <div id="statFcmStatus" style={{ fontWeight: 600, color: isOnline ? 'var(--magicos-blue)' : 'var(--text-muted)', fontSize: '12px', lineHeight: '1.4' }}>
+                {isOnline ? (device.fcm_summary || 'Đang đồng bộ...') : 'Chờ thiết bị'}
+              </div>
             </div>
+            {isOnline && (
+              <button
+                type="button"
+                className="btn-tool primary"
+                style={{ marginTop: '8px', fontSize: '11px', padding: '3px 8px', width: '100%', justifyContent: 'center' }}
+                onClick={() => onWhitelistApps?.()}
+                title="Cấp quyền chạy nền không bị trễ thông báo Zalo / Ngân hàng"
+              >
+                Fix Trễ Thông Báo
+              </button>
+            )}
           </div>
-          <div style={{ background: 'var(--panel-alt)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '4px' }}>Bảo Mật DNS DoT:</div>
-            <div id="statDnsStatus" style={{ fontWeight: 600, color: isOnline ? '#059669' : 'var(--text-muted)', fontSize: '13px' }}>
-              {isOnline
-                ? (device.current_dns_spec || (device.current_dns_mode === 'off' ? 'Chưa bật DoT' : 'Tự động (Opportunistic)'))
-                : 'Chờ thiết bị'}
+
+          {/* Tile 3: Private DNS DoT */}
+          <div style={{ background: 'var(--panel-alt)', padding: '12px', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '4px' }}>Bảo Mật DNS DoT:</div>
+              <div id="statDnsStatus" style={{ fontWeight: 600, color: isOnline ? '#10b981' : 'var(--text-muted)', fontSize: '12px', lineHeight: '1.4' }}>
+                {isOnline
+                  ? (device.current_dns_spec || (device.current_dns_mode === 'off' ? 'Chưa bật DoT' : 'Tự động'))
+                  : 'Chờ thiết bị'}
+              </div>
             </div>
+            {isOnline && (
+              <button
+                type="button"
+                className="btn-tool"
+                style={{ marginTop: '8px', fontSize: '11px', padding: '3px 8px', width: '100%', justifyContent: 'center' }}
+                onClick={() => onNavigateTab?.('network')}
+              >
+                Cấu Hình DNS
+              </button>
+            )}
+          </div>
+
+          {/* Tile 4: Google & GMS Suite */}
+          <div style={{ background: 'var(--panel-alt)', padding: '12px', borderRadius: '10px', border: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginBottom: '4px' }}>Dịch Vụ Google & CH Play:</div>
+              <div style={{ fontWeight: 600, color: isOnline ? 'var(--magicos-blue)' : 'var(--text-muted)', fontSize: '12px', lineHeight: '1.4' }}>
+                {isOnline ? 'Google Play & Trợ Lý VXM' : 'Chờ thiết bị'}
+              </div>
+            </div>
+            {isOnline && (
+              <button
+                type="button"
+                className="btn-tool"
+                style={{ marginTop: '8px', fontSize: '11px', padding: '3px 8px', width: '100%', justifyContent: 'center' }}
+                onClick={() => onNavigateTab?.('toolbox')}
+              >
+                Hộp Công Cụ GMS
+              </button>
+            )}
           </div>
         </div>
       </div>
