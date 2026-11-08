@@ -1644,12 +1644,21 @@ def sanitize_description_xml_content(content, new_title=None):
     close_tag = close_tag_match.group(0) if close_tag_match else '</description>'
 
     # 1. Loại bỏ toàn bộ các thẻ liên quan đến chế độ dùng thử & thanh toán
+    content = re.sub(r'<tryout_theme_hitop_id[^>]*>.*?</tryout_theme_hitop_id>|<tryout_theme_hitop_id[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<tryout_resource_title[^>]*>.*?</tryout_resource_title>|<tryout_resource_title[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<tryout_resource_type[^>]*>.*?</tryout_resource_type>|<tryout_resource_type[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<tryout_time[^>]*>.*?</tryout_time>|<tryout_time[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<tryout_type[^>]*>.*?</tryout_type>|<tryout_type[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<tryout_author[^>]*>.*?</tryout_author>|<tryout_author[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<tryout_version[^>]*>.*?</tryout_version>|<tryout_version[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
     content = re.sub(r'<tryout[^>]*>.*?</tryout[^>]*>|<tryout[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
     content = re.sub(r'<trial[^>]*>.*?</trial[^>]*>|<trial[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
     content = re.sub(r'<is_tryout[^>]*>.*?</is_tryout[^>]*>|<is_tryout[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
     content = re.sub(r'<is_trial[^>]*>.*?</is_trial[^>]*>|<is_trial[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
     content = re.sub(r'<is_pay_item[^>]*>.*?</is_pay_item>|<is_pay_item[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
     content = re.sub(r'<pay_type[^>]*>.*?</pay_type>|<pay_type[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<[^>]*tryout[^>]*>.*?</[^>]*tryout[^>]*>|<[^>]*tryout[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<[^>]*trial[^>]*>.*?</[^>]*trial[^>]*>|<[^>]*trial[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
 
     # 2. Chuyển giá và loại phí về 0 (theme miễn phí hoàn toàn)
     if '<price>' in content:

@@ -333,6 +333,12 @@ export default function ThemeStudioModal({ isOpen, onClose, device, adbService: 
                   <div style={{ color: 'var(--text)' }}>
                     • Tên file chuẩn: <b>{extractResult.filename}</b> ({extractResult.size_mb} MB)
                   </div>
+                  <div style={{ color: '#10b981', fontSize: '11.5px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Đã thanh lọc triệt để 100% cờ trial (tryout_theme_hitop_id, tryout_resource_title, price=0)</span>
+                  </div>
                   <div style={{ color: 'var(--text-dim)', fontSize: '11.5px', wordBreak: 'break-all' }}>
                     • Nạp hệ thống: <code>{extractResult.sys_path}</code>
                   </div>

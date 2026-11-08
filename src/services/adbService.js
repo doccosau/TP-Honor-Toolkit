@@ -2722,12 +2722,21 @@ class AdbService {
             }
 
             // Xóa triệt để 100% TẤT CẢ các thẻ và cờ liên quan đến chế độ dùng thử / trial / tryout
+            xmlText = xmlText.replace(/<tryout_theme_hitop_id[^>]*>[\s\S]*?<\/tryout_theme_hitop_id>|<tryout_theme_hitop_id[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<tryout_resource_title[^>]*>[\s\S]*?<\/tryout_resource_title>|<tryout_resource_title[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<tryout_resource_type[^>]*>[\s\S]*?<\/tryout_resource_type>|<tryout_resource_type[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<tryout_time[^>]*>[\s\S]*?<\/tryout_time>|<tryout_time[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<tryout_type[^>]*>[\s\S]*?<\/tryout_type>|<tryout_type[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<tryout_author[^>]*>[\s\S]*?<\/tryout_author>|<tryout_author[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<tryout_version[^>]*>[\s\S]*?<\/tryout_version>|<tryout_version[^>]*\/>/gi, '');
             xmlText = xmlText.replace(/<tryout[^>]*>[\s\S]*?<\/tryout[^>]*>|<tryout[^>]*\/>/gi, '');
             xmlText = xmlText.replace(/<trial[^>]*>[\s\S]*?<\/trial[^>]*>|<trial[^>]*\/>/gi, '');
             xmlText = xmlText.replace(/<is_tryout[^>]*>[\s\S]*?<\/is_tryout[^>]*>|<is_tryout[^>]*\/>/gi, '');
             xmlText = xmlText.replace(/<is_trial[^>]*>[\s\S]*?<\/is_trial[^>]*>|<is_trial[^>]*\/>/gi, '');
             xmlText = xmlText.replace(/<is_pay_item[^>]*>[\s\S]*?<\/is_pay_item[^>]*>|<is_pay_item[^>]*\/>/gi, '');
             xmlText = xmlText.replace(/<pay_type[^>]*>[\s\S]*?<\/pay_type[^>]*>|<pay_type[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<[^>]*tryout[^>]*>[\s\S]*?<\/[^>]*tryout[^>]*>|<[^>]*tryout[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<[^>]*trial[^>]*>[\s\S]*?<\/[^>]*trial[^>]*>|<[^>]*trial[^>]*\/>/gi, '');
 
             // Chuyển phí và giá về 0 vĩnh viễn
             if (xmlText.includes('<price>')) {
@@ -2742,8 +2751,9 @@ class AdbService {
             }
 
             const cleanXmlBytes = new TextEncoder().encode(xmlText);
-            if (lowerName === 'description.xml') {
+            if (lowerName === 'description.xml' || lowerName.endsWith('/description.xml')) {
               files['description.xml'] = cleanXmlBytes;
+              files['Description.xml'] = cleanXmlBytes;
             }
             zip.file(cleanPath, cleanXmlBytes);
           } else if (!cleanPath.endsWith('.tryout') && cleanPath !== 'tried' && cleanPath !== 'tryoutData.json' && cleanPath !== 'icons_backup') {
