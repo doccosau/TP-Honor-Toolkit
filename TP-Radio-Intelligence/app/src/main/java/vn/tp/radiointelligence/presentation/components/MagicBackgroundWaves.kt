@@ -128,3 +128,4 @@ fun MagicBackgroundWaves(modifier: Modifier = Modifier) {
         )
     }
 }
+

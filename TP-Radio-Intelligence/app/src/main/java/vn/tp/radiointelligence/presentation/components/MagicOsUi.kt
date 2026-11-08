@@ -408,7 +408,9 @@ fun MagicCapsulePill(
                 text = text,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = accentColor
+                color = accentColor,
+                maxLines = 1,
+                softWrap = false
             )
         }
     }

@@ -35,6 +35,7 @@ import vn.tp.radiointelligence.presentation.components.SignalStrengthArcGauge
 import vn.tp.radiointelligence.presentation.components.SmartSimCard
 import vn.tp.radiointelligence.presentation.theme.*
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CellularScreen(
     state: CellularState,
@@ -115,7 +116,11 @@ fun CellularScreen(
                     Spacer(modifier = Modifier.height(10.dp))
                     Text("Băng tần phụ đang gộp (Carrier Aggregation):", fontSize = 12.sp, color = colors.textSecondary)
                     Spacer(modifier = Modifier.height(6.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
                         bts.secondaryBands.forEach { secBand ->
                             MagicCapsulePill(text = secBand, accentColor = HonorBlue)
                         }
@@ -198,15 +203,18 @@ fun CellularScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
                                         text = title,
                                         fontSize = 14.sp,
                                         fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Medium,
-                                        color = if (isChecked) HonorBlue else colors.textPrimary
+                                        color = if (isChecked) HonorBlue else colors.textPrimary,
+                                        modifier = Modifier.weight(1f, fill = false)
                                     )
+                                    Spacer(modifier = Modifier.width(6.dp))
                                     MagicCapsulePill(text = tagText, accentColor = tagColor)
                                 }
                                 Spacer(modifier = Modifier.height(2.dp))
