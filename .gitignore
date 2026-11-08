@@ -38,6 +38,7 @@ honor-theme-research*
 research/
 release/
 tp-honor-theme-toolkit/
+TP-Radio-Intelligence/
 
 # Wrangler local state
 .wrangler/
