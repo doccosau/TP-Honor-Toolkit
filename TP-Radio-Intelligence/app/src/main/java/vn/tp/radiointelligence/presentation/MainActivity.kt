@@ -218,6 +218,8 @@ fun MagicTopAppBar(
                             .background(HonorBlue)
                     )
                     Column {
+                        val deviceModel = Build.MODEL.takeIf { it.isNotBlank() } ?: "Device"
+                        val manufacturer = Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
                         Text(
                             text = stringResource(R.string.app_name),
                             fontSize = 18.sp,
@@ -225,7 +227,7 @@ fun MagicTopAppBar(
                             color = colors.textPrimary
                         )
                         Text(
-                            text = "Honor MagicOS Telecom Suite",
+                            text = "$manufacturer $deviceModel • Android ${Build.VERSION.RELEASE}",
                             fontSize = 11.sp,
                             color = colors.textSecondary
                         )

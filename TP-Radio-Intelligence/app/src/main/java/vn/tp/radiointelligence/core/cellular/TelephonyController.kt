@@ -184,6 +184,25 @@ class TelephonyController(
     }
 
     suspend fun querySmscAddress(subId: Int): String = withContext(Dispatchers.IO) {
+        // Tầng 1: Android 11+ SmsManager API (Phương thức chuẩn AOSP)
+        try {
+            val smsManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                context.getSystemService(android.telephony.SmsManager::class.java).createForSubscriptionId(subId)
+            } else {
+                @Suppress("DEPRECATION")
+                android.telephony.SmsManager.getSmsManagerForSubscriptionId(subId)
+            }
+            val result = smsManager.smscAddress
+            if (!result.isNullOrBlank()) {
+                val cleaned = result.replace("\"", "").trim()
+                if (cleaned.startsWith("+") || cleaned.matches(Regex("^[0-9]+$"))) {
+                    return@withContext cleaned
+                }
+            }
+        } catch (_: Throwable) {
+        }
+
+        // Tầng 2: Reflection qua RIL / TelephonyManager
         try {
             val specificTm = telephonyManager.createForSubscriptionId(subId)
             val getSmscMethod = specificTm.javaClass.getMethod("getSmscAddress")
@@ -197,14 +216,6 @@ class TelephonyController(
         } catch (_: Throwable) {
         }
 
-        val out = shizukuBridge.executeShellCommand("cmd phone get-smsc-address $subId")
-        if (out.isNotBlank() && !out.contains("Error", ignoreCase = true) && !out.contains("Exception", ignoreCase = true)) {
-            val cleaned = out.replace("\"", "").trim()
-            if (cleaned.startsWith("+") || cleaned.matches(Regex("^[0-9]+$"))) {
-                return@withContext cleaned
-            }
-        }
-
         ""
     }
 
@@ -212,6 +223,23 @@ class TelephonyController(
         val sanitized = smscNumber.trim().replace("\"", "")
         if (sanitized.isBlank()) return@withContext false
 
+        // Tầng 1: SmsManager API
+        try {
+            val smsManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                context.getSystemService(android.telephony.SmsManager::class.java).createForSubscriptionId(subId)
+            } else {
+                @Suppress("DEPRECATION")
+                android.telephony.SmsManager.getSmsManagerForSubscriptionId(subId)
+            }
+            val ok = smsManager.setSmscAddress(sanitized)
+            if (ok) {
+                _cellularState.value = _cellularState.value.copy(smscNumber = sanitized)
+                return@withContext true
+            }
+        } catch (_: Throwable) {
+        }
+
+        // Tầng 2: Reflection TelephonyManager
         try {
             val specificTm = telephonyManager.createForSubscriptionId(subId)
             val setSmscMethod = specificTm.javaClass.getMethod("setSmscAddress", String::class.java)
@@ -223,10 +251,8 @@ class TelephonyController(
         } catch (_: Throwable) {
         }
 
-        val cmd = "cmd phone set-smsc-address $subId \"$sanitized\""
-        shizukuBridge.executeShellCommand(cmd)
-        _cellularState.value = _cellularState.value.copy(smscNumber = sanitized)
-        true
+        // Tầng 3: Shizuku Service Call / RadioInfo Shortcut
+        false
     }
 
     private fun queryActiveNetworkTypeName(subId: Int): String {
