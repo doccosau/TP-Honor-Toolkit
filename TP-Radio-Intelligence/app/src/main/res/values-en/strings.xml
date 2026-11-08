@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TP Radio Intelligence</string>
+    <string name="app_subtitle">All-in-One Multi-Tier Wireless Spectrum Suite</string>
+
+    <!-- Navigation Tabs -->
+    <string name="tab_cellular">Cellular &amp; 4636</string>
+    <string name="tab_magicos">MagicOS Network</string>
+    <string name="tab_gnss">GPS Satellite</string>
+    <string name="tab_wifi">Wi-Fi 7 / MLO</string>
+    <string name="tab_bluetooth">Bluetooth Codec</string>
+
+    <!-- Shizuku Status -->
+    <string name="shizuku_connected">Shizuku Privileges: Connected (UID 2000)</string>
+    <string name="shizuku_disconnected">Shizuku Privileges: Not Authorized</string>
+    <string name="shizuku_request_permission">Grant Shizuku Permission</string>
+    <string name="shizuku_desc">Shizuku is required to control radio modem hardware and tweak MagicOS hidden network registries.</string>
+
+    <!-- Cellular Matrix -->
+    <string name="cellular_title">Cellular Matrix &amp; 4636 Menu</string>
+    <string name="cellular_sim_slot">SIM Slot %1$d (%2$s)</string>
+    <string name="cellular_no_sim">No SIM</string>
+    <string name="cellular_carrier">Carrier:</string>
+    <string name="cellular_network_type">Current Network Mode:</string>
+    <string name="cellular_lock_mode">Lock Network Mode:</string>
+    <string name="mode_5g_only">5G Only (NR Standalone SA)</string>
+    <string name="mode_4g_only">4G LTE Only (Low ping stability)</string>
+    <string name="mode_nr_lte">5G NR / 4G LTE (Anti-2G fake BTS)</string>
+    <string name="mode_auto">Carrier Default (Auto)</string>
+    <string name="action_restart_radio">Restart Radio Modem (2s)</string>
+    <string name="action_restart_radio_desc">Physical layer radio reset without toggling Airplane Mode</string>
+    <string name="radio_restarted_success">Radio restart signal dispatched successfully!</string>
+
+    <!-- SMSC Controller -->
+    <string name="smsc_title">SMS Service Center (SMSC)</string>
+    <string name="smsc_desc">Fix SMS dispatch failures (Error 38/28) caused by corrupted SMSC on MagicOS China builds.</string>
+    <string name="smsc_current">Current SMSC Number:</string>
+    <string name="smsc_input_hint">Enter SMSC number (+84...)</string>
+    <string name="smsc_apply_preset">Vietnam Carrier Presets:</string>
+    <string name="smsc_btn_update">Update SMSC</string>
+    <string name="smsc_updated_success">SMSC number updated successfully!</string>
+
+    <!-- Field Test BTS -->
+    <string name="field_test_title">BTS Base Station Field Test</string>
+    <string name="field_test_rsrp">Signal Strength (RSRP):</string>
+    <string name="field_test_rsrq">Signal Quality (RSRQ):</string>
+    <string name="field_test_sinr">Signal-to-Noise Ratio (SINR):</string>
+    <string name="field_test_band">Operating Band:</string>
+    <string name="field_test_distance">Estimated BTS Distance:</string>
+    <string name="field_test_ca">Carrier Aggregation (CA):</string>
+    <string name="field_test_ca_active">Aggregating (4G+/5G+)</string>
+    <string name="field_test_ca_inactive">Single Carrier</string>
+
+    <!-- MagicOS Hidden Registry -->
+    <string name="magicos_title">MagicOS Hidden Network Flags</string>
+    <string name="magicos_subtitle">Deep Honor Modem Optimization &amp; Velocity Unlocks</string>
+    <string name="magicos_link_turbo">Link Turbo Pro</string>
+    <string name="magicos_link_turbo_desc">Aggregates Wi-Fi + 5G/4G concurrently to eliminate handover latency.</string>
+    <string name="magicos_force_5g">Force Constant 5G</string>
+    <string name="magicos_force_5g_desc">Bypass Honor Smart 5G auto-downgrade to maintain peak throughput.</string>
+    <string name="magicos_dual_5g">Dual 5G on Both SIMs</string>
+    <string name="magicos_dual_5g_desc">Enable dual 5G standalone capability concurrently on SIM 1 and SIM 2.</string>
+    <string name="magicos_smart_dual_sim">Smart Dual-SIM Data Switching</string>
+    <string name="magicos_smart_dual_sim_desc">Automatically route traffic through backup SIM in 0.5s upon signal degradation.</string>
+    <string name="magicos_mobile_data_always_on">Mobile Data Always On</string>
+    <string name="magicos_mobile_data_always_on_desc">Maintain background cellular connection during Wi-Fi for 0ms handoff.</string>
+    <string name="magicos_anti_rogue_bts">Anti-Rogue Base Station Firewall</string>
+    <string name="magicos_anti_rogue_bts_desc">Activate Honor hardware filter rejecting fraudulent 2G spam transmitters.</string>
+
+    <!-- GNSS GPS Radar -->
+    <string name="gnss_title">GNSS Satellite Positioning &amp; Accelerator</string>
+    <string name="gnss_fast_lock">1-Tap Fast GPS Lock</string>
+    <string name="gnss_fast_lock_desc">Fix slow GPS locks on China ROMs due to unreachable A-GPS CDNs. Clears stale aiding data, injects fresh Qualcomm XTRA orbital ephemeris, and synchronizes atomic NTP time.</string>
+    <string name="gnss_btn_accelerate">Accelerate GPS Fix Now</string>
+    <string name="gnss_accelerated_success">XTRA ephemeris &amp; NTP time injected! GPS lock primed in 2-5 seconds.</string>
+    <string name="gnss_radar_title">GNSS SkyView Constellation Radar</string>
+    <string name="gnss_satellite_count">Satellites Tracked / Used:</string>
+    <string name="gnss_accuracy">Current Fix Accuracy:</string>
+    <string name="gnss_constellation_beidou">BeiDou (China)</string>
+    <string name="gnss_constellation_gps">GPS (USA)</string>
+    <string name="gnss_constellation_galileo">Galileo (EU)</string>
+    <string name="gnss_constellation_glonass">GLONASS (Russia)</string>
+    <string name="gnss_dual_frequency">Dual Frequency (L1+L5 / B1+B2a)</string>
+
+    <!-- Wi-Fi 7 -->
+    <string name="wifi_title">Wi-Fi 7 &amp; RF Spectrum</string>
+    <string name="wifi_ssid">Connected Network:</string>
+    <string name="wifi_band">Frequency Band:</string>
+    <string name="wifi_channel_width">Channel Bandwidth:</string>
+    <string name="wifi_mlo">Multi-Link Operation (MLO):</string>
+    <string name="wifi_mlo_active">MLO Active (2.4GHz + 5GHz/6GHz Multi-Link)</string>
+    <string name="wifi_mlo_inactive">Single Link</string>
+    <string name="wifi_link_speed">Theoretical Link Speed:</string>
+    <string name="wifi_ping_matrix">Real-Time Ping Matrix Test</string>
+    <string name="wifi_btn_ping">Run Ping Diagnostics</string>
+
+    <!-- Bluetooth -->
+    <string name="bt_title">Bluetooth Codec &amp; BLE Radar</string>
+    <string name="bt_codec_active">Active Audio Codec:</string>
+    <string name="bt_codec_l2hc">Honor L2HC (Ultra Hi-Res 1920 kbps)</string>
+    <string name="bt_codec_ldac">Sony LDAC (Hi-Res 990 kbps)</string>
+    <string name="bt_codec_aptx">Qualcomm aptX / Lossless</string>
+    <string name="bt_codec_standard">AAC / SBC Standard</string>
+    <string name="bt_sample_rate">Sample Rate:</string>
+    <string name="bt_bit_depth">Bit Depth:</string>
+    <string name="bt_radar_title">BLE Proximity Radar (Nearby Scan)</string>
+    <string name="bt_radar_scan">Start BLE Radar Scan</string>
+    <string name="bt_radar_stop">Stop Radar Scan</string>
+    <string name="bt_detected_devices">Detected Devices:</string>
+    <string name="bt_distance_approx">Estimated Distance:</string>
+
+    <!-- Common -->
+    <string name="common_status_active">Enabled</string>
+    <string name="common_status_inactive">Disabled</string>
+    <string name="common_save">Save Changes</string>
+    <string name="common_refresh">Refresh</string>
+    <string name="common_grant_permission">Grant Permissions</string>
+    <string name="permission_required_desc">Location and phone state permissions are required to inspect RF spectrum.</string>
+</resources>
+

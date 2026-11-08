@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TP Radio Intelligence</string>
+    <string name="app_subtitle">Bộ Công Cụ Chẩn Đoán &amp; Điều Khiển Vô Tuyến Đa Tầng</string>
+
+    <!-- Navigation Tabs -->
+    <string name="tab_cellular">Di Động &amp; 4636</string>
+    <string name="tab_magicos">Mạng MagicOS</string>
+    <string name="tab_gnss">Vệ Tinh GPS</string>
+    <string name="tab_wifi">Wi-Fi 7 / MLO</string>
+    <string name="tab_bluetooth">Bluetooth Codec</string>
+
+    <!-- Shizuku Status -->
+    <string name="shizuku_connected">Đặc quyền Shizuku: Đã kết nối (UID 2000)</string>
+    <string name="shizuku_disconnected">Đặc quyền Shizuku: Chưa cấp quyền</string>
+    <string name="shizuku_request_permission">Cấp quyền Shizuku</string>
+    <string name="shizuku_desc">Cần Shizuku để điều khiển modem vô tuyến và can thiệp cờ mạng ẩn hệ thống MagicOS.</string>
+
+    <!-- Cellular Matrix -->
+    <string name="cellular_title">Cellular Matrix &amp; Menu 4636</string>
+    <string name="cellular_sim_slot">Khe SIM %1$d (%2$s)</string>
+    <string name="cellular_no_sim">Không có SIM</string>
+    <string name="cellular_carrier">Nhà mạng:</string>
+    <string name="cellular_network_type">Chế độ mạng hiện tại:</string>
+    <string name="cellular_lock_mode">Khóa chế độ mạng:</string>
+    <string name="mode_5g_only">5G Only (NR Standalone SA)</string>
+    <string name="mode_4g_only">4G LTE Only (Ổn định ping cao)</string>
+    <string name="mode_nr_lte">5G NR / 4G LTE (Chống trạm giả 2G)</string>
+    <string name="mode_auto">Mặc định nhà mạng (Tự động)</string>
+    <string name="action_restart_radio">Khởi động lại sóng Radio (2s)</string>
+    <string name="action_restart_radio_desc">Reset modem sóng tầng vật lý không cần Bật/Tắt Chế độ máy bay</string>
+    <string name="radio_restarted_success">Đã gửi tín hiệu khởi động lại modem sóng!</string>
+
+    <!-- SMSC Controller -->
+    <string name="smsc_title">Trung Tâm Tin Nhắn (SMSC)</string>
+    <string name="smsc_desc">Sửa lỗi gửi SMS (Error 38/28) do máy Honor nội địa nhận sai đầu số trung tâm.</string>
+    <string name="smsc_current">Số SMSC hiện tại:</string>
+    <string name="smsc_input_hint">Nhập số SMSC (+84...)</string>
+    <string name="smsc_apply_preset">Nạp nhanh nhà mạng VN:</string>
+    <string name="smsc_btn_update">Cập nhật SMSC</string>
+    <string name="smsc_updated_success">Đã cập nhật số SMSC thành công!</string>
+
+    <!-- Field Test BTS -->
+    <string name="field_test_title">Field Test Trạm Phát Sóng BTS</string>
+    <string name="field_test_rsrp">Cường độ sóng (RSRP):</string>
+    <string name="field_test_rsrq">Chất lượng tín hiệu (RSRQ):</string>
+    <string name="field_test_sinr">Tỷ lệ tín hiệu/nhiễu (SINR):</string>
+    <string name="field_test_band">Băng tần (Band):</string>
+    <string name="field_test_distance">Ước tính khoảng cách trạm:</string>
+    <string name="field_test_ca">Gộp sóng đa băng tần (CA):</string>
+    <string name="field_test_ca_active">Đang gộp sóng (4G+/5G+)</string>
+    <string name="field_test_ca_inactive">Băng tần đơn</string>
+
+    <!-- MagicOS Hidden Registry -->
+    <string name="magicos_title">Cờ Mạng Ẩn MagicOS</string>
+    <string name="magicos_subtitle">Tối ưu hóa sâu modem Honor &amp; Đột phá tốc độ</string>
+    <string name="magicos_link_turbo">Link Turbo Pro</string>
+    <string name="magicos_link_turbo_desc">Ép gộp đồng thời Wi-Fi + 5G/4G để triệt tiêu độ trễ khi chuyển mạng.</string>
+    <string name="magicos_force_5g">Ép 5G Toàn Thời Gian</string>
+    <string name="magicos_force_5g_desc">Tắt cơ chế tự động hạ 4G tiết kiệm pin của Honor (Smart 5G bypass).</string>
+    <string name="magicos_dual_5g">Dual 5G Kép Cả 2 SIM</string>
+    <string name="magicos_dual_5g_desc">Mở khóa modem 5G hoạt động cùng lúc trên cả 2 khe SIM.</string>
+    <string name="magicos_smart_dual_sim">Chuyển SIM Data Thông Minh</string>
+    <string name="magicos_smart_dual_sim_desc">Tự động nhảy sang SIM dự phòng trong 0.5s khi SIM chính chập chờn sóng.</string>
+    <string name="magicos_mobile_data_always_on">Dữ liệu di động luôn bật</string>
+    <string name="magicos_mobile_data_always_on_desc">Duy trì kết nối ngầm 4G/5G khi dùng Wi-Fi, chuyển sóng 0ms khi ra ngoài.</string>
+    <string name="magicos_anti_rogue_bts">Tường Lửa Chống Trạm BTS Giả</string>
+    <string name="magicos_anti_rogue_bts_desc">Kích hoạt bộ lọc phần cứng Honor từ chối trạm 2G giả mạo phát tán tin nhắn rác.</string>
+
+    <!-- GNSS GPS Radar -->
+    <string name="gnss_title">Định Vị Vệ Tinh GNSS &amp; Tăng Tốc</string>
+    <string name="gnss_fast_lock">Tăng Tốc Bắt GPS 1 Chạm</string>
+    <string name="gnss_fast_lock_desc">Khắc phục triệt để lỗi bắt GPS chậm trên máy Honor nội địa do lệch máy chủ A-GPS. Xóa dữ liệu lỗi, nạp dữ liệu quỹ đạo vệ tinh XTRA mới và đồng bộ giờ nguyên tử NTP.</string>
+    <string name="gnss_btn_accelerate">Tăng tốc bắt GPS ngay</string>
+    <string name="gnss_accelerated_success">Đã bơm dữ liệu XTRA &amp; đồng bộ NTP thành công! GPS sẵn sàng bắt trong 2-5s.</string>
+    <string name="gnss_radar_title">Radar Bầu Trời Vệ Tinh (SkyView)</string>
+    <string name="gnss_satellite_count">Số vệ tinh nhìn thấy / Sử dụng:</string>
+    <string name="gnss_accuracy">Độ chính xác hiện tại:</string>
+    <string name="gnss_constellation_beidou">Bắc Đẩu (BeiDou)</string>
+    <string name="gnss_constellation_gps">GPS (Mỹ)</string>
+    <string name="gnss_constellation_galileo">Galileo (EU)</string>
+    <string name="gnss_constellation_glonass">GLONASS (Nga)</string>
+    <string name="gnss_dual_frequency">Băng tần kép (Dual-Freq L1+L5 / B1+B2a)</string>
+
+    <!-- Wi-Fi 7 -->
+    <string name="wifi_title">Wi-Fi 7 &amp; Phổ Sóng Vô Tuyến</string>
+    <string name="wifi_ssid">Mạng đang kết nối:</string>
+    <string name="wifi_band">Băng tần:</string>
+    <string name="wifi_channel_width">Băng thông kênh:</string>
+    <string name="wifi_mlo">Đa liên kết MLO (Multi-Link):</string>
+    <string name="wifi_mlo_active">Đang kích hoạt MLO (Gộp 2.4GHz + 5GHz/6GHz)</string>
+    <string name="wifi_mlo_inactive">Băng tần đơn</string>
+    <string name="wifi_link_speed">Tốc độ liên kết lý thuyết:</string>
+    <string name="wifi_ping_matrix">Đo Kiểm Độ Trễ Ping Trực Tiếp</string>
+    <string name="wifi_btn_ping">Chạy kiểm tra Ping</string>
+
+    <!-- Bluetooth -->
+    <string name="bt_title">Bluetooth Codec &amp; BLE Radar</string>
+    <string name="bt_codec_active">Codec âm thanh đang hoạt động:</string>
+    <string name="bt_codec_l2hc">Honor L2HC (Ultra Hi-Res 1920 kbps)</string>
+    <string name="bt_codec_ldac">Sony LDAC (Hi-Res 990 kbps)</string>
+    <string name="bt_codec_aptx">Qualcomm aptX / Lossless</string>
+    <string name="bt_codec_standard">AAC / SBC Tiêu chuẩn</string>
+    <string name="bt_sample_rate">Tần số lấy mẫu:</string>
+    <string name="bt_bit_depth">Độ sâu bit:</string>
+    <string name="bt_radar_title">BLE Proximity Radar (Quét thiết bị lân cận)</string>
+    <string name="bt_radar_scan">Bắt đầu quét sóng BLE</string>
+    <string name="bt_radar_stop">Dừng quét</string>
+    <string name="bt_detected_devices">Thiết bị phát hiện:</string>
+    <string name="bt_distance_approx">Khoảng cách ước tính:</string>
+
+    <!-- Common -->
+    <string name="common_status_active">Bật</string>
+    <string name="common_status_inactive">Tắt</string>
+    <string name="common_save">Lưu cấu hình</string>
+    <string name="common_refresh">Làm mới</string>
+    <string name="common_grant_permission">Cấp quyền</string>
+    <string name="permission_required_desc">Ứng dụng cần các quyền vị trí và điện thoại để đọc thông số sóng vô tuyến.</string>
+</resources>
+
