@@ -2,13 +2,19 @@ package vn.tp.radiointelligence.core.cellular
 
 import android.content.Context
 import android.os.Build
+import android.telephony.CellIdentityGsm
 import android.telephony.CellIdentityLte
 import android.telephony.CellIdentityNr
+import android.telephony.CellIdentityWcdma
 import android.telephony.CellInfo
+import android.telephony.CellInfoGsm
 import android.telephony.CellInfoLte
 import android.telephony.CellInfoNr
+import android.telephony.CellInfoWcdma
+import android.telephony.CellSignalStrengthGsm
 import android.telephony.CellSignalStrengthLte
 import android.telephony.CellSignalStrengthNr
+import android.telephony.CellSignalStrengthWcdma
 import android.telephony.SubscriptionInfo
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
@@ -32,6 +38,17 @@ class TelephonyController(
 
     private val _cellularState = MutableStateFlow(CellularState())
     val cellularState: StateFlow<CellularState> = _cellularState.asStateFlow()
+
+    companion object {
+        // Telephony bitmask constants
+        const val BITMASK_LTE = 4096L
+        const val BITMASK_LTE_CA = 262144L
+        const val BITMASK_NR = 524288L
+        const val BITMASK_4G_ONLY = BITMASK_LTE or BITMASK_LTE_CA // 266240L
+        const val BITMASK_5G_ONLY = BITMASK_NR // 524288L
+        const val BITMASK_NR_LTE = BITMASK_NR or BITMASK_4G_ONLY // 790528L
+        const val BITMASK_ALL_AUTO = -1L
+    }
 
     suspend fun refreshAll() = withContext(Dispatchers.IO) {
         val slots = querySimSlots()
@@ -70,19 +87,17 @@ class TelephonyController(
                         SimSlotInfo(
                             slotIndex = sub.simSlotIndex,
                             subId = sub.subscriptionId,
-                            carrierName = sub.carrierName?.toString() ?: "SIM ${sub.simSlotIndex + 1}",
-                            displayName = sub.displayName?.toString() ?: "SIM ${sub.simSlotIndex + 1}",
+                            carrierName = sub.carrierName?.toString()?.takeIf { it.isNotBlank() } ?: "SIM ${sub.simSlotIndex + 1}",
+                            displayName = sub.displayName?.toString()?.takeIf { it.isNotBlank() } ?: "SIM ${sub.simSlotIndex + 1}",
                             isDataActive = (sub.subscriptionId == SubscriptionManager.getDefaultDataSubscriptionId())
                         )
                     )
                 }
             }
         } catch (_: SecurityException) {
+        } catch (_: Throwable) {
         }
 
-        if (list.isEmpty()) {
-            list.add(SimSlotInfo(0, 1, "Viettel / VinaPhone", "SIM 1", true))
-        }
         return list.sortedBy { it.slotIndex }
     }
 
@@ -95,27 +110,57 @@ class TelephonyController(
         return NetworkModeLock.fromCode(code)
     }
 
-    suspend fun setPreferredNetworkMode(subId: Int, mode: NetworkModeLock): Boolean {
-        val cmdPhone = "cmd phone set-preferred-network-type $subId ${mode.code}"
-        val cmdSettingsSub = "settings put global preferred_network_mode$subId ${mode.code}"
-        val cmdSettingsGlobal = "settings put global preferred_network_mode ${mode.code}"
+    suspend fun setPreferredNetworkMode(subId: Int, slotIndex: Int, mode: NetworkModeLock): Boolean = withContext(Dispatchers.IO) {
+        // Multi-layer enforcement:
+        // 1. Android 11+ AOSP official command: cmd phone set-allowed-network-types-for-users
+        val bitmask = when (mode) {
+            NetworkModeLock.MODE_5G_ONLY -> BITMASK_5G_ONLY
+            NetworkModeLock.MODE_4G_ONLY -> BITMASK_4G_ONLY
+            NetworkModeLock.MODE_NR_LTE -> BITMASK_NR_LTE
+            NetworkModeLock.MODE_AUTO -> BITMASK_ALL_AUTO
+        }
 
-        shizukuBridge.executeShellCommand(cmdPhone)
-        shizukuBridge.executeShellCommand(cmdSettingsSub)
-        shizukuBridge.executeShellCommand(cmdSettingsGlobal)
+        if (bitmask != -1L) {
+            shizukuBridge.executeShellCommand("cmd phone set-allowed-network-types-for-users -s $slotIndex $bitmask")
+        }
+
+        // 2. Standard RIL Shell command
+        shizukuBridge.executeShellCommand("cmd phone set-preferred-network-type $subId ${mode.code}")
+
+        // 3. Global settings database persistence
+        shizukuBridge.executeShellCommand("settings put global preferred_network_mode$subId ${mode.code}")
+        shizukuBridge.executeShellCommand("settings put global preferred_network_mode ${mode.code}")
 
         _cellularState.value = _cellularState.value.copy(currentPreferredMode = mode)
-        return true
+        true
     }
 
-    suspend fun restartRadioModem(subId: Int): Boolean {
+    suspend fun restartRadioModem(subId: Int): Boolean = withContext(Dispatchers.IO) {
         val cmd = "cmd phone set-radio-power $subId false && sleep 1 && cmd phone set-radio-power $subId true"
         shizukuBridge.executeShellCommand(cmd)
         refreshAll()
-        return true
+        true
+    }
+
+    suspend fun launchNativeRadioInfo(): Boolean = withContext(Dispatchers.IO) {
+        val cmd = "am start -n com.android.settings/.RadioInfo || am start -n com.android.phone/.settings.RadioInfo"
+        val res = shizukuBridge.executeShellCommand(cmd)
+        !res.contains("Error", ignoreCase = true)
     }
 
     private suspend fun querySmscAddress(subId: Int): String {
+        // 1. Try reflection on TelephonyManager
+        try {
+            val specificTm = telephonyManager.createForSubscriptionId(subId)
+            val getSmscMethod = specificTm.javaClass.getMethod("getSmscAddress")
+            val result = getSmscMethod.invoke(specificTm) as? String
+            if (!result.isNullOrBlank()) {
+                return result.replace("\"", "").trim()
+            }
+        } catch (_: Throwable) {
+        }
+
+        // 2. Try Shizuku shell commands
         val out = shizukuBridge.executeShellCommand("cmd phone get-smsc-address $subId")
         if (out.isNotBlank() && !out.contains("Error", ignoreCase = true) && !out.contains("Exception", ignoreCase = true)) {
             val cleaned = out.replace("\"", "").trim()
@@ -123,15 +168,31 @@ class TelephonyController(
                 return cleaned
             }
         }
-        return "+84980000015" // Viettel default fallback
+
+        return ""
     }
 
-    suspend fun updateSmscAddress(subId: Int, smscNumber: String): Boolean {
+    suspend fun updateSmscAddress(subId: Int, smscNumber: String): Boolean = withContext(Dispatchers.IO) {
         val sanitized = smscNumber.trim().replace("\"", "")
+        if (sanitized.isBlank()) return@withContext false
+
+        // 1. Try reflection on TelephonyManager
+        try {
+            val specificTm = telephonyManager.createForSubscriptionId(subId)
+            val setSmscMethod = specificTm.javaClass.getMethod("setSmscAddress", String::class.java)
+            val ok = setSmscMethod.invoke(specificTm, sanitized) as? Boolean
+            if (ok == true) {
+                _cellularState.value = _cellularState.value.copy(smscNumber = sanitized)
+                return@withContext true
+            }
+        } catch (_: Throwable) {
+        }
+
+        // 2. Shizuku privileged shell fallback
         val cmd = "cmd phone set-smsc-address $subId \"$sanitized\""
         shizukuBridge.executeShellCommand(cmd)
         _cellularState.value = _cellularState.value.copy(smscNumber = sanitized)
-        return true
+        true
     }
 
     private fun queryActiveNetworkTypeName(subId: Int): String {
@@ -142,14 +203,14 @@ class TelephonyController(
                 TelephonyManager.NETWORK_TYPE_LTE -> "4G LTE Advanced"
                 TelephonyManager.NETWORK_TYPE_HSPAP, TelephonyManager.NETWORK_TYPE_HSPA -> "3G HSPA+"
                 TelephonyManager.NETWORK_TYPE_EDGE, TelephonyManager.NETWORK_TYPE_GPRS -> "2G GSM"
-                else -> "4G LTE / 5G NR"
+                else -> "Không có sóng Data"
             }
         } catch (_: Throwable) {
-            "4G LTE / 5G NR"
+            "Chưa xác định"
         }
     }
 
-    private fun queryBtsCellData(subId: Int): BtsCellData {
+    private fun queryBtsCellData(subId: Int): BtsCellData? {
         try {
             val specificTm = telephonyManager.createForSubscriptionId(subId)
             val cellInfoList: List<CellInfo>? = specificTm.allCellInfo
@@ -163,9 +224,9 @@ class TelephonyController(
                         val signal = cell.cellSignalStrength as? CellSignalStrengthNr
                         val nrarfcn = identity?.nrarfcn ?: 0
                         val bandName = calculateNrBand(nrarfcn)
-                        val rsrp = signal?.ssRsrp ?: signal?.csiRsrp ?: -95
-                        val rsrq = signal?.ssRsrq ?: signal?.csiRsrq ?: -10
-                        val sinr = signal?.ssSinr ?: signal?.csiSinr ?: 15
+                        val rsrp = signal?.ssRsrp?.takeIf { it in -140..-44 } ?: signal?.csiRsrp?.takeIf { it in -140..-44 } ?: -100
+                        val rsrq = signal?.ssRsrq?.takeIf { it in -20..-3 } ?: signal?.csiRsrq?.takeIf { it in -20..-3 } ?: -10
+                        val sinr = signal?.ssSinr?.takeIf { it in -23..40 } ?: signal?.csiSinr?.takeIf { it in -23..40 } ?: 10
                         val pci = identity?.pci ?: 0
 
                         if (cell.isRegistered && primaryCell == null) {
@@ -190,10 +251,10 @@ class TelephonyController(
                         val signal = cell.cellSignalStrength as? CellSignalStrengthLte
                         val earfcn = identity?.earfcn ?: 0
                         val bandName = calculateLteBand(earfcn)
-                        val rsrp = signal?.rsrp ?: -98
-                        val rsrq = signal?.rsrq ?: -11
-                        val sinr = signal?.rssnr ?: 12
-                        val ta = signal?.timingAdvance?.takeIf { it in 0..1282 } ?: 4
+                        val rsrp = signal?.rsrp?.takeIf { it in -140..-44 } ?: -105
+                        val rsrq = signal?.rsrq?.takeIf { it in -20..-3 } ?: -12
+                        val sinr = signal?.rssnr?.takeIf { it in -23..40 } ?: 10
+                        val ta = signal?.timingAdvance?.takeIf { it in 0..1282 } ?: 0
                         val pci = identity?.pci ?: 0
 
                         if (cell.isRegistered && primaryCell == null) {
@@ -213,6 +274,48 @@ class TelephonyController(
                         } else {
                             secondaryBands.add(bandName)
                         }
+                    } else if (cell is CellInfoWcdma) {
+                        val identity = cell.cellIdentity as? CellIdentityWcdma
+                        val signal = cell.cellSignalStrength as? CellSignalStrengthWcdma
+                        val uarfcn = identity?.uarfcn ?: 0
+                        val rscp = signal?.dbm ?: -100
+                        val psc = identity?.psc ?: 0
+                        if (cell.isRegistered && primaryCell == null) {
+                            primaryCell = BtsCellData(
+                                cellType = "3G WCDMA",
+                                pci = psc,
+                                arfcn = uarfcn,
+                                bandName = "3G UARFCN $uarfcn",
+                                rsrp = rscp,
+                                rsrq = -10,
+                                sinr = 5,
+                                timingAdvance = 0,
+                                distanceMeters = 0.0,
+                                isCarrierAggregation = false,
+                                secondaryBands = emptyList()
+                            )
+                        }
+                    } else if (cell is CellInfoGsm) {
+                        val identity = cell.cellIdentity as? CellIdentityGsm
+                        val signal = cell.cellSignalStrength as? CellSignalStrengthGsm
+                        val arfcn = identity?.arfcn ?: 0
+                        val rssi = signal?.dbm ?: -95
+                        val ta = signal?.timingAdvance?.takeIf { it in 0..63 } ?: 0
+                        if (cell.isRegistered && primaryCell == null) {
+                            primaryCell = BtsCellData(
+                                cellType = "2G GSM",
+                                pci = identity?.cid ?: 0,
+                                arfcn = arfcn,
+                                bandName = "2G ARFCN $arfcn",
+                                rsrp = rssi,
+                                rsrq = 0,
+                                sinr = 0,
+                                timingAdvance = ta,
+                                distanceMeters = ta * 550.0,
+                                isCarrierAggregation = false,
+                                secondaryBands = emptyList()
+                            )
+                        }
                     }
                 }
 
@@ -228,49 +331,38 @@ class TelephonyController(
         } catch (_: Throwable) {
         }
 
-        // Default telemetry fallback for demonstration/no-permission
-        return BtsCellData(
-            cellType = "4G LTE (Carrier Aggregation)",
-            pci = 312,
-            arfcn = 1650,
-            bandName = "B3 (1800 MHz) + B1 (2100 MHz)",
-            rsrp = -88,
-            rsrq = -9,
-            sinr = 16,
-            timingAdvance = 4,
-            distanceMeters = 312.48,
-            isCarrierAggregation = true,
-            secondaryBands = listOf("B1 (2100 MHz)", "B7 (2600 MHz)")
-        )
+        // Return null when real data is unavailable (NO MOCK DATA)
+        return null
     }
 
     private fun calculateLteBand(earfcn: Int): String {
         return when (earfcn) {
-            in 0..599 -> "B1 (2100 MHz)"
-            in 600..1199 -> "B2 (1900 MHz)"
-            in 1200..1949 -> "B3 (1800 MHz)"
-            in 2750..3449 -> "B7 (2600 MHz)"
-            in 3450..3799 -> "B8 (900 MHz)"
-            in 6150..6449 -> "B20 (800 MHz)"
-            in 9210..9659 -> "B28 (700 MHz)"
+            in 0..599 -> "B1 (2100 MHz FDD)"
+            in 600..1199 -> "B2 (1900 MHz FDD)"
+            in 1200..1949 -> "B3 (1800 MHz FDD)"
+            in 1950..2399 -> "B4 (AWS-1 1700/2100 MHz)"
+            in 2400..2649 -> "B5 (850 MHz FDD)"
+            in 2750..3449 -> "B7 (2600 MHz FDD)"
+            in 3450..3799 -> "B8 (900 MHz FDD)"
+            in 6150..6449 -> "B20 (800 MHz DD)"
+            in 9210..9659 -> "B28 (700 MHz APT)"
             in 37750..38249 -> "B38 (2600 MHz TDD)"
             in 38650..39649 -> "B40 (2300 MHz TDD)"
-            in 39650..41589 -> "B41 (2500 MHz TDD)"
-            else -> "LTE ($earfcn)"
+            in 39650..41589 -> "B41 (2500 MHz BRS/EBS TDD)"
+            else -> "LTE EARFCN $earfcn"
         }
     }
 
     private fun calculateNrBand(nrarfcn: Int): String {
         return when (nrarfcn) {
-            in 422000..434000 -> "n1 (2100 MHz)"
-            in 361000..376000 -> "n3 (1800 MHz)"
-            in 140000..156000 -> "n28 (700 MHz)"
-            in 499200..537999 -> "n41 (2500 MHz)"
-            in 620000..680000 -> "n77 (3700 MHz)"
-            in 620000..653333 -> "n78 (3500 MHz)"
-            in 693333..733333 -> "n79 (4700 MHz)"
-            else -> "5G NR ($nrarfcn)"
+            in 422000..434000 -> "n1 (2100 MHz FDD)"
+            in 361000..376000 -> "n3 (1800 MHz FDD)"
+            in 140000..156000 -> "n28 (700 MHz APT)"
+            in 499200..537999 -> "n41 (2500 MHz TDD)"
+            in 620000..680000 -> "n77 (3700 MHz C-Band)"
+            in 620000..653333 -> "n78 (3500 MHz C-Band)"
+            in 693333..733333 -> "n79 (4700 MHz TDD)"
+            else -> "5G NR ARFCN $nrarfcn"
         }
     }
 }
-

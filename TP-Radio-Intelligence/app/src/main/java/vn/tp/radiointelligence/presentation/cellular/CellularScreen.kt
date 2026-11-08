@@ -1,6 +1,5 @@
 package vn.tp.radiointelligence.presentation.cellular
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -9,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CellTower
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.SimCard
@@ -37,6 +37,7 @@ fun CellularScreen(
     onSelectSlot: (Int) -> Unit,
     onSetLockMode: (NetworkModeLock) -> Unit,
     onRestartRadio: () -> Unit,
+    onLaunchNativeRadioInfo: () -> Unit,
     onUpdateSmsc: (String) -> Unit
 ) {
     val scrollState = rememberScrollState()
@@ -119,7 +120,7 @@ fun CellularScreen(
             }
         ) {
             Text(
-                text = "Modem đang kết nối trực tiếp với trạm vô tuyến di động. Băng tần và công nghệ mạng được cập nhật theo chu kỳ 1 giây.",
+                text = "Modem đang kết nối trực tiếp với trạm vô tuyến di động. Băng tần và công nghệ mạng được cập nhật thời gian thực.",
                 fontSize = 12.sp,
                 color = MagicTextSecondary,
                 lineHeight = 16.sp
@@ -177,13 +178,29 @@ fun CellularScreen(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                MagicOsButton(
-                    text = stringResource(R.string.action_restart_radio),
-                    brush = MagicCardGradient,
-                    onClick = onRestartRadio,
-                    icon = Icons.Default.Refresh,
-                    textColor = MagicCyan
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        MagicOsButton(
+                            text = "Reset Radio (2s)",
+                            brush = MagicCardGradient,
+                            onClick = onRestartRadio,
+                            icon = Icons.Default.Refresh,
+                            textColor = MagicCyan
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        MagicOsButton(
+                            text = "Menu 4636 Gốc",
+                            brush = MagicCardGradient,
+                            onClick = onLaunchNativeRadioInfo,
+                            icon = Icons.Default.OpenInNew,
+                            textColor = MagicEmerald
+                        )
+                    }
+                }
             }
         }
 
@@ -274,7 +291,8 @@ fun CellularScreen(
         }
 
         // BTS Base Station Field Test Card
-        state.btsInfo?.let { bts ->
+        if (state.btsInfo != null) {
+            val bts = state.btsInfo
             MagicOsCard(
                 pillColor = MagicEmerald,
                 title = stringResource(R.string.field_test_title),
@@ -333,7 +351,7 @@ fun CellularScreen(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(stringResource(R.string.field_test_distance), fontSize = 13.sp, color = MagicTextSecondary)
                     Text(
-                        text = "~${String.format("%.1f", bts.distanceMeters)} m (TA: ${bts.timingAdvance})",
+                        text = if (bts.timingAdvance > 0) "~${String.format("%.1f", bts.distanceMeters)} m (TA: ${bts.timingAdvance})" else "Không xác định",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MagicTextPrimary,
@@ -351,6 +369,18 @@ fun CellularScreen(
                         }
                     }
                 }
+            }
+        } else {
+            MagicOsCard(
+                pillColor = MagicAmber,
+                title = stringResource(R.string.field_test_title)
+            ) {
+                Text(
+                    text = "Đang đọc tín hiệu trạm phát BTS vô tuyến từ modem... Đảm bảo máy đã cắm SIM hoạt động và đã cấp quyền Vị trí (ACCESS_FINE_LOCATION).",
+                    fontSize = 12.sp,
+                    color = MagicTextSecondary,
+                    lineHeight = 16.sp
+                )
             }
         }
     }

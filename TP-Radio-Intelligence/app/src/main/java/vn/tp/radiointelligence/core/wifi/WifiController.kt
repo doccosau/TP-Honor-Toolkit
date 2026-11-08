@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.wifi.MloLink
-import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
 import kotlinx.coroutines.Dispatchers
@@ -32,12 +31,13 @@ class WifiController(
         val isWifi = caps?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
 
         if (!isWifi) {
-            _wifiState.value = WifiState(isConnected = false)
+            _wifiState.value = WifiState(isConnected = false, ssid = "<Chưa kết nối Wi-Fi>")
             return@withContext
         }
 
+        @Suppress("DEPRECATION")
         val info = wifiManager.connectionInfo
-        val ssid = info.ssid?.replace("\"", "") ?: "<Ẩn>"
+        val ssid = info.ssid?.replace("\"", "")?.takeIf { it != "<unknown ssid>" } ?: "Mạng Wi-Fi Không Xác Định"
         val bssid = info.bssid ?: "--:--:--:--:--:--"
         val freq = info.frequency
         val rssi = info.rssi
@@ -49,7 +49,7 @@ class WifiController(
                 6 -> "Wi-Fi 6 (802.11ax)"
                 5 -> "Wi-Fi 5 (802.11ac)"
                 4 -> "Wi-Fi 4 (802.11n)"
-                else -> if (freq > 5925) "Wi-Fi 6E/7 (6 GHz)" else "Wi-Fi Standard"
+                else -> if (freq > 5925) "Wi-Fi 6E/7 (6 GHz)" else "Wi-Fi Tiêu Chuẩn"
             }
         } else {
             if (freq > 5925) "Wi-Fi 6E (6 GHz)" else if (freq > 4900) "Wi-Fi 5 GHz" else "Wi-Fi 2.4 GHz"
@@ -74,21 +74,14 @@ class WifiController(
                         val bandDesc = when (link.band) {
                             1 -> "2.4 GHz"
                             2 -> "5 GHz"
-                            8 -> "6 GHz (Wi-Fi 7)"
+                            8 -> "6 GHz"
                             else -> "Băng tần ${link.band}"
                         }
-                        affiliatedLinks.add("Liên kết #${link.linkId}: $bandDesc | Kênh ${link.channel} (${link.rxLinkSpeedMbps} Mbps, ${link.rssi} dBm)")
+                        affiliatedLinks.add("Liên kết #${link.linkId}: $bandDesc (Kênh ${link.channel}, ${link.rxLinkSpeedMbps} Mbps, ${link.rssi} dBm)")
                     }
                 }
             } catch (_: Throwable) {
             }
-        }
-
-        if (affiliatedLinks.isEmpty() && standard.contains("Wi-Fi 7")) {
-            // High-fidelity MLO link representation for Qualcomm FastConnect 7800
-            affiliatedLinks.add("Liên kết #1: 5.2 GHz (160 MHz - 2402 Mbps, -48 dBm)")
-            affiliatedLinks.add("Liên kết #2: 2.4 GHz (40 MHz - 574 Mbps, -42 dBm)")
-            isMloActive = true
         }
 
         _wifiState.value = _wifiState.value.copy(
@@ -100,7 +93,7 @@ class WifiController(
             channelWidthMhz = widthMhz,
             linkSpeedMbps = speed,
             rssiDbm = rssi,
-            isMloSupported = true,
+            isMloSupported = (standard.contains("Wi-Fi 7")),
             isMloActive = isMloActive,
             mloAffiliatedLinks = affiliatedLinks
         )
@@ -149,6 +142,7 @@ class WifiController(
 
     private fun getGatewayIp(): String {
         return try {
+            @Suppress("DEPRECATION")
             val dhcp = wifiManager.dhcpInfo
             val gateway = dhcp.gateway
             if (gateway != 0) {

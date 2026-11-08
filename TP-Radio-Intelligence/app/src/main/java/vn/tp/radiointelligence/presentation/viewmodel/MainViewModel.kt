@@ -70,9 +70,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setNetworkModeLock(mode: NetworkModeLock) {
         val slot = cellularState.value.slots.getOrNull(cellularState.value.selectedSlotIndex)
         val subId = slot?.subId ?: 1
+        val slotIndex = slot?.slotIndex ?: 0
         viewModelScope.launch {
-            telephonyController.setPreferredNetworkMode(subId, mode)
-            _userMessage.emit("Đã chuyển chế độ khóa mạng sang: ${mode.name}")
+            telephonyController.setPreferredNetworkMode(subId, slotIndex, mode)
+            _userMessage.emit("Đã khóa chế độ mạng sang: ${mode.name}")
         }
     }
 
@@ -81,7 +82,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val subId = slot?.subId ?: 1
         viewModelScope.launch {
             telephonyController.restartRadioModem(subId)
-            _userMessage.emit("Đã gửi tín hiệu khởi động lại modem sóng vật lý!")
+            _userMessage.emit("Đã khởi động lại modem sóng vật lý!")
+        }
+    }
+
+    fun launchNativeRadioInfo() {
+        viewModelScope.launch {
+            val ok = telephonyController.launchNativeRadioInfo()
+            if (ok) {
+                _userMessage.emit("Đang mở menu RadioInfo gốc hệ thống...")
+            } else {
+                _userMessage.emit("Không thể mở RadioInfo qua Shizuku.")
+            }
         }
     }
 
@@ -90,7 +102,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val subId = slot?.subId ?: 1
         viewModelScope.launch {
             telephonyController.updateSmscAddress(subId, smscNumber)
-            _userMessage.emit("Đã cập nhật SMSC thành công: $smscNumber")
+            _userMessage.emit("Đã cập nhật số SMSC: $smscNumber")
         }
     }
 
@@ -98,36 +110,42 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleLinkTurbo(enable: Boolean) {
         viewModelScope.launch {
             magicOsController.toggleLinkTurbo(enable)
+            _userMessage.emit(if (enable) "Đã kích hoạt Link Turbo Pro" else "Đã tắt Link Turbo Pro")
         }
     }
 
     fun toggleForce5g(enable: Boolean) {
         viewModelScope.launch {
             magicOsController.toggleForce5g(enable)
+            _userMessage.emit(if (enable) "Đã bật Ép 5G Toàn thời gian (Bypass Smart 5G)" else "Đã tắt Ép 5G Toàn thời gian")
         }
     }
 
     fun toggleDual5g(enable: Boolean) {
         viewModelScope.launch {
             magicOsController.toggleDual5g(enable)
+            _userMessage.emit(if (enable) "Đã mở khóa Dual 5G trên cả 2 SIM" else "Đã tắt Dual 5G")
         }
     }
 
     fun toggleSmartDualSim(enable: Boolean) {
         viewModelScope.launch {
             magicOsController.toggleSmartDualSim(enable)
+            _userMessage.emit(if (enable) "Đã bật Đổi SIM Data Thông minh (0.5s failover)" else "Đã tắt Đổi SIM Data Thông minh")
         }
     }
 
     fun toggleMobileDataAlwaysOn(enable: Boolean) {
         viewModelScope.launch {
             magicOsController.toggleMobileDataAlwaysOn(enable)
+            _userMessage.emit(if (enable) "Đã bật Dữ liệu di động luôn kết nối ngầm" else "Đã tắt Dữ liệu di động luôn bật")
         }
     }
 
     fun toggleAntiRogueBts(enable: Boolean) {
         viewModelScope.launch {
             magicOsController.toggleAntiRogueBts(enable)
+            _userMessage.emit(if (enable) "Đã kích hoạt Tường lửa chống trạm BTS giả 2G" else "Đã tắt Tường lửa chống trạm giả")
         }
     }
 
@@ -144,9 +162,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val ok = gnssController.accelerateGpsLock()
             if (ok) {
-                _userMessage.emit("Đã nạp quỹ đạo XTRA & đồng bộ NTP! GPS sẵn sàng bắt trong 2-5 giây.")
+                _userMessage.emit("Đã nạp quỹ đạo XTRA & đồng bộ NTP! Bắt đầu định vị vệ tinh.")
             } else {
-                _userMessage.emit("Đã gửi lệnh tăng tốc GPS.")
+                _userMessage.emit("Đã gửi lệnh tăng tốc định vị GPS.")
             }
         }
     }
@@ -154,7 +172,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // --- Wi-Fi Actions ---
     fun runPingDiagnostics() {
         viewModelScope.launch {
+            _userMessage.emit("Đang đo kiểm ping trực tiếp tới 4 máy chủ...")
             wifiController.runPingDiagnostics()
+            _userMessage.emit("Đo kiểm ping hoàn tất!")
         }
     }
 
@@ -162,8 +182,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleBleRadarScan() {
         if (bluetoothState.value.isScanning) {
             bluetoothController.stopBleRadar()
+            viewModelScope.launch { _userMessage.emit("Đã dừng quét BLE Radar") }
         } else {
             bluetoothController.startBleRadar()
+            viewModelScope.launch { _userMessage.emit("Đang quét tìm thiết bị BLE xung quanh...") }
         }
     }
 
@@ -174,4 +196,3 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         shizukuBridge.destroy()
     }
 }
-

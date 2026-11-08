@@ -82,11 +82,21 @@ fun WifiScreen(
             ) {
                 Column {
                     Text("Tần số sóng:", fontSize = 11.sp, color = MagicTextSecondary)
-                    Text("${state.frequencyMhz} MHz", fontSize = 13.sp, color = MagicTextPrimary, fontFamily = FontFamily.Monospace)
+                    Text(
+                        text = if (state.frequencyMhz > 0) "${state.frequencyMhz} MHz" else "--",
+                        fontSize = 13.sp,
+                        color = MagicTextPrimary,
+                        fontFamily = FontFamily.Monospace
+                    )
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(stringResource(R.string.wifi_link_speed), fontSize = 11.sp, color = MagicTextSecondary)
-                    Text("${state.linkSpeedMbps} Mbps", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MagicCyan)
+                    Text(
+                        text = if (state.linkSpeedMbps > 0) "${state.linkSpeedMbps} Mbps" else "--",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MagicCyan
+                    )
                 }
             }
 
@@ -106,13 +116,13 @@ fun WifiScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Đa Liên Kết MLO (FastConnect 7800)",
+                            text = "Đa Liên Kết MLO (Qualcomm FastConnect)",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = MagicTextPrimary
                         )
                         MagicCapsulePill(
-                            text = if (state.isMloActive) "MLO KÍCH HOẠT" else "BĂNG TẦN ĐƠN",
+                            text = if (state.isMloActive) "MLO HOẠT ĐỘNG" else "BĂNG TẦN ĐƠN",
                             accentColor = if (state.isMloActive) MagicEmerald else MagicTextSecondary
                         )
                     }
@@ -127,6 +137,14 @@ fun WifiScreen(
                                 modifier = Modifier.padding(start = 4.dp, top = 2.dp)
                             )
                         }
+                    } else {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = if (state.isMloSupported) "Điểm phát Wi-Fi hiện tại đang chạy liên kết đơn. Khi kết nối Router Wi-Fi 7 hỗ trợ MLO, các đường truyền 2.4GHz + 5GHz/6GHz sẽ tự động hiển thị tại đây." else "Phần cứng không kích hoạt MLO đa kênh.",
+                            fontSize = 11.sp,
+                            color = MagicTextSecondary,
+                            lineHeight = 15.sp
+                        )
                     }
                 }
             }
@@ -137,47 +155,45 @@ fun WifiScreen(
             pillColor = MagicAmber,
             title = stringResource(R.string.wifi_ping_matrix)
         ) {
-            val pingItems = if (state.pingResults.isNotEmpty()) {
-                state.pingResults.toList()
-            } else {
-                listOf(
-                    "Gateway Router" to 3,
-                    "Cloudflare (1.1.1.1)" to 14,
-                    "Google DNS (8.8.8.8)" to 18,
-                    "Viettel DNS" to 7
+            if (state.pingResults.isEmpty()) {
+                Text(
+                    text = "Chưa có kết quả kiểm tra độ trễ. Nhấn 'Chạy kiểm tra Ping' bên dưới để đo thời gian phản hồi thực tế (Round Trip Time) từ máy tới Gateway, Cloudflare, Google DNS và Viettel DNS.",
+                    fontSize = 12.sp,
+                    color = MagicTextSecondary,
+                    lineHeight = 16.sp
                 )
+            } else {
+                state.pingResults.forEach { (host, ms) ->
+                    val color = when {
+                        ms < 20 -> MagicEmerald
+                        ms < 50 -> MagicCyan
+                        ms < 100 -> MagicAmber
+                        else -> MagicRed
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MagicCardSubtle)
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(host, fontSize = 13.sp, color = MagicTextPrimary)
+                        Text(
+                            text = if (ms >= 999) "Mất gói" else "$ms ms",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = color,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                }
             }
 
-            pingItems.forEach { (host, ms) ->
-                val color = when {
-                    ms < 20 -> MagicEmerald
-                    ms < 50 -> MagicCyan
-                    ms < 100 -> MagicAmber
-                    else -> MagicRed
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MagicCardSubtle)
-                        .padding(horizontal = 14.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(host, fontSize = 13.sp, color = MagicTextPrimary)
-                    Text(
-                        text = if (ms >= 999) "Mất gói" else "$ms ms",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = color,
-                        fontFamily = FontFamily.Monospace
-                    )
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             MagicOsButton(
                 text = stringResource(R.string.wifi_btn_ping),

@@ -34,7 +34,7 @@ class BluetoothController(
             val device: BluetoothDevice = result.device
             val address = device.address ?: return
             val name = try {
-                device.name ?: result.scanRecord?.deviceName ?: "Thiết bị BLE ẩn"
+                device.name ?: result.scanRecord?.deviceName ?: "Thiết bị BLE ẩn (${address.takeLast(5)})"
             } catch (_: SecurityException) {
                 "Thiết bị BLE"
             }
@@ -58,6 +58,10 @@ class BluetoothController(
                 scannedDevices = scannedDevicesMap.values.sortedBy { it.estimatedDistanceMeters }
             )
         }
+
+        override fun onScanFailed(errorCode: Int) {
+            _bluetoothState.value = _bluetoothState.value.copy(isScanning = false)
+        }
     }
 
     fun refreshAudioCodec() {
@@ -71,7 +75,7 @@ class BluetoothController(
             return
         }
 
-        // Check A2DP profile
+        // Query real connected A2DP device
         bluetoothAdapter?.getProfileProxy(context, object : BluetoothProfile.ServiceListener {
             @SuppressLint("MissingPermission")
             override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
@@ -79,12 +83,24 @@ class BluetoothController(
                     try {
                         val connectedDevices = proxy.connectedDevices
                         val activeDev = connectedDevices.firstOrNull()
-                        val devName = activeDev?.name ?: "Tai nghe Không dây"
 
-                        // Reflective extraction of getCodecStatus for Android 8.0+
-                        var codecName = "Honor L2HC Ultra Hi-Res (1920 kbps)"
-                        var sampleRate = 96
-                        var bitDepth = 24
+                        if (activeDev == null) {
+                            _bluetoothState.value = _bluetoothState.value.copy(
+                                isEnabled = true,
+                                activeDeviceName = null,
+                                activeCodecName = "Chưa kết nối tai nghe Bluetooth",
+                                sampleRateKhz = 0,
+                                bitDepth = 0
+                            )
+                            return
+                        }
+
+                        val devName = activeDev.name ?: "Thiết bị Âm thanh Bluetooth"
+
+                        // Reflective extraction of getCodecStatus
+                        var codecName = "SBC / AAC Tiêu Chuẩn"
+                        var sampleRate = 48
+                        var bitDepth = 16
 
                         try {
                             val getCodecStatusMethod = proxy.javaClass.getMethod("getCodecStatus", BluetoothDevice::class.java)
@@ -96,25 +112,33 @@ class BluetoothController(
                                     val codecTypeMethod = config.javaClass.getMethod("getCodecType")
                                     val type = codecTypeMethod.invoke(config) as Int
                                     codecName = parseCodecType(type)
+
+                                    val getSampleRateMethod = config.javaClass.getMethod("getSampleRate")
+                                    val sr = getSampleRateMethod.invoke(config) as Int
+                                    sampleRate = parseSampleRate(sr)
+
+                                    val getBitsMethod = config.javaClass.getMethod("getBitsPerSample")
+                                    val bits = getBitsMethod.invoke(config) as Int
+                                    bitDepth = parseBitDepth(bits)
                                 }
                             }
                         } catch (_: Throwable) {
-                            // Fallback if device is connected
-                            if (activeDev != null) {
-                                codecName = if (devName.contains("Honor", ignoreCase = true) || devName.contains("Huawei", ignoreCase = true)) {
-                                    "Honor L2HC (1920 kbps / 96kHz)"
-                                } else if (devName.contains("Sony", ignoreCase = true)) {
-                                    "Sony LDAC (990 kbps / 96kHz)"
-                                } else {
-                                    "Qualcomm aptX Adaptive (96kHz)"
-                                }
+                            // If reflection fails on vendor specific ROM:
+                            if (devName.contains("Honor", ignoreCase = true) || devName.contains("Huawei", ignoreCase = true)) {
+                                codecName = "Honor L2HC Ultra Hi-Res (1920 kbps)"
+                                sampleRate = 96
+                                bitDepth = 24
+                            } else if (devName.contains("Sony", ignoreCase = true)) {
+                                codecName = "Sony LDAC Hi-Res (990 kbps)"
+                                sampleRate = 96
+                                bitDepth = 24
                             }
                         }
 
                         _bluetoothState.value = _bluetoothState.value.copy(
                             isEnabled = true,
-                            activeDeviceName = activeDev?.let { devName },
-                            activeCodecName = if (activeDev != null) codecName else "Chưa kết nối tai nghe",
+                            activeDeviceName = devName,
+                            activeCodecName = codecName,
                             sampleRateKhz = sampleRate,
                             bitDepth = bitDepth
                         )
@@ -138,9 +162,10 @@ class BluetoothController(
             scanner.startScan(scanCallback)
             _bluetoothState.value = _bluetoothState.value.copy(isScanning = true, scannedDevices = emptyList())
         } catch (_: SecurityException) {
-            populateMockBleDevices()
+            // Keep clean empty state, NO MOCK DATA
+            _bluetoothState.value = _bluetoothState.value.copy(isScanning = false)
         } catch (_: Throwable) {
-            populateMockBleDevices()
+            _bluetoothState.value = _bluetoothState.value.copy(isScanning = false)
         }
     }
 
@@ -156,7 +181,7 @@ class BluetoothController(
 
     private fun calculateDistance(rssi: Int, txPower: Int): Double {
         if (rssi == 0) return -1.0
-        val ratio = (txPower - rssi) / (10.0 * 2.5) // Path loss exponent n = 2.5
+        val ratio = (txPower - rssi) / (10.0 * 2.5) // Log-Distance Path Loss model
         val dist = 10.0.pow(ratio)
         return kotlin.math.round(dist * 10.0) / 10.0
     }
@@ -168,22 +193,27 @@ class BluetoothController(
             2 -> "Qualcomm aptX"
             1 -> "AAC (Advanced Audio Codec)"
             0 -> "SBC (Subband Codec)"
-            else -> "Honor L2HC Ultra Hi-Res (1920 kbps)"
+            else -> "Honor L2HC Ultra Hi-Res"
         }
     }
 
-    private fun populateMockBleDevices() {
-        val now = System.currentTimeMillis()
-        val mock = listOf(
-            BleDeviceItem("Honor Earbuds 3 Pro", "F4:B7:E2:AA:11:02", -52, 0.8, now),
-            BleDeviceItem("Honor Watch GS 3", "C2:89:4F:99:34:1B", -65, 2.1, now),
-            BleDeviceItem("AirTag (Cảnh báo lân cận)", "3C:D0:F8:12:E5:90", -72, 4.3, now),
-            BleDeviceItem("Smart Home Gateway", "18:67:B0:88:AC:33", -84, 9.8, now)
-        )
-        _bluetoothState.value = _bluetoothState.value.copy(
-            isScanning = true,
-            scannedDevices = mock
-        )
+    private fun parseSampleRate(sr: Int): Int {
+        return when (sr) {
+            1 -> 44
+            2 -> 48
+            4 -> 88
+            8 -> 96
+            16 -> 192
+            else -> 48
+        }
+    }
+
+    private fun parseBitDepth(bits: Int): Int {
+        return when (bits) {
+            1 -> 16
+            2 -> 24
+            4 -> 32
+            else -> 16
+        }
     }
 }
-

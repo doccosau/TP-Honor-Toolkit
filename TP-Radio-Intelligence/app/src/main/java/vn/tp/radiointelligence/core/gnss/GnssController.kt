@@ -97,7 +97,9 @@ class GnssController(
         @Deprecated("Deprecated in Java")
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
         override fun onProviderEnabled(provider: String) {}
-        override fun onProviderDisabled(provider: String) {}
+        override fun onProviderDisabled(provider: String) {
+            _gnssState.value = _gnssState.value.copy(isFixAcquired = false)
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -114,10 +116,8 @@ class GnssController(
             )
             isTracking = true
         } catch (_: SecurityException) {
-            // Provide simulated satellite data for demonstration if location permission isn't granted yet
-            populateMockSatellites()
+            // Keep empty state, NO MOCK DATA
         } catch (_: Throwable) {
-            populateMockSatellites()
         }
     }
 
@@ -143,7 +143,7 @@ class GnssController(
         } catch (_: Throwable) {
         }
 
-        // 2. Privileged Shell Fallback via Shizuku
+        // 2. Privileged Shell Commands via Shizuku
         try {
             shizukuBridge.executeShellCommand("cmd location send-extra-command gps delete_aiding_data")
             shizukuBridge.executeShellCommand("cmd location send-extra-command gps force_xtra_injection")
@@ -175,35 +175,7 @@ class GnssController(
                 val isL5 = freqMhz in 1166.0..1186.0
                 "QZSS" to isL5
             }
-            else -> "Vệ tinh khác" to false
+            else -> "Khác" to false
         }
     }
-
-    private fun populateMockSatellites() {
-        val mockList = listOf(
-            SatelliteInfo(14, "BeiDou", 43.5f, 65f, 120f, true, 1176450000.0, true),
-            SatelliteInfo(21, "BeiDou", 41.2f, 48f, 210f, true, 1561098000.0, false),
-            SatelliteInfo(38, "BeiDou", 39.8f, 75f, 45f, true, 1176450000.0, true),
-            SatelliteInfo(6, "GPS", 42.0f, 55f, 310f, true, 1176450000.0, true),
-            SatelliteInfo(12, "GPS", 38.5f, 30f, 95f, true, 1575420000.0, false),
-            SatelliteInfo(24, "GPS", 36.1f, 25f, 180f, true, 1176450000.0, true),
-            SatelliteInfo(19, "Galileo", 37.4f, 40f, 250f, true, 1176450000.0, true),
-            SatelliteInfo(7, "GLONASS", 32.0f, 20f, 60f, false, 1602000000.0, false)
-        )
-        _gnssState.value = GnssState(
-            isFixAcquired = true,
-            latitude = 21.0285,
-            longitude = 105.8542,
-            altitudeMeters = 18.5,
-            speedKmh = 0.0f,
-            accuracyMeters = 1.4f,
-            satellites = mockList,
-            totalSatellites = mockList.size,
-            usedSatellites = 7,
-            beidouCount = 3,
-            gpsCount = 3,
-            dualFreqCount = 5
-        )
-    }
 }
-

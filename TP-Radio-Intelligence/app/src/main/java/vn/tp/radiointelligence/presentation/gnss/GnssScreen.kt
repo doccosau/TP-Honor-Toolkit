@@ -92,7 +92,7 @@ fun GnssScreen(
                 Column {
                     Text("Tọa độ GNSS:", fontSize = 11.sp, color = MagicTextSecondary)
                     Text(
-                        text = "${String.format("%.5f", state.latitude)}, ${String.format("%.5f", state.longitude)}",
+                        text = if (state.isFixAcquired) "${String.format("%.5f", state.latitude)}, ${String.format("%.5f", state.longitude)}" else "Đang chờ vị trí...",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MagicTextPrimary,
@@ -102,10 +102,10 @@ fun GnssScreen(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(stringResource(R.string.gnss_accuracy), fontSize = 11.sp, color = MagicTextSecondary)
                     Text(
-                        text = "±${String.format("%.1f", state.accuracyMeters)} m",
+                        text = if (state.isFixAcquired) "±${String.format("%.1f", state.accuracyMeters)} m" else "--",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (state.accuracyMeters <= 2.5f) MagicEmerald else MagicCyan,
+                        color = if (state.accuracyMeters in 0.1f..2.5f) MagicEmerald else MagicCyan,
                         fontFamily = FontFamily.Monospace
                     )
                 }
@@ -171,9 +171,18 @@ fun GnssScreen(
             pillColor = MagicAmber,
             title = "Bảng Tín Hiệu Vệ Tinh (C/N0 SNR)"
         ) {
-            state.satellites.forEach { sat ->
-                SatelliteRow(sat)
-                Spacer(modifier = Modifier.height(6.dp))
+            if (state.satellites.isEmpty()) {
+                Text(
+                    text = "Chưa nhận được dữ liệu vệ tinh từ chip định vị GNSS. Đảm bảo quyền Vị trí đã được cấp và đưa thiết bị ra nơi thoáng đãng để thu sóng vệ tinh.",
+                    fontSize = 12.sp,
+                    color = MagicTextSecondary,
+                    lineHeight = 16.sp
+                )
+            } else {
+                state.satellites.forEach { sat ->
+                    SatelliteRow(sat)
+                    Spacer(modifier = Modifier.height(6.dp))
+                }
             }
         }
     }

@@ -113,6 +113,7 @@ class MainActivity : ComponentActivity() {
                                     onSelectSlot = { viewModel.selectSimSlot(it) },
                                     onSetLockMode = { viewModel.setNetworkModeLock(it) },
                                     onRestartRadio = { viewModel.restartRadioModem() },
+                                    onLaunchNativeRadioInfo = { viewModel.launchNativeRadioInfo() },
                                     onUpdateSmsc = { viewModel.updateSmsc(it) }
                                 )
                                 RadioTab.MAGICOS -> MagicOsScreen(
