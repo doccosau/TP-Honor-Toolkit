@@ -58,19 +58,22 @@ class TelephonyController(
 
         val preferredMode = queryPreferredNetworkMode(currentSubId)
         val currentNetworkType = queryActiveNetworkTypeName(currentSubId)
-        val smsc = querySmscAddress(currentSubId, currentSlot?.recommendedSmsc ?: "")
         val btsData = queryBtsCellData(currentSubId)
         val hasHardware5g = checkHardware5gSupport()
-        val recommendation = generateSmartRecommendation(currentSlot, btsData)
+        val is5gInArea = btsData?.cellType == "5G NR" || currentNetworkType.contains("5G", ignoreCase = true)
+
+        val liveSmsc = querySmscAddress(currentSubId)
+        val recommendation = generateRfRecommendation(currentSlot, btsData, hasHardware5g, is5gInArea)
 
         _cellularState.value = CellularState(
             slots = slots,
             selectedSlotIndex = currentSlotIdx,
             currentNetworkType = currentNetworkType,
             currentPreferredMode = preferredMode,
-            smscNumber = smsc,
+            smscNumber = liveSmsc,
             btsInfo = btsData,
             hardware5gSupported = hasHardware5g,
+            is5gAvailableInArea = is5gInArea,
             smartRecommendationReason = recommendation
         )
     }
@@ -82,21 +85,22 @@ class TelephonyController(
         }
     }
 
-    private fun querySimSlots(): List<SimSlotInfo> {
+    private suspend fun querySimSlots(): List<SimSlotInfo> = withContext(Dispatchers.IO) {
         val list = mutableListOf<SimSlotInfo>()
         try {
             val subList: List<SubscriptionInfo>? = subscriptionManager?.activeSubscriptionInfoList
             if (!subList.isNullOrEmpty()) {
                 for (sub in subList) {
-                    val rawCarrierName = sub.carrierName?.toString()?.takeIf { it.isNotBlank() } ?: "SIM ${sub.simSlotIndex + 1}"
+                    val rawCarrierName = sub.carrierName?.toString()?.takeIf { it.isNotBlank() }
+                        ?: sub.displayName?.toString()?.takeIf { it.isNotBlank() }
+                        ?: "SIM ${sub.simSlotIndex + 1}"
+
                     val mcc = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) sub.mccString ?: "" else ""
                     val mnc = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) sub.mncString ?: "" else ""
                     val mccMnc = if (mcc.isNotBlank() && mnc.isNotBlank()) "$mcc$mnc" else ""
+                    val countryIso = sub.countryIso?.uppercase() ?: ""
 
-                    // Dynamic Carrier Intelligence Resolution
-                    val carrierDetails = CarrierResolver.resolveCarrier(mccMnc, rawCarrierName)
-
-                    // Signal level & dBm measurement
+                    // Measure live signal strength & dBm per SIM
                     var signalLevel = 0
                     var signalDbm = -105
                     try {
@@ -111,18 +115,21 @@ class TelephonyController(
                     } catch (_: Throwable) {
                     }
 
+                    // Query live SMSC for this slot from SIM chip
+                    val smscOnSim = querySmscAddress(sub.subscriptionId)
+
                     list.add(
                         SimSlotInfo(
                             slotIndex = sub.simSlotIndex,
                             subId = sub.subscriptionId,
-                            carrierName = carrierDetails.operatorName,
-                            displayName = sub.displayName?.toString()?.takeIf { it.isNotBlank() } ?: carrierDetails.operatorName,
+                            carrierName = rawCarrierName,
+                            displayName = sub.displayName?.toString()?.takeIf { it.isNotBlank() } ?: rawCarrierName,
                             isDataActive = (sub.subscriptionId == SubscriptionManager.getDefaultDataSubscriptionId()),
                             mccMnc = mccMnc,
+                            countryIso = countryIso,
                             signalLevel = signalLevel,
                             signalDbm = signalDbm,
-                            recommendedSmsc = carrierDetails.recommendedSmsc,
-                            carrierDetails = carrierDetails
+                            currentSmscOnSim = smscOnSim
                         )
                     )
                 }
@@ -131,7 +138,7 @@ class TelephonyController(
         } catch (_: Throwable) {
         }
 
-        return list.sortedBy { it.slotIndex }
+        list.sortedBy { it.slotIndex }
     }
 
     private suspend fun queryPreferredNetworkMode(subId: Int): NetworkModeLock {
@@ -176,13 +183,16 @@ class TelephonyController(
         !res.contains("Error", ignoreCase = true)
     }
 
-    private suspend fun querySmscAddress(subId: Int, dynamicFallback: String): String {
+    suspend fun querySmscAddress(subId: Int): String = withContext(Dispatchers.IO) {
         try {
             val specificTm = telephonyManager.createForSubscriptionId(subId)
             val getSmscMethod = specificTm.javaClass.getMethod("getSmscAddress")
             val result = getSmscMethod.invoke(specificTm) as? String
             if (!result.isNullOrBlank()) {
-                return result.replace("\"", "").trim()
+                val cleaned = result.replace("\"", "").trim()
+                if (cleaned.startsWith("+") || cleaned.matches(Regex("^[0-9]+$"))) {
+                    return@withContext cleaned
+                }
             }
         } catch (_: Throwable) {
         }
@@ -191,11 +201,11 @@ class TelephonyController(
         if (out.isNotBlank() && !out.contains("Error", ignoreCase = true) && !out.contains("Exception", ignoreCase = true)) {
             val cleaned = out.replace("\"", "").trim()
             if (cleaned.startsWith("+") || cleaned.matches(Regex("^[0-9]+$"))) {
-                return cleaned
+                return@withContext cleaned
             }
         }
 
-        return dynamicFallback
+        ""
     }
 
     suspend fun updateSmscAddress(subId: Int, smscNumber: String): Boolean = withContext(Dispatchers.IO) {
@@ -227,7 +237,7 @@ class TelephonyController(
                 TelephonyManager.NETWORK_TYPE_LTE -> "4G LTE Advanced"
                 TelephonyManager.NETWORK_TYPE_HSPAP, TelephonyManager.NETWORK_TYPE_HSPA -> "3G HSPA+"
                 TelephonyManager.NETWORK_TYPE_EDGE, TelephonyManager.NETWORK_TYPE_GPRS -> "2G GSM"
-                else -> "Không có sóng Data"
+                else -> "Chưa có kết nối Data"
             }
         } catch (_: Throwable) {
             "Chưa xác định"
@@ -369,22 +379,61 @@ class TelephonyController(
         }
     }
 
-    private fun generateSmartRecommendation(slot: SimSlotInfo?, bts: BtsCellData?): String {
-        slot ?: return "Vui lòng chọn SIM để nhận diện năng lực mạng."
-        val carrier = slot.carrierDetails
+    /**
+     * Intelligent RF Telemetry Recommendation Engine.
+     * Evaluates live radio physics: RSRP signal attenuation, SINR purity, Carrier Aggregation, and Security.
+     * Zero hardcoded carrier names.
+     */
+    private fun generateRfRecommendation(
+        slot: SimSlotInfo?,
+        bts: BtsCellData?,
+        hasHardware5g: Boolean,
+        is5gInArea: Boolean
+    ): String {
+        slot ?: return "Vui lòng chọn thẻ SIM để tiến hành đo đạc vô tuyến."
 
+        if (!hasHardware5g) {
+            return "Modem phần cứng của máy không hỗ trợ băng tần 5G NR. Khuyến nghị cấu hình '4G LTE Only' để duy trì hiệu năng cao nhất."
+        }
+
+        if (bts == null) {
+            return "Chưa ghi nhận tín hiệu trạm vô tuyến từ thẻ SIM này. Khuyến nghị 'NR / 4G LTE' để sẵn sàng đón sóng và phòng ngừa trạm 2G giả mạo."
+        }
+
+        // RF Physics Evaluation
         return when {
-            !carrier.is5gCapable -> {
-                "Nhà mạng ${carrier.operatorName} chưa hỗ trợ 5G. Khuyến nghị chọn '4G LTE Only' để sóng phẳng, loại bỏ rớt 2G/3G."
+            // Case 1: Active 5G NR Cell Connected
+            bts.cellType == "5G NR" -> {
+                if (bts.rsrp >= -95) {
+                    "Trạm phát 5G NR (${bts.bandName}) đang hoạt động với cường độ mạnh (${bts.rsrp} dBm). Khuyến nghị '5G Only' hoặc 'NR/LTE' để tối đa tốc độ truyền tải."
+                } else {
+                    "Trạm 5G NR (${bts.bandName}) có tín hiệu suy hao (${bts.rsrp} dBm, vùng biên). Khuyến nghị 'NR/LTE' hoặc '4G LTE' để tránh modem hao pin khi giữ sóng 5G."
+                }
             }
-            bts?.cellType?.contains("5G", ignoreCase = true) == true -> {
-                "Trạm phát hiện tại đang phát 5G (${bts.bandName}). Khuyến nghị '5G Only' hoặc 'NR/LTE' để tận dụng băng thông cực đại."
+
+            // Case 2: Carrier Aggregation Active on LTE (4G+)
+            bts.isCarrierAggregation -> {
+                val secCount = bts.secondaryBands.size
+                "Trạm phát đang gộp sóng $secCount băng tần (4G+ CA: ${bts.bandName}). Băng thông rất dồi dào. Khuyến nghị '4G LTE Only' để giữ ping phẳng tuyệt đối khi chơi game."
             }
-            bts?.isCarrierAggregation == true -> {
-                "Trạm đang gộp sóng 4G+ CA (${bts.bandName}). Khuyến nghị '4G LTE Only' để ping ổn định nhất khi chơi game và streaming."
+
+            // Case 3: Cell Edge / Weak Signal (< -110 dBm)
+            bts.rsrp < -110 -> {
+                "Tín hiệu trạm phát đang suy hao mạnh (${bts.rsrp} dBm, vùng biên sóng). Khuyến nghị khóa '4G LTE Only' để tránh rơi về 2G/3G, hoặc chạm 'Reset Radio' để tìm trạm gần hơn."
             }
+
+            // Case 4: Strong LTE signal with low interference
+            bts.rsrp >= -90 && bts.sinr >= 15 -> {
+                if (is5gInArea) {
+                    "Khu vực có trạm 5G lân cận và sóng 4G rất sạch (${bts.rsrp} dBm, SINR ${bts.sinr} dB). Khuyến nghị 'NR/LTE' để tận dụng cả 5G lẫn 4G tốc độ cao."
+                } else {
+                    "Chất lượng vô tuyến 4G đạt mức xuất sắc (${bts.rsrp} dBm, SINR ${bts.sinr} dB). Khuyến nghị '4G LTE Only' hoặc 'NR/LTE' để chặn trạm BTS giả 2G."
+                }
+            }
+
+            // Case 5: Standard security recommendation
             else -> {
-                "Khuyến nghị 'NR / 4G LTE' để bỏ hoàn toàn 2G/3G, vừa đảm bảo tốc độ vừa chặn nguy cơ trạm BTS giả mạo."
+                "Khuyến nghị kích hoạt chế độ 'NR / 4G LTE'. Thiết lập này cắt đứt kết nối 2G/3G cổ điển, bảo vệ thiết bị trước các cuộc tấn công phát tán tin nhắn rác từ trạm BTS giả 2G."
             }
         }
     }

@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,6 +31,7 @@ import kotlinx.coroutines.flow.collectLatest
 import vn.tp.radiointelligence.R
 import vn.tp.radiointelligence.presentation.bluetooth.BluetoothScreen
 import vn.tp.radiointelligence.presentation.cellular.CellularScreen
+import vn.tp.radiointelligence.presentation.components.MagicBackgroundWaves
 import vn.tp.radiointelligence.presentation.components.MagicCapsulePill
 import vn.tp.radiointelligence.presentation.gnss.GnssScreen
 import vn.tp.radiointelligence.presentation.magicos.MagicOsScreen
@@ -62,7 +64,11 @@ class MainActivity : ComponentActivity() {
         checkAndRequestPermissions()
 
         setContent {
-            TPRadioIntelligenceTheme {
+            val systemDark = isSystemInDarkTheme()
+            var userDarkChoice by remember { mutableStateOf<Boolean?>(null) }
+            val isDarkEffective = userDarkChoice ?: systemDark
+
+            TPRadioIntelligenceTheme(darkTheme = isDarkEffective) {
                 val colors = LocalMagicColors.current
                 val snackbarHostState = remember { SnackbarHostState() }
                 var selectedTab by remember { mutableStateOf(RadioTab.CELLULAR) }
@@ -90,6 +96,10 @@ class MainActivity : ComponentActivity() {
                     topBar = {
                         MagicTopAppBar(
                             shizukuConnected = shizukuStatus.hasPermission,
+                            isDark = isDarkEffective,
+                            onToggleTheme = {
+                                userDarkChoice = !isDarkEffective
+                            },
                             onRequestShizuku = { viewModel.requestShizukuPermission() },
                             onRefresh = { viewModel.refreshAll() }
                         )
@@ -106,6 +116,9 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) {
+                        // Subtle Telecom RF Wave Motifs in Background
+                        MagicBackgroundWaves()
+
                         when (selectedTab) {
                             RadioTab.CELLULAR -> CellularScreen(
                                 state = cellularState,
@@ -113,7 +126,8 @@ class MainActivity : ComponentActivity() {
                                 onSetLockMode = { viewModel.setNetworkModeLock(it) },
                                 onRestartRadio = { viewModel.restartRadioModem() },
                                 onLaunchNativeRadioInfo = { viewModel.launchNativeRadioInfo() },
-                                onUpdateSmsc = { viewModel.updateSmsc(it) }
+                                onUpdateSmsc = { viewModel.updateSmsc(it) },
+                                onReadSmscFromSim = { viewModel.readSmscFromSim() }
                             )
                             RadioTab.MAGICOS -> MagicOsScreen(
                                 flags = magicOsFlags,
@@ -170,6 +184,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MagicTopAppBar(
     shizukuConnected: Boolean,
+    isDark: Boolean,
+    onToggleTheme: () -> Unit,
     onRequestShizuku: () -> Unit,
     onRefresh: () -> Unit
 ) {
@@ -218,13 +234,25 @@ fun MagicTopAppBar(
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     MagicCapsulePill(
                         text = if (shizukuConnected) "UID 2000 RIL" else "Cấp Shizuku",
                         accentColor = if (shizukuConnected) MagicEmerald else MagicAmber,
                         onClick = if (!shizukuConnected) onRequestShizuku else null
                     )
+
+                    IconButton(
+                        onClick = onToggleTheme,
+                        modifier = Modifier.size(34.dp)
+                    ) {
+                        Icon(
+                            if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = "Toggle Theme",
+                            tint = colors.textSecondary,
+                            modifier = Modifier.size(19.dp)
+                        )
+                    }
 
                     IconButton(
                         onClick = onRefresh,

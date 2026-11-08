@@ -101,8 +101,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val slot = cellularState.value.slots.getOrNull(cellularState.value.selectedSlotIndex)
         val subId = slot?.subId ?: 1
         viewModelScope.launch {
-            telephonyController.updateSmscAddress(subId, smscNumber)
-            _userMessage.emit("Đã cập nhật số SMSC: $smscNumber")
+            val ok = telephonyController.updateSmscAddress(subId, smscNumber)
+            if (ok) {
+                _userMessage.emit("Đã cập nhật số SMSC vào SIM: $smscNumber")
+            } else {
+                _userMessage.emit("Không thể ghi SMSC vào SIM. Vui lòng kiểm tra quyền Shizuku.")
+            }
+        }
+    }
+
+    fun readSmscFromSim() {
+        val slot = cellularState.value.slots.getOrNull(cellularState.value.selectedSlotIndex)
+        val subId = slot?.subId ?: 1
+        viewModelScope.launch {
+            val smsc = telephonyController.querySmscAddress(subId)
+            if (smsc.isNotBlank()) {
+                _userMessage.emit("Đã đọc SMSC từ SIM: $smsc")
+            } else {
+                _userMessage.emit("SIM hiện tại chưa lưu số SMSC hoặc không phản hồi.")
+            }
+            telephonyController.refreshAll()
         }
     }
 

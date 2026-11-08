@@ -1,7 +1,5 @@
 package vn.tp.radiointelligence.domain.model
 
-import vn.tp.radiointelligence.core.cellular.CarrierDetails
-
 data class SimSlotInfo(
     val slotIndex: Int,
     val subId: Int,
@@ -9,10 +7,10 @@ data class SimSlotInfo(
     val displayName: String,
     val isDataActive: Boolean,
     val mccMnc: String = "",
+    val countryIso: String = "",
     val signalLevel: Int = 0, // 0..4 bars
     val signalDbm: Int = -105,
-    val recommendedSmsc: String = "",
-    val carrierDetails: CarrierDetails = CarrierDetails("SIM", "", "", "", true)
+    val currentSmscOnSim: String = ""
 )
 
 enum class NetworkModeLock(val code: Int) {
@@ -50,5 +48,6 @@ data class CellularState(
     val smscNumber: String = "",
     val btsInfo: BtsCellData? = null,
     val hardware5gSupported: Boolean = true,
+    val is5gAvailableInArea: Boolean = false,
     val smartRecommendationReason: String = ""
 )

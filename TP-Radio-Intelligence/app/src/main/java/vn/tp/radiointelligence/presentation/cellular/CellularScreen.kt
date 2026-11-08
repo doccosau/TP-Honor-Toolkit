@@ -9,8 +9,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,7 +42,8 @@ fun CellularScreen(
     onSetLockMode: (NetworkModeLock) -> Unit,
     onRestartRadio: () -> Unit,
     onLaunchNativeRadioInfo: () -> Unit,
-    onUpdateSmsc: (String) -> Unit
+    onUpdateSmsc: (String) -> Unit,
+    onReadSmscFromSim: () -> Unit
 ) {
     val colors = LocalMagicColors.current
     val scrollState = rememberScrollState()
@@ -55,7 +57,7 @@ fun CellularScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Dual SIM Selector (Dynamic & Zero Hardcoded)
+        // Dual SIM Selector (Zero Hardcoded - Reads Live from SIM UICC)
         if (state.slots.isNotEmpty()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -72,7 +74,7 @@ fun CellularScreen(
             }
         }
 
-        // RF Signal Arc Gauge (Real Hardware Measurement)
+        // RF Signal Arc Gauge (Real Hardware Telemetry Measurement)
         state.btsInfo?.let { bts ->
             MagicOsCard(
                 pillColor = MagicEmerald,
@@ -126,7 +128,7 @@ fun CellularScreen(
                 title = "Tín Hiệu Trạm Phát Vô Tuyến"
             ) {
                 Text(
-                    text = "Đang nhận diện sóng vô tuyến từ thẻ SIM đang chọn... Đảm bảo quyền Vị trí (ACCESS_FINE_LOCATION) đã được cấp và SIM đang có kết nối mạng.",
+                    text = "Đang quét tín hiệu vô tuyến từ thẻ SIM đang chọn... Đảm bảo quyền Vị trí (ACCESS_FINE_LOCATION) đã được cấp và SIM đang có kết nối mạng di động.",
                     fontSize = 12.sp,
                     color = colors.textSecondary,
                     lineHeight = 16.sp
@@ -134,7 +136,7 @@ fun CellularScreen(
             }
         }
 
-        // Intelligent Recommendation Banner
+        // Intelligent RF Recommendation Banner
         if (state.smartRecommendationReason.isNotBlank()) {
             RecommendationBanner(reason = state.smartRecommendationReason)
         }
@@ -153,11 +155,21 @@ fun CellularScreen(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 NetworkModeLock.entries.forEach { mode ->
                     val isChecked = state.currentPreferredMode == mode
-                    val (title, subDesc) = when (mode) {
-                        NetworkModeLock.MODE_5G_ONLY -> stringResource(R.string.mode_5g_only) to "Khóa cứng sóng 5G Standalone SA, tốc độ cao nhất"
-                        NetworkModeLock.MODE_4G_ONLY -> stringResource(R.string.mode_4g_only) to "Giữ ping phẳng tuyệt đối, loại trừ hoàn toàn rớt về 3G/2G"
-                        NetworkModeLock.MODE_NR_LTE -> stringResource(R.string.mode_nr_lte) to "Bỏ hẳn 2G/3G để phòng thủ chống trạm BTS giả mạo"
-                        NetworkModeLock.MODE_AUTO -> stringResource(R.string.mode_auto) to "Theo cấu hình mặc định của nhà mạng và hệ điều hành"
+                    val (title, subDesc, tagText, tagColor) = when (mode) {
+                        NetworkModeLock.MODE_5G_ONLY -> {
+                            val tag = if (state.is5gAvailableInArea) "Có sóng 5G" else "Cần trạm 5G SA"
+                            val tagClr = if (state.is5gAvailableInArea) MagicEmerald else MagicAmber
+                            Quad(stringResource(R.string.mode_5g_only), "Khóa modem chỉ bắt trạm 5G Standalone SA, bypass hoàn toàn 4G", tag, tagClr)
+                        }
+                        NetworkModeLock.MODE_4G_ONLY -> {
+                            Quad(stringResource(R.string.mode_4g_only), "Giữ ping phẳng tuyệt đối, loại trừ hoàn toàn rớt về 3G/2G", "Ping phẳng", HonorBlue)
+                        }
+                        NetworkModeLock.MODE_NR_LTE -> {
+                            Quad(stringResource(R.string.mode_nr_lte), "Cắt hẳn 2G/3G để phòng thủ chống trạm BTS giả 2G mạo danh", "Bảo mật", MagicEmerald)
+                        }
+                        NetworkModeLock.MODE_AUTO -> {
+                            Quad(stringResource(R.string.mode_auto), "Theo cấu hình mặc định của hệ điều hành MagicOS và nhà mạng", "Mặc định", colors.textSecondary)
+                        }
                     }
 
                     Surface(
@@ -184,17 +196,25 @@ fun CellularScreen(
                                 )
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Column {
-                                Text(
-                                    text = title,
-                                    fontSize = 14.sp,
-                                    fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isChecked) HonorBlue else colors.textPrimary
-                                )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Text(
+                                        text = title,
+                                        fontSize = 14.sp,
+                                        fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isChecked) HonorBlue else colors.textPrimary
+                                    )
+                                    MagicCapsulePill(text = tagText, accentColor = tagColor)
+                                }
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = subDesc,
                                     fontSize = 11.sp,
-                                    color = colors.textSecondary
+                                    color = colors.textSecondary,
+                                    lineHeight = 15.sp
                                 )
                             }
                         }
@@ -229,21 +249,21 @@ fun CellularScreen(
             }
         }
 
-        // Dynamic SMSC Controller Card (Zero Hardcoded)
+        // Live SIM SMSC Controller Card (Zero Hardcoded - Direct Hardware RIL Access)
         MagicOsCard(
             pillColor = MagicAmber,
             title = stringResource(R.string.smsc_title),
             trailingContent = {
-                currentSlot?.carrierDetails?.let { carrier ->
+                currentSlot?.carrierName?.takeIf { it.isNotBlank() }?.let { name ->
                     MagicCapsulePill(
-                        text = carrier.operatorName,
+                        text = name,
                         accentColor = MagicAmber
                     )
                 }
             }
         ) {
             Text(
-                text = "Tự động nhận diện nhà mạng của SIM đang chọn để hỗ trợ sửa lỗi SMS Error 38/28 do máy Honor nội địa nhận sai đầu số trung tâm.",
+                text = "Đọc và cập nhật trực tiếp số Trung Tâm Tin Nhắn (SMSC) được lưu trên thẻ SIM qua RIL để khắc phục lỗi không gửi được tin nhắn (SMS Error 38/28) trên máy Honor Magic.",
                 fontSize = 12.sp,
                 color = colors.textSecondary,
                 lineHeight = 16.sp
@@ -273,37 +293,52 @@ fun CellularScreen(
                 )
             )
 
-            // Dynamic Recommendation for the Active SIM
-            currentSlot?.recommendedSmsc?.takeIf { it.isNotBlank() }?.let { autoSmsc ->
-                Spacer(modifier = Modifier.height(10.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Số khuyến nghị cho ${currentSlot.carrierName}:",
-                        fontSize = 12.sp,
-                        color = colors.textSecondary
-                    )
-                    TextButton(onClick = { inputSmsc = autoSmsc }) {
-                        Text(
-                            text = "Nạp $autoSmsc",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = HonorBlue
-                        )
-                    }
-                }
+            // Live status read from SIM chip
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Đang lưu trên SIM:",
+                    fontSize = 12.sp,
+                    color = colors.textSecondary
+                )
+                Text(
+                    text = currentSlot?.currentSmscOnSim?.ifBlank { "(Chưa đọc được)" } ?: "(Chưa đọc được)",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (!currentSlot?.currentSmscOnSim.isNullOrBlank()) MagicEmerald else colors.textTertiary,
+                    fontFamily = FontFamily.Monospace
+                )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
-            MagicOsButton(
-                text = stringResource(R.string.smsc_btn_update),
-                brush = MagicBlueGradient,
-                onClick = { onUpdateSmsc(inputSmsc) },
-                icon = Icons.AutoMirrored.Filled.Send
-            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    MagicOsButton(
+                        text = "Đọc lại từ SIM",
+                        brush = Brush.horizontalGradient(listOf(colors.cardSubtle, colors.cardSubtle)),
+                        onClick = onReadSmscFromSim,
+                        icon = Icons.Default.Download,
+                        textColor = HonorBlue
+                    )
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    MagicOsButton(
+                        text = stringResource(R.string.smsc_btn_update),
+                        brush = MagicBlueGradient,
+                        onClick = { onUpdateSmsc(inputSmsc) },
+                        icon = Icons.AutoMirrored.Filled.Send
+                    )
+                }
+            }
         }
     }
 }
+
+private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
