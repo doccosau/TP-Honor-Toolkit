@@ -1633,10 +1633,19 @@ def parse_theme_metadata(xml_content, tryout_json=None):
 
 # Helper: Làm sạch cờ trial & đặt giá = 0 chuẩn hóa description.xml
 def sanitize_description_xml_content(content, new_title=None):
-    # 1. Loại bỏ toàn bộ các thẻ liên quan đến chế độ dùng thử
-    content = re.sub(r'<is_tryout_theme[^>]*>.*?</is_tryout_theme>|<is_tryout_theme[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    # 0. Bổ sung title nếu chỉ tồn tại trong tryout_resource_title
+    if '<tryout_resource_title>' in content and not new_title:
+        m = re.search(r'<tryout_resource_title>(.*?)</tryout_resource_title>', content, re.IGNORECASE)
+        if m and m.group(1):
+            new_title = m.group(1).strip()
+
+    # 1. Loại bỏ toàn bộ các thẻ liên quan đến chế độ dùng thử & thanh toán
+    content = re.sub(r'<is_tryout[^>]*>.*?</is_tryout[^>]*>|<is_tryout[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
     content = re.sub(r'<tryout_[^>]*>.*?</tryout_[^>]*>|<tryout_[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
     content = re.sub(r'<trial_[^>]*>.*?</trial_[^>]*>|<trial_[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<is_trial[^>]*>.*?</is_trial[^>]*>|<is_trial[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<is_pay_item[^>]*>.*?</is_pay_item>|<is_pay_item[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<pay_type[^>]*>.*?</pay_type>|<pay_type[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
 
     # 2. Chuyển giá và loại phí về 0 (theme miễn phí hoàn toàn)
     if '<price>' in content:

@@ -2538,7 +2538,9 @@ class AdbService {
         this.addLog('step', '>>> [1/5] Đang đọc siêu dữ liệu theme từ /data/themes/0/description.xml...');
         const descXml = await this.executeShell('cat /data/themes/0/description.xml 2>/dev/null');
         let title = 'Honor_Theme_VIP';
-        const titleMatch = descXml.match(/<title>(.*?)<\/title>/i) || descXml.match(/<title-cn>(.*?)<\/title-cn>/i);
+        const titleMatch = descXml.match(/<title>(.*?)<\/title>/i) 
+          || descXml.match(/<title-cn>(.*?)<\/title-cn>/i)
+          || descXml.match(/<tryout_resource_title>(.*?)<\/tryout_resource_title>/i);
         if (titleMatch && titleMatch[1]) {
           title = titleMatch[1].trim().replace(/[\/\\?%*:|"<>]/g, '_');
         }
@@ -2705,8 +2707,25 @@ class AdbService {
           const cleanPath = rawPath.replace(/^\.\//, '');
           if (cleanPath === 'description.xml') {
             let xmlText = new TextDecoder('utf-8').decode(fileData);
-            // Xóa triệt để thẻ dùng thử và chuyển phí về 0
-            xmlText = xmlText.replace(/<is_tryout_theme[^>]*>.*?<\/is_tryout_theme>|<is_tryout_theme[^>]*\/>/gi, '');
+
+            // Bổ sung thẻ title chuẩn nếu trước đó chỉ nằm trong tryout_resource_title
+            const tryoutTitleMatch = xmlText.match(/<tryout_resource_title>(.*?)<\/tryout_resource_title>/i);
+            const realTitle = (tryoutTitleMatch && tryoutTitleMatch[1] ? tryoutTitleMatch[1].trim() : title) || 'Honor_Theme';
+            if (!xmlText.includes('<title>') && !xmlText.includes('<title-cn>') && realTitle) {
+              if (xmlText.includes('</description>')) {
+                xmlText = xmlText.replace('</description>', `    <title>${realTitle}</title>\n    <title-cn>${realTitle}</title-cn>\n</description>`);
+              }
+            }
+
+            // Xóa triệt để TẤT CẢ các thẻ và cờ liên quan đến chế độ dùng thử / trial / tryout
+            xmlText = xmlText.replace(/<is_tryout[^>]*>[\s\S]*?<\/is_tryout[^>]*>|<is_tryout[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<tryout_[^>]*>[\s\S]*?<\/tryout_[^>]*>|<tryout_[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<trial_[^>]*>[\s\S]*?<\/trial_[^>]*>|<trial_[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<is_trial[^>]*>[\s\S]*?<\/is_trial[^>]*>|<is_trial[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<is_pay_item[^>]*>[\s\S]*?<\/is_pay_item[^>]*>|<is_pay_item[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<pay_type[^>]*>[\s\S]*?<\/pay_type[^>]*>|<pay_type[^>]*\/>/gi, '');
+
+            // Chuyển phí và giá về 0 vĩnh viễn
             if (xmlText.includes('<price>')) {
               xmlText = xmlText.replace(/<price>.*?<\/price>/gi, '<price>0</price>');
             } else if (xmlText.includes('</description>')) {
@@ -2717,7 +2736,10 @@ class AdbService {
             } else if (xmlText.includes('</description>')) {
               xmlText = xmlText.replace('</description>', '    <charge_type>0</charge_type>\n</description>');
             }
-            zip.file(cleanPath, xmlText);
+
+            const cleanXmlBytes = new TextEncoder().encode(xmlText);
+            files['description.xml'] = cleanXmlBytes;
+            zip.file(cleanPath, cleanXmlBytes);
           } else if (!cleanPath.endsWith('.tryout') && cleanPath !== 'tried' && cleanPath !== 'tryoutData.json' && cleanPath !== 'icons_backup') {
             zip.file(cleanPath, fileData);
           }
