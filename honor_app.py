@@ -1660,16 +1660,10 @@ def sanitize_description_xml_content(content, new_title=None):
     content = re.sub(r'<[^>]*tryout[^>]*>.*?</[^>]*tryout[^>]*>|<[^>]*tryout[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
     content = re.sub(r'<[^>]*trial[^>]*>.*?</[^>]*trial[^>]*>|<[^>]*trial[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
 
-    # 2. Chuyển giá và loại phí về 0 (theme miễn phí hoàn toàn)
-    if '<price>' in content:
-        content = re.sub(r'<price>.*?</price>', '<price>0</price>', content)
-    elif close_tag in content:
-        content = content.replace(close_tag, f'    <price>0</price>\n{close_tag}')
-
-    if '<charge_type>' in content:
-        content = re.sub(r'<charge_type>.*?</charge_type>', '<charge_type>0</charge_type>', content)
-    elif close_tag in content:
-        content = content.replace(close_tag, f'    <charge_type>0</charge_type>\n{close_tag}')
+    # 2. Xóa sạch hoàn toàn các thẻ giá tiền & loại phí thanh toán (price, charge_type, point)
+    content = re.sub(r'<price[^>]*>.*?</price>|<price[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<charge_type[^>]*>.*?</charge_type>|<charge_type[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<point[^>]*>.*?</point>|<point[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
 
     # 3. Cập nhật tiêu đề nếu có
     if new_title:

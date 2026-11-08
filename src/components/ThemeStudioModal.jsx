@@ -257,7 +257,7 @@ export default function ThemeStudioModal({ isOpen, onClose, device, adbService: 
                     fontSize: '14px',
                     fontWeight: 600,
                     borderRadius: '6px',
-                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                    boxShadow: '0 4px 14px rgba(4, 120, 87, 0.45)',
                     cursor: isExtracting || !isOnline ? 'not-allowed' : 'pointer',
                     opacity: isExtracting || !isOnline ? 0.6 : 1,
                   }}
@@ -337,7 +337,7 @@ export default function ThemeStudioModal({ isOpen, onClose, device, adbService: 
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
-                    <span>Đã thanh lọc triệt để 100% cờ trial (tryout_theme_hitop_id, tryout_resource_title, price=0)</span>
+                    <span>Đã loại bỏ triệt để 100% các thẻ trial &amp; xóa sạch price, charge_type, tryout_*</span>
                   </div>
                   <div style={{ color: 'var(--text-dim)', fontSize: '11.5px', wordBreak: 'break-all' }}>
                     • Nạp hệ thống: <code>{extractResult.sys_path}</code>
@@ -360,8 +360,9 @@ export default function ThemeStudioModal({ isOpen, onClose, device, adbService: 
                           fontWeight: 600,
                           borderRadius: '6px',
                           textDecoration: 'none',
-                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                          background: '#10b981',
+                          boxShadow: '0 4px 14px rgba(4, 120, 87, 0.45)',
+                          background: '#047857',
+                          border: '1px solid #059669',
                           color: '#ffffff',
                           cursor: 'pointer',
                         }}

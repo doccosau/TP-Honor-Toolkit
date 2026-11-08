@@ -2738,17 +2738,10 @@ class AdbService {
             xmlText = xmlText.replace(/<[^>]*tryout[^>]*>[\s\S]*?<\/[^>]*tryout[^>]*>|<[^>]*tryout[^>]*\/>/gi, '');
             xmlText = xmlText.replace(/<[^>]*trial[^>]*>[\s\S]*?<\/[^>]*trial[^>]*>|<[^>]*trial[^>]*\/>/gi, '');
 
-            // Chuyển phí và giá về 0 vĩnh viễn
-            if (xmlText.includes('<price>')) {
-              xmlText = xmlText.replace(/<price>.*?<\/price>/gi, '<price>0</price>');
-            } else if (closeTag) {
-              xmlText = xmlText.replace(closeTag, `    <price>0</price>\n${closeTag}`);
-            }
-            if (xmlText.includes('<charge_type>')) {
-              xmlText = xmlText.replace(/<charge_type>.*?<\/charge_type>/gi, '<charge_type>0</charge_type>');
-            } else if (closeTag) {
-              xmlText = xmlText.replace(closeTag, `    <charge_type>0</charge_type>\n${closeTag}`);
-            }
+            // Xóa sạch hoàn toàn các thẻ giá tiền & loại phí thanh toán (price, charge_type, point) theo yêu cầu
+            xmlText = xmlText.replace(/<price[^>]*>[\s\S]*?<\/price>|<price[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<charge_type[^>]*>[\s\S]*?<\/charge_type>|<charge_type[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<point[^>]*>[\s\S]*?<\/point>|<point[^>]*\/>/gi, '');
 
             const cleanXmlBytes = new TextEncoder().encode(xmlText);
             if (lowerName === 'description.xml' || lowerName.endsWith('/description.xml')) {
