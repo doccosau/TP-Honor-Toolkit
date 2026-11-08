@@ -331,7 +331,13 @@ fun SignalStrengthArcGauge(
             Box(modifier = Modifier.width(1.dp).height(24.dp).background(colors.cardBorder))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Băng Tần", fontSize = 10.sp, color = colors.textSecondary)
-                Text(bandName.take(15), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = HonorBlue)
+                Text(
+                    text = bandName,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = HonorBlue,
+                    maxLines = 1
+                )
             }
         }
     }
