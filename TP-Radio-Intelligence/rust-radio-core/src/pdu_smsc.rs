@@ -13,3 +13,4 @@ pub fn format_smsc_pdu(phone_number: &str) -> String {
         format!("\"{}\",129", cleaned)
     }
 }
+

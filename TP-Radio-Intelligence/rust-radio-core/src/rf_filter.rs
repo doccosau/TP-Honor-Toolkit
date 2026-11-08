@@ -54,3 +54,4 @@ impl EmaFilter {
         val
     }
 }
+

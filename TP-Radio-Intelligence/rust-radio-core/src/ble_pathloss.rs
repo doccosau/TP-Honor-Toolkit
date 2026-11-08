@@ -11,3 +11,4 @@ pub fn calculate_ble_distance(rssi: i32, tx_power: i32, path_loss_exponent: f32)
     let ratio = (tx_power - rssi) as f64 / (10.0 * (n as f64));
     10f64.powf(ratio)
 }
+

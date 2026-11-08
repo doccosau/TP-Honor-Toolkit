@@ -129,3 +129,4 @@ pub extern "system" fn Java_vn_tp_radiointelligence_core_nativebridge_RadioNativ
 ) -> jdouble {
     ble_pathloss::calculate_ble_distance(rssi, tx_power, path_loss_exponent)
 }
+
