@@ -245,6 +245,7 @@ private fun HeroRfBentoCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
+                    modifier = Modifier.weight(1f, fill = false),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -255,19 +256,22 @@ private fun HeroRfBentoCard(
                             .background(MagicEmerald)
                     )
                     Text(
-                        text = "Đo Đạc Vô Tuyến Phần Cứng (Qualcomm RIL)",
+                        text = "Vô Tuyến Phần Cứng (RIL)",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = colors.textPrimary
+                        color = colors.textPrimary,
+                        maxLines = 1
                     )
                 }
-
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "${bts.bandName} • ${if (bts.isCarrierAggregation) "${bts.totalAggregatedBandwidthMhz} MHz (CA)" else "${bts.bandwidthMhz} MHz"}",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = HonorBlue,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = FontFamily.Monospace,
+                    maxLines = 1,
+                    softWrap = false
                 )
             }
 
@@ -378,22 +382,26 @@ private fun HeroRfBentoCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
+                    modifier = Modifier.weight(1f, fill = false),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(HonorBlue))
                     Text(
-                        text = "Bộ lọc Kalman 1D Rust (Khử suy hao Rayleigh Fading)",
+                        text = "Lọc Kalman 1D Rust (Fading Damping)",
                         fontSize = 10.sp,
-                        color = colors.textSecondary
+                        color = colors.textSecondary,
+                        maxLines = 1
                     )
                 }
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Sub-millisecond JNI",
+                    text = "Sub-ms JNI",
                     fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MagicEmerald,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = FontFamily.Monospace,
+                    maxLines = 1
                 )
             }
 
