@@ -12,6 +12,7 @@ import android.os.Build
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import vn.tp.radiointelligence.core.nativebridge.RadioNativeBridge
 import vn.tp.radiointelligence.domain.model.BleDeviceItem
 import vn.tp.radiointelligence.domain.model.BluetoothState
 import kotlin.math.pow
@@ -181,8 +182,7 @@ class BluetoothController(
 
     private fun calculateDistance(rssi: Int, txPower: Int): Double {
         if (rssi == 0) return -1.0
-        val ratio = (txPower - rssi) / (10.0 * 2.5) // Log-Distance Path Loss model
-        val dist = 10.0.pow(ratio)
+        val dist = RadioNativeBridge.calculateBleDistance(rssi, txPower, 2.4f)
         return kotlin.math.round(dist * 10.0) / 10.0
     }
 

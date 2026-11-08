@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import vn.tp.radiointelligence.R
+import vn.tp.radiointelligence.core.nativebridge.RadioNativeBridge
 import vn.tp.radiointelligence.domain.model.GnssState
 import vn.tp.radiointelligence.domain.model.SatelliteInfo
 import vn.tp.radiointelligence.presentation.components.MagicCapsulePill
@@ -219,12 +220,11 @@ fun GnssSkyViewCanvas(satellites: List<SatelliteInfo>, cardBorder: Color) {
         drawLine(color = cardBorder, start = Offset(centerX, centerY - radius), end = Offset(centerX, centerY + radius), strokeWidth = 1f)
         drawLine(color = cardBorder, start = Offset(centerX - radius, centerY), end = Offset(centerX + radius, centerY), strokeWidth = 1f)
 
-        // Plot Satellites
+        // Plot Satellites via High-Precision Native Rust Polar Projection
         for (sat in satellites) {
-            val r = radius * ((90f - sat.elevationDegrees.coerceIn(0f, 90f)) / 90f)
-            val rad = Math.toRadians((sat.azimuthDegrees - 90.0)).toFloat()
-            val satX = centerX + r * cos(rad)
-            val satY = centerY + r * sin(rad)
+            val coords = RadioNativeBridge.projectGnssPolar(sat.elevationDegrees, sat.azimuthDegrees, radius)
+            val satX = centerX + coords[0]
+            val satY = centerY + coords[1]
 
             val color = when (sat.constellation) {
                 "BeiDou" -> MagicEmerald

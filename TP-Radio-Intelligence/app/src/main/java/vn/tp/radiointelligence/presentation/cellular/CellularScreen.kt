@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import vn.tp.radiointelligence.R
+import vn.tp.radiointelligence.core.nativebridge.RadioNativeBridge
 import vn.tp.radiointelligence.domain.model.CellularState
 import vn.tp.radiointelligence.domain.model.NetworkModeLock
 import vn.tp.radiointelligence.presentation.components.MagicCapsulePill
@@ -75,6 +76,35 @@ fun CellularScreen(
             }
         }
 
+        // RIL Modem Syncing Indicator
+        if (state.isRilSyncing) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp)),
+                color = HonorBlue.copy(alpha = if (colors.isDark) 0.15f else 0.08f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, HonorBlue.copy(alpha = 0.4f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = HonorBlue
+                    )
+                    Text(
+                        text = "Đang đồng bộ lệnh RIL xuống modem phần cứng Baseband...",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = HonorBlue
+                    )
+                }
+            }
+        }
+
         // RF Signal Arc Gauge (Real Hardware Telemetry Measurement)
         state.btsInfo?.let { bts ->
             MagicOsCard(
@@ -93,6 +123,40 @@ fun CellularScreen(
                     sinrDb = bts.sinr,
                     bandName = bts.bandName
                 )
+
+                // 3GPP Cell Identity Matrix (Calculated via Native Rust Engine)
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CellMetricTile(
+                        label = "Định danh trạm",
+                        value = bts.nodeId.ifBlank { "PCI ${bts.pci}" },
+                        modifier = Modifier.weight(1f)
+                    )
+                    CellMetricTile(
+                        label = "Vùng TAC / Phổ",
+                        value = if (bts.tac > 0) "TAC ${bts.tac}" else bts.duplexMode,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CellMetricTile(
+                        label = "Vật lý PCI / ARFCN",
+                        value = "PCI ${bts.pci} • ${bts.arfcn}",
+                        modifier = Modifier.weight(1f)
+                    )
+                    CellMetricTile(
+                        label = "Băng thông phổ",
+                        value = if (bts.isCarrierAggregation) "${bts.totalAggregatedBandwidthMhz} MHz (CA)" else "${bts.bandwidthMhz} MHz (${bts.duplexMode})",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
                 if (bts.timingAdvance > 0) {
                     Spacer(modifier = Modifier.height(10.dp))
@@ -138,6 +202,67 @@ fun CellularScreen(
                     color = colors.textSecondary,
                     lineHeight = 16.sp
                 )
+            }
+        }
+
+        // Neighbor Cells Matrix Card (Handover Candidates)
+        if (state.neighborCells.isNotEmpty()) {
+            MagicOsCard(
+                pillColor = HonorBlue,
+                title = "Trạm Phát Lân Cận (Neighbor Cells)",
+                trailingContent = {
+                    MagicCapsulePill(
+                        text = "${state.neighborCells.size} trạm",
+                        accentColor = HonorBlue
+                    )
+                }
+            ) {
+                Text(
+                    text = "Dữ liệu đo kiểm thực tế từ RIL modem Qualcomm phục vụ chuyển vùng (Handover Candidates):",
+                    fontSize = 11.sp,
+                    color = colors.textSecondary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    state.neighborCells.forEach { neighbor ->
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp)),
+                            color = colors.cardSubtle
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "${neighbor.cellType} • PCI ${neighbor.pci}",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = colors.textPrimary
+                                    )
+                                    Text(
+                                        text = "${neighbor.bandName} • ARFCN ${neighbor.arfcn}",
+                                        fontSize = 10.sp,
+                                        color = colors.textSecondary,
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                }
+                                val rsrpColor = when {
+                                    neighbor.rsrp >= -95 -> MagicEmerald
+                                    neighbor.rsrp >= -110 -> MagicAmber
+                                    else -> MagicRed
+                                }
+                                MagicCapsulePill(
+                                    text = "${neighbor.rsrp} dBm",
+                                    accentColor = rsrpColor
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -301,6 +426,64 @@ fun CellularScreen(
                 )
             )
 
+            // PLMN Smart Suggestion Chip
+            if (state.suggestedSmscByPlmn.isNotBlank() && state.suggestedSmscByPlmn != inputSmsc) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { inputSmsc = state.suggestedSmscByPlmn },
+                    color = MagicAmber.copy(alpha = if (colors.isDark) 0.15f else 0.08f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MagicAmber.copy(alpha = 0.3f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Gợi ý chuẩn SIM: ${state.suggestedSmscByPlmn}",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MagicAmber
+                        )
+                        Text(
+                            text = "Điền nhanh ⚡",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = HonorBlue
+                        )
+                    }
+                }
+            }
+
+            // Real-time 3GPP PDU representation computed by native Rust engine
+            val pduPreview = remember(inputSmsc) {
+                if (inputSmsc.isNotBlank()) RadioNativeBridge.formatSmscPdu(inputSmsc) else ""
+            }
+            if (pduPreview.isNotBlank()) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "3GPP PDU TON/NPI:",
+                        fontSize = 11.sp,
+                        color = colors.textSecondary
+                    )
+                    Text(
+                        text = pduPreview,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MagicEmerald,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
+
             // Live status read from SIM chip
             Spacer(modifier = Modifier.height(8.dp))
             Row(
@@ -345,6 +528,28 @@ fun CellularScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun CellMetricTile(label: String, value: String, modifier: Modifier = Modifier) {
+    val colors = LocalMagicColors.current
+    Surface(
+        modifier = modifier.clip(RoundedCornerShape(10.dp)),
+        color = colors.cardSubtle
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp)) {
+            Text(text = label, fontSize = 10.sp, color = colors.textSecondary)
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = value,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = colors.textPrimary,
+                fontFamily = FontFamily.Monospace,
+                maxLines = 1
+            )
         }
     }
 }

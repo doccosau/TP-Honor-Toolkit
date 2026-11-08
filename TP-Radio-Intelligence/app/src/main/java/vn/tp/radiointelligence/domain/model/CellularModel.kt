@@ -26,11 +26,24 @@ enum class NetworkModeLock(val code: Int) {
     }
 }
 
+data class NeighborCellData(
+    val pci: Int,
+    val arfcn: Int,
+    val bandName: String,
+    val rsrp: Int,
+    val cellType: String
+)
+
 data class BtsCellData(
     val cellType: String = "4G LTE",
     val pci: Int = 0,
     val arfcn: Int = 0,
     val bandName: String = "B3 (1800 MHz)",
+    val nodeId: String = "", // eNodeB / gNodeB ID
+    val tac: Int = 0, // Tracking Area Code
+    val bandwidthMhz: Int = 0, // Primary cell bandwidth in MHz
+    val totalAggregatedBandwidthMhz: Int = 0, // Total CA spectrum
+    val duplexMode: String = "FDD", // FDD or TDD
     val rsrp: Int = -95,
     val rsrq: Int = -10,
     val sinr: Int = 12,
@@ -46,8 +59,13 @@ data class CellularState(
     val currentNetworkType: String = "Chưa kết nối",
     val currentPreferredMode: NetworkModeLock = NetworkModeLock.MODE_AUTO,
     val smscNumber: String = "",
+    val suggestedSmscByPlmn: String = "",
     val btsInfo: BtsCellData? = null,
+    val neighborCells: List<NeighborCellData> = emptyList(),
     val hardware5gSupported: Boolean = true,
     val is5gAvailableInArea: Boolean = false,
+    val is5gNsa: Boolean = false,
+    val is5gSa: Boolean = false,
+    val isRilSyncing: Boolean = false,
     val smartRecommendationReason: String = ""
 )
