@@ -33,5 +33,11 @@ web/downloads/*.apk
 # Themes
 themes/
 
+# Research and standalone subprojects / local releases
+honor-theme-research*
+research/
+release/
+tp-honor-theme-toolkit/
+
 # Wrangler local state
 .wrangler/

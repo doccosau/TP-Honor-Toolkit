@@ -1817,7 +1817,8 @@ def extract_trial_theme():
             'filename': hnt_filename,
             'size_mb': file_size_mb,
             'sys_path': f'{remote_sys_dir}/{hnt_filename}',
-            'public_path': f'{remote_public_dir}/{hnt_filename}'
+            'public_path': f'{remote_public_dir}/{hnt_filename}',
+            'download_url': f'/api/download_theme?filename={urllib.parse.quote(hnt_filename)}'
         }
     except Exception as e:
         add_log('error', f'Lỗi trong quá trình trích xuất theme: {e}')
@@ -3028,6 +3029,29 @@ class HonorRequestHandler(SimpleHTTPRequestHandler):
             self.send_json_response({'logs': logs_copy})
         elif path == '/api/devices_db':
             self.send_json_response(DEVICES_DB)
+        elif path == '/api/download_theme':
+            query = urllib.parse.parse_qs(parsed.query)
+            filename = query.get('filename', [''])[0]
+            if not filename or '..' in filename or '/' in filename or '\\' in filename:
+                self.send_json_response({'error': 'Tên tệp không hợp lệ'}, status=400)
+                return
+            target_path = os.path.join(THEMES_DIR, filename)
+            if not os.path.exists(target_path):
+                self.send_json_response({'error': 'Tệp theme không tồn tại'}, status=404)
+                return
+            try:
+                with open(target_path, 'rb') as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/octet-stream')
+                self.send_header('Content-Disposition', f'attachment; filename="{urllib.parse.quote(filename)}"')
+                self.send_header('Content-Length', str(len(content)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(content)
+            except Exception as e:
+                self.send_json_response({'error': str(e)}, status=500)
+            return
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')

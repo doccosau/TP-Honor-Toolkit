@@ -10,6 +10,7 @@ import {
 } from '@yume-chan/adb';
 import { AdbDaemonWebUsbDeviceManager } from '@yume-chan/adb-daemon-webusb';
 import AdbWebCredentialStore from '@yume-chan/adb-credential-web';
+import JSZip from 'jszip';
 import devicesData from '../data/devices.json';
 import bloatData from '../data/bloatware.json';
 import vnAppsData from '../data/vietnamApps.json';
@@ -2487,7 +2488,39 @@ class AdbService {
   }
 
   /**
-   * TP Theme Studio Engine (Trích xuất & Nạp Theme .hnt)
+   * Helper: Giải nén luồng TAR (UStar / GNU TAR) sang cấu trúc Map tệp tin trong bộ nhớ RAM
+   */
+  parseTarStream(buffer) {
+    const files = {};
+    let offset = 0;
+    const textDecoder = new TextDecoder('utf-8');
+    while (offset + 512 <= buffer.length) {
+      const header = buffer.subarray(offset, offset + 512);
+      if (header[0] === 0) break;
+
+      let nameEnd = 0;
+      while (nameEnd < 100 && header[nameEnd] !== 0) nameEnd++;
+      const name = textDecoder.decode(header.subarray(0, nameEnd)).trim().replace(/^\.\//, '').replace(/^\//, '');
+
+      let sizeStr = '';
+      for (let i = 124; i < 136; i++) {
+        if (header[i] === 0 || header[i] === 32) continue;
+        sizeStr += String.fromCharCode(header[i]);
+      }
+      const size = parseInt(sizeStr, 8) || 0;
+      const type = String.fromCharCode(header[156]);
+
+      offset += 512;
+      if ((type === '0' || type === '\0') && name && size > 0) {
+        files[name] = buffer.slice(offset, offset + size);
+      }
+      offset += Math.ceil(size / 512) * 512;
+    }
+    return files;
+  }
+
+  /**
+   * TP Theme Studio Engine (Trích xuất & Nạp Theme .hnt Chuẩn ZIP Deflate 100%)
    */
   async extractTrialTheme() {
     this.addLog('info', 'Bắt đầu quy trình trích xuất Theme VIP đang dùng thử...');
@@ -2502,7 +2535,7 @@ class AdbService {
           };
         }
 
-        this.addLog('step', '>>> [1/4] Đang đọc siêu dữ liệu theme từ /data/themes/0/description.xml...');
+        this.addLog('step', '>>> [1/5] Đang đọc siêu dữ liệu theme từ /data/themes/0/description.xml...');
         const descXml = await this.executeShell('cat /data/themes/0/description.xml 2>/dev/null');
         let title = 'Honor_Theme_VIP';
         const titleMatch = descXml.match(/<title>(.*?)<\/title>/i) || descXml.match(/<title-cn>(.*?)<\/title-cn>/i);
@@ -2513,37 +2546,109 @@ class AdbService {
         const safeFilename = `${title}.hnt`;
         const remoteSysDir = '/sdcard/Android/data/com.hihonor.android.thememanager/files/Download/Honor/Themes';
         const remotePublicDir = '/sdcard/Honor/Themes';
-        const tempDump = `/sdcard/Download/.tp_theme_${Date.now()}`;
+        const remoteCacheDir = `${remoteSysDir}/.cache/${safeFilename}`;
 
-        this.addLog('step', '>>> [2/4] Sao chép tài nguyên & loại bỏ cờ dùng thử trên thiết bị...');
-        await this.executeShell(`mkdir -p "${tempDump}" && cp -r /data/themes/0/* "${tempDump}/"`);
-        await this.executeShell(`rm -f "${tempDump}/tried" "${tempDump}/tryoutData.json" "${tempDump}"/*.tryout 2>/dev/null`);
-
-        this.addLog('step', '>>> [3/4] Đóng gói thành định dạng chuẩn .hnt...');
-        await this.executeShell(`mkdir -p "${remoteSysDir}" "${remotePublicDir}"`);
-        
-        const hasZip = (await this.executeShell('which zip 2>/dev/null')).trim();
-        if (hasZip && !hasZip.includes('not found')) {
-          await this.executeShell(`cd "${tempDump}" && zip -r "${remotePublicDir}/${safeFilename}" ./* && cp "${remotePublicDir}/${safeFilename}" "${remoteSysDir}/${safeFilename}"`);
-        } else {
-          await this.executeShell(`cd "${tempDump}" && tar -czf "${remotePublicDir}/${safeFilename}" ./* 2>/dev/null || cp -r "${tempDump}" "${remotePublicDir}/${safeFilename}"`);
-          await this.executeShell(`cp "${remotePublicDir}/${safeFilename}" "${remoteSysDir}/${safeFilename}" 2>/dev/null`);
+        this.addLog('step', '>>> [2/5] Đang kéo toàn bộ gói tài nguyên qua luồng TAR nhị phân...');
+        const socket = await this.adbInstance.createSocket('exec:tar -C /data/themes/0 -cf - .');
+        const reader = socket.readable.getReader();
+        const chunks = [];
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (value) chunks.push(value);
         }
 
-        await this.executeShell(`rm -rf "${tempDump}"`);
+        let totalLen = chunks.reduce((acc, c) => acc + c.length, 0);
+        let tarBytes = new Uint8Array(totalLen);
+        let pos = 0;
+        for (const c of chunks) {
+          tarBytes.set(c, pos);
+          pos += c.length;
+        }
 
-        this.addLog('step', '>>> [4/4] Cấp quyền & Khởi động lại ứng dụng Chủ Đề...');
+        this.addLog('step', `>>> [3/5] Đang bóc tách tệp (${(totalLen / (1024 * 1024)).toFixed(2)} MB) & xóa bỏ cờ bản quyền trial...`);
+        const files = this.parseTarStream(tarBytes);
+        if (!files['description.xml'] && !files['./description.xml']) {
+          throw new Error('Không thể đọc description.xml từ luồng dữ liệu trích xuất');
+        }
+
+        this.addLog('step', '>>> [4/5] Đang đóng gói chuẩn ZIP Deflate .hnt (Method 8, PK Header)...');
+        const zip = new JSZip();
+        for (const [rawPath, fileData] of Object.entries(files)) {
+          const cleanPath = rawPath.replace(/^\.\//, '');
+          if (cleanPath === 'description.xml') {
+            let xmlText = new TextDecoder('utf-8').decode(fileData);
+            // Xóa triệt để thẻ dùng thử và chuyển phí về 0
+            xmlText = xmlText.replace(/<is_tryout_theme[^>]*>.*?<\/is_tryout_theme>|<is_tryout_theme[^>]*\/>/gi, '');
+            if (xmlText.includes('<price>')) {
+              xmlText = xmlText.replace(/<price>.*?<\/price>/gi, '<price>0</price>');
+            } else if (xmlText.includes('</description>')) {
+              xmlText = xmlText.replace('</description>', '    <price>0</price>\n</description>');
+            }
+            if (xmlText.includes('<charge_type>')) {
+              xmlText = xmlText.replace(/<charge_type>.*?<\/charge_type>/gi, '<charge_type>0</charge_type>');
+            } else if (xmlText.includes('</description>')) {
+              xmlText = xmlText.replace('</description>', '    <charge_type>0</charge_type>\n</description>');
+            }
+            zip.file(cleanPath, xmlText);
+          } else if (!cleanPath.endsWith('.tryout') && cleanPath !== 'tried' && cleanPath !== 'tryoutData.json' && cleanPath !== 'icons_backup') {
+            zip.file(cleanPath, fileData);
+          }
+        }
+
+        const hntBlob = await zip.generateAsync({
+          type: 'blob',
+          compression: 'DEFLATE',
+          compressionOptions: { level: 6 }
+        });
+        const hntArrayBuffer = await hntBlob.arrayBuffer();
+        const downloadUrl = URL.createObjectURL(hntBlob);
+        const fileSizeMb = (hntBlob.size / (1024 * 1024)).toFixed(2);
+
+        this.addLog('step', '>>> [5/5] Đang nạp file .hnt chuẩn ZIP & cấu trúc cache vào app Chủ Đề...');
+        await this.executeShell(`mkdir -p "${remoteSysDir}" "${remotePublicDir}" "${remoteCacheDir}"`);
+
+        // Đẩy file .hnt vào máy qua socket nhị phân trực tiếp
+        const pushSocket = await this.adbInstance.createSocket(`exec:cat > "${remotePublicDir}/${safeFilename}"`);
+        const writer = pushSocket.writable.getWriter();
+        await writer.write(new Uint8Array(hntArrayBuffer));
+        await writer.close();
+
+        // Sao chép sang remoteSysDir
+        await this.executeShell(`cp "${remotePublicDir}/${safeFilename}" "${remoteSysDir}/${safeFilename}"`);
+
+        // Đẩy cache description.xml và preview thumbnails để Theme Store hiển thị thẻ
+        if (files['description.xml']) {
+          const cacheDescSocket = await this.adbInstance.createSocket(`exec:cat > "${remoteCacheDir}/description.xml"`);
+          const dw = cacheDescSocket.writable.getWriter();
+          await dw.write(files['description.xml']);
+          await dw.close();
+        }
+        for (const cf of ['wallpaper_meta.json', 'wallpapereditor_config.xml', 'cover.jpg', 'cover.png']) {
+          if (files[cf]) {
+            const cs = await this.adbInstance.createSocket(`exec:cat > "${remoteCacheDir}/${cf}"`);
+            const cw = cs.writable.getWriter();
+            await cw.write(files[cf]);
+            await cw.close();
+          }
+        }
+
+        // Cấp quyền và quét lại MediaStore
         await this.executeShell('appops set com.hihonor.android.thememanager MANAGE_EXTERNAL_STORAGE allow 2>/dev/null');
-        await this.executeShell(`chmod 777 "${remotePublicDir}/${safeFilename}" "${remoteSysDir}/${safeFilename}" 2>/dev/null`);
+        await this.executeShell(`chmod -R 777 "${remoteCacheDir}" "${remotePublicDir}/${safeFilename}" "${remoteSysDir}/${safeFilename}" 2>/dev/null`);
         await this.executeShell(`am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://${remotePublicDir}/${safeFilename}" 2>/dev/null`);
         await this.executeShell('am force-stop com.hihonor.android.thememanager');
+        await this.executeShell('am start -n com.hihonor.android.thememanager/.PageActivity 2>/dev/null || am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p com.hihonor.android.thememanager 2>/dev/null');
 
-        this.addLog('success', `Đã trích xuất và nạp vĩnh viễn theme "${title}" vào ứng dụng Chủ Đề!`);
+        this.addLog('success', `=== [HOÀN TẤT 100%] ĐÃ TRÍCH XUẤT THÀNH CÔNG THEME CHUẨN ZIP: "${title}" (${fileSizeMb} MB) ===`);
         return {
           success: true,
-          theme_name: title,
+          title: title,
           filename: safeFilename,
-          path: `${remotePublicDir}/${safeFilename}`
+          size_mb: fileSizeMb,
+          sys_path: `${remoteSysDir}/${safeFilename}`,
+          public_path: `${remotePublicDir}/${safeFilename}`,
+          download_url: downloadUrl
         };
       } catch (err) {
         this.addLog('error', `Lỗi trích xuất theme WebUSB: ${err.message}`);
@@ -2570,14 +2675,48 @@ class AdbService {
       try {
         const remoteSysDir = '/sdcard/Android/data/com.hihonor.android.thememanager/files/Download/Honor/Themes';
         const remotePublicDir = '/sdcard/Honor/Themes';
-        await this.executeShell(`mkdir -p "${remoteSysDir}" "${remotePublicDir}"`);
-        const tempB64 = `/sdcard/Download/.theme_tmp_${Date.now()}.b64`;
-        
-        await this.executeShell(`echo "${contentB64}" > "${tempB64}" && base64 -d "${tempB64}" > "${remotePublicDir}/${filename}" && cp "${remotePublicDir}/${filename}" "${remoteSysDir}/${filename}" && rm -f "${tempB64}"`);
+        const remoteCacheDir = `${remoteSysDir}/.cache/${filename}`;
+        await this.executeShell(`mkdir -p "${remoteSysDir}" "${remotePublicDir}" "${remoteCacheDir}"`);
+
+        // Chuyển Base64 sang Uint8Array an toàn không giới hạn kích thước shell
+        const binaryStr = atob(contentB64);
+        const len = binaryStr.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+
+        // Đẩy luồng nhị phân trực tiếp không phụ thuộc ARG_MAX
+        const pushSocket = await this.adbInstance.createSocket(`exec:cat > "${remotePublicDir}/${filename}"`);
+        const writer = pushSocket.writable.getWriter();
+        await writer.write(bytes);
+        await writer.close();
+
+        // Sao chép sang remoteSysDir
+        await this.executeShell(`cp "${remotePublicDir}/${filename}" "${remoteSysDir}/${filename}"`);
+
+        // Đọc preview thumbnails bằng JSZip và nạp vào thư mục cache để hiện thẻ theme
+        try {
+          const zip = await JSZip.loadAsync(bytes);
+          for (const cf of ['description.xml', 'wallpaper_meta.json', 'wallpapereditor_config.xml', 'cover.jpg', 'cover.png']) {
+            const zf = zip.file(cf);
+            if (zf) {
+              const fileData = await zf.async('uint8array');
+              const cs = await this.adbInstance.createSocket(`exec:cat > "${remoteCacheDir}/${cf}"`);
+              const cw = cs.writable.getWriter();
+              await cw.write(fileData);
+              await cw.close();
+            }
+          }
+        } catch (ze) {
+          console.warn('Lỗi đọc cache từ theme zip:', ze);
+        }
+
         await this.executeShell('appops set com.hihonor.android.thememanager MANAGE_EXTERNAL_STORAGE allow 2>/dev/null');
-        await this.executeShell(`chmod 777 "${remotePublicDir}/${filename}" "${remoteSysDir}/${filename}" 2>/dev/null`);
+        await this.executeShell(`chmod -R 777 "${remoteCacheDir}" "${remotePublicDir}/${filename}" "${remoteSysDir}/${filename}" 2>/dev/null`);
         await this.executeShell(`am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://${remotePublicDir}/${filename}" 2>/dev/null`);
         await this.executeShell('am force-stop com.hihonor.android.thememanager');
+        await this.executeShell('am start -n com.hihonor.android.thememanager/.PageActivity 2>/dev/null || am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p com.hihonor.android.thememanager 2>/dev/null');
         this.addLog('success', `Đã nạp thành công theme ${filename} vào ứng dụng Chủ Đề!`);
         return { success: true, filename };
       } catch (err) {

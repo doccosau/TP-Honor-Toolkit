@@ -339,6 +339,36 @@ export default function ThemeStudioModal({ isOpen, onClose, device, adbService: 
                   <div style={{ color: 'var(--text-dim)', fontSize: '11.5px', wordBreak: 'break-all' }}>
                     • Bản sao chia sẻ: <code>{extractResult.public_path}</code>
                   </div>
+                  {extractResult.download_url && (
+                    <div style={{ marginTop: '6px' }}>
+                      <a
+                        href={extractResult.download_url}
+                        download={extractResult.filename || 'extracted_theme.hnt'}
+                        className="btn-tool primary"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '8px 16px',
+                          fontSize: '12.5px',
+                          fontWeight: 600,
+                          borderRadius: '6px',
+                          textDecoration: 'none',
+                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                          background: '#10b981',
+                          color: '#ffffff',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="7 10 12 15 17 10"></polyline>
+                          <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Tải File .hnt Chuẩn ZIP Về Máy Tính</span>
+                      </a>
+                    </div>
+                  )}
                   <div
                     style={{
                       marginTop: '6px',
