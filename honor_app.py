@@ -1639,13 +1639,37 @@ def sanitize_description_xml_content(content, new_title=None):
         if m and m.group(1):
             new_title = m.group(1).strip()
 
+    # Tìm thẻ đóng gốc </HnTheme> (MagicOS), </description> (EMUI), hoặc </theme>
+    close_tag_match = re.search(r'</(HnTheme|description|theme)>', content, re.IGNORECASE)
+    close_tag = close_tag_match.group(0) if close_tag_match else '</description>'
+
     # 1. Loại bỏ toàn bộ các thẻ liên quan đến chế độ dùng thử & thanh toán
+    content = re.sub(r'<tryout[^>]*>.*?</tryout[^>]*>|<tryout[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+    content = re.sub(r'<trial[^>]*>.*?</trial[^>]*>|<trial[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
     content = re.sub(r'<is_tryout[^>]*>.*?</is_tryout[^>]*>|<is_tryout[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
-    content = re.sub(r'<tryout_[^>]*>.*?</tryout_[^>]*>|<tryout_[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
-    content = re.sub(r'<trial_[^>]*>.*?</trial_[^>]*>|<trial_[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
     content = re.sub(r'<is_trial[^>]*>.*?</is_trial[^>]*>|<is_trial[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
     content = re.sub(r'<is_pay_item[^>]*>.*?</is_pay_item>|<is_pay_item[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
     content = re.sub(r'<pay_type[^>]*>.*?</pay_type>|<pay_type[^>]*/?>', '', content, flags=re.DOTALL | re.IGNORECASE)
+
+    # 2. Chuyển giá và loại phí về 0 (theme miễn phí hoàn toàn)
+    if '<price>' in content:
+        content = re.sub(r'<price>.*?</price>', '<price>0</price>', content)
+    elif close_tag in content:
+        content = content.replace(close_tag, f'    <price>0</price>\n{close_tag}')
+
+    if '<charge_type>' in content:
+        content = re.sub(r'<charge_type>.*?</charge_type>', '<charge_type>0</charge_type>', content)
+    elif close_tag in content:
+        content = content.replace(close_tag, f'    <charge_type>0</charge_type>\n{close_tag}')
+
+    # 3. Cập nhật tiêu đề nếu có
+    if new_title:
+        if '<title>' in content:
+            content = re.sub(r'<title>.*?</title>', f'<title>{new_title}</title>', content)
+        elif close_tag in content:
+            content = content.replace(close_tag, f'    <title>{new_title}</title>\n{close_tag}')
+
+    return content
 
     # 2. Chuyển giá và loại phí về 0 (theme miễn phí hoàn toàn)
     if '<price>' in content:

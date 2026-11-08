@@ -2704,23 +2704,27 @@ class AdbService {
         this.addLog('step', '>>> [4/5] Đang đóng gói chuẩn ZIP Deflate .hnt (Method 8, PK Header)...');
         const zip = new JSZip();
         for (const [rawPath, fileData] of Object.entries(files)) {
-          const cleanPath = rawPath.replace(/^\.\//, '');
-          if (cleanPath === 'description.xml') {
+          const cleanPath = rawPath.replace(/^\.\//, '').replace(/^\//, '');
+          const lowerName = cleanPath.toLowerCase();
+
+          if (lowerName === 'description.xml' || lowerName.endsWith('/description.xml') || lowerName.endsWith('.xml')) {
             let xmlText = new TextDecoder('utf-8').decode(fileData);
+
+            // Tìm thẻ đóng gốc của tài liệu XML: </HnTheme> (MagicOS), </description> (EMUI), hoặc </theme>
+            const closeTagMatch = xmlText.match(/<\/(HnTheme|description|theme)>/i);
+            const closeTag = closeTagMatch ? closeTagMatch[0] : null;
 
             // Bổ sung thẻ title chuẩn nếu trước đó chỉ nằm trong tryout_resource_title
             const tryoutTitleMatch = xmlText.match(/<tryout_resource_title>(.*?)<\/tryout_resource_title>/i);
             const realTitle = (tryoutTitleMatch && tryoutTitleMatch[1] ? tryoutTitleMatch[1].trim() : title) || 'Honor_Theme';
-            if (!xmlText.includes('<title>') && !xmlText.includes('<title-cn>') && realTitle) {
-              if (xmlText.includes('</description>')) {
-                xmlText = xmlText.replace('</description>', `    <title>${realTitle}</title>\n    <title-cn>${realTitle}</title-cn>\n</description>`);
-              }
+            if (!xmlText.includes('<title>') && !xmlText.includes('<title-cn>') && realTitle && closeTag) {
+              xmlText = xmlText.replace(closeTag, `    <title>${realTitle}</title>\n    <title-cn>${realTitle}</title-cn>\n${closeTag}`);
             }
 
-            // Xóa triệt để TẤT CẢ các thẻ và cờ liên quan đến chế độ dùng thử / trial / tryout
+            // Xóa triệt để 100% TẤT CẢ các thẻ và cờ liên quan đến chế độ dùng thử / trial / tryout
+            xmlText = xmlText.replace(/<tryout[^>]*>[\s\S]*?<\/tryout[^>]*>|<tryout[^>]*\/>/gi, '');
+            xmlText = xmlText.replace(/<trial[^>]*>[\s\S]*?<\/trial[^>]*>|<trial[^>]*\/>/gi, '');
             xmlText = xmlText.replace(/<is_tryout[^>]*>[\s\S]*?<\/is_tryout[^>]*>|<is_tryout[^>]*\/>/gi, '');
-            xmlText = xmlText.replace(/<tryout_[^>]*>[\s\S]*?<\/tryout_[^>]*>|<tryout_[^>]*\/>/gi, '');
-            xmlText = xmlText.replace(/<trial_[^>]*>[\s\S]*?<\/trial_[^>]*>|<trial_[^>]*\/>/gi, '');
             xmlText = xmlText.replace(/<is_trial[^>]*>[\s\S]*?<\/is_trial[^>]*>|<is_trial[^>]*\/>/gi, '');
             xmlText = xmlText.replace(/<is_pay_item[^>]*>[\s\S]*?<\/is_pay_item[^>]*>|<is_pay_item[^>]*\/>/gi, '');
             xmlText = xmlText.replace(/<pay_type[^>]*>[\s\S]*?<\/pay_type[^>]*>|<pay_type[^>]*\/>/gi, '');
@@ -2728,17 +2732,19 @@ class AdbService {
             // Chuyển phí và giá về 0 vĩnh viễn
             if (xmlText.includes('<price>')) {
               xmlText = xmlText.replace(/<price>.*?<\/price>/gi, '<price>0</price>');
-            } else if (xmlText.includes('</description>')) {
-              xmlText = xmlText.replace('</description>', '    <price>0</price>\n</description>');
+            } else if (closeTag) {
+              xmlText = xmlText.replace(closeTag, `    <price>0</price>\n${closeTag}`);
             }
             if (xmlText.includes('<charge_type>')) {
               xmlText = xmlText.replace(/<charge_type>.*?<\/charge_type>/gi, '<charge_type>0</charge_type>');
-            } else if (xmlText.includes('</description>')) {
-              xmlText = xmlText.replace('</description>', '    <charge_type>0</charge_type>\n</description>');
+            } else if (closeTag) {
+              xmlText = xmlText.replace(closeTag, `    <charge_type>0</charge_type>\n${closeTag}`);
             }
 
             const cleanXmlBytes = new TextEncoder().encode(xmlText);
-            files['description.xml'] = cleanXmlBytes;
+            if (lowerName === 'description.xml') {
+              files['description.xml'] = cleanXmlBytes;
+            }
             zip.file(cleanPath, cleanXmlBytes);
           } else if (!cleanPath.endsWith('.tryout') && cleanPath !== 'tried' && cleanPath !== 'tryoutData.json' && cleanPath !== 'icons_backup') {
             zip.file(cleanPath, fileData);
