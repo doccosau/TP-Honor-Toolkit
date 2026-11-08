@@ -1,1 +1,0 @@
-{"rustc":2424717983270385839,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[8008191657135824715,"build_script_build",false,11860057911178070189]],"local":[{"RerunIfChanged":{"output":"aarch64-linux-android/release/build/thiserror-6b3262b6906a03f7/output","paths":["build/probe.rs"]}}],"rustflags":[],"config":0,"compile_kind":0}
