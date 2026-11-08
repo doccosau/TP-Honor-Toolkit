@@ -31,7 +31,6 @@ import vn.tp.radiointelligence.R
 import vn.tp.radiointelligence.presentation.bluetooth.BluetoothScreen
 import vn.tp.radiointelligence.presentation.cellular.CellularScreen
 import vn.tp.radiointelligence.presentation.components.MagicCapsulePill
-import vn.tp.radiointelligence.presentation.components.MagicOsRadioWaveBackground
 import vn.tp.radiointelligence.presentation.gnss.GnssScreen
 import vn.tp.radiointelligence.presentation.magicos.MagicOsScreen
 import vn.tp.radiointelligence.presentation.theme.*
@@ -64,6 +63,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TPRadioIntelligenceTheme {
+                val colors = LocalMagicColors.current
                 val snackbarHostState = remember { SnackbarHostState() }
                 var selectedTab by remember { mutableStateOf(RadioTab.CELLULAR) }
 
@@ -84,60 +84,58 @@ class MainActivity : ComponentActivity() {
                     viewModel.startGnssTracking()
                 }
 
-                MagicOsRadioWaveBackground {
-                    Scaffold(
-                        snackbarHost = { SnackbarHost(snackbarHostState) },
-                        containerColor = Color.Transparent,
-                        topBar = {
-                            MagicTopAppBar(
-                                shizukuConnected = shizukuStatus.hasPermission,
-                                onRequestShizuku = { viewModel.requestShizukuPermission() },
-                                onRefresh = { viewModel.refreshAll() }
+                Scaffold(
+                    snackbarHost = { SnackbarHost(snackbarHostState) },
+                    containerColor = colors.bg,
+                    topBar = {
+                        MagicTopAppBar(
+                            shizukuConnected = shizukuStatus.hasPermission,
+                            onRequestShizuku = { viewModel.requestShizukuPermission() },
+                            onRefresh = { viewModel.refreshAll() }
+                        )
+                    },
+                    bottomBar = {
+                        MagicBottomNavigationBar(
+                            selectedTab = selectedTab,
+                            onTabSelected = { selectedTab = it }
+                        )
+                    }
+                ) { innerPadding ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                    ) {
+                        when (selectedTab) {
+                            RadioTab.CELLULAR -> CellularScreen(
+                                state = cellularState,
+                                onSelectSlot = { viewModel.selectSimSlot(it) },
+                                onSetLockMode = { viewModel.setNetworkModeLock(it) },
+                                onRestartRadio = { viewModel.restartRadioModem() },
+                                onLaunchNativeRadioInfo = { viewModel.launchNativeRadioInfo() },
+                                onUpdateSmsc = { viewModel.updateSmsc(it) }
                             )
-                        },
-                        bottomBar = {
-                            MagicBottomNavigationBar(
-                                selectedTab = selectedTab,
-                                onTabSelected = { selectedTab = it }
+                            RadioTab.MAGICOS -> MagicOsScreen(
+                                flags = magicOsFlags,
+                                onToggleLinkTurbo = { viewModel.toggleLinkTurbo(it) },
+                                onToggleForce5g = { viewModel.toggleForce5g(it) },
+                                onToggleDual5g = { viewModel.toggleDual5g(it) },
+                                onToggleSmartDualSim = { viewModel.toggleSmartDualSim(it) },
+                                onToggleMobileDataAlwaysOn = { viewModel.toggleMobileDataAlwaysOn(it) },
+                                onToggleAntiRogueBts = { viewModel.toggleAntiRogueBts(it) }
                             )
-                        }
-                    ) { innerPadding ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(innerPadding)
-                        ) {
-                            when (selectedTab) {
-                                RadioTab.CELLULAR -> CellularScreen(
-                                    state = cellularState,
-                                    onSelectSlot = { viewModel.selectSimSlot(it) },
-                                    onSetLockMode = { viewModel.setNetworkModeLock(it) },
-                                    onRestartRadio = { viewModel.restartRadioModem() },
-                                    onLaunchNativeRadioInfo = { viewModel.launchNativeRadioInfo() },
-                                    onUpdateSmsc = { viewModel.updateSmsc(it) }
-                                )
-                                RadioTab.MAGICOS -> MagicOsScreen(
-                                    flags = magicOsFlags,
-                                    onToggleLinkTurbo = { viewModel.toggleLinkTurbo(it) },
-                                    onToggleForce5g = { viewModel.toggleForce5g(it) },
-                                    onToggleDual5g = { viewModel.toggleDual5g(it) },
-                                    onToggleSmartDualSim = { viewModel.toggleSmartDualSim(it) },
-                                    onToggleMobileDataAlwaysOn = { viewModel.toggleMobileDataAlwaysOn(it) },
-                                    onToggleAntiRogueBts = { viewModel.toggleAntiRogueBts(it) }
-                                )
-                                RadioTab.GNSS -> GnssScreen(
-                                    state = gnssState,
-                                    onAccelerateGps = { viewModel.accelerateGps() }
-                                )
-                                RadioTab.WIFI -> WifiScreen(
-                                    state = wifiState,
-                                    onRunPing = { viewModel.runPingDiagnostics() }
-                                )
-                                RadioTab.BLUETOOTH -> BluetoothScreen(
-                                    state = btState,
-                                    onToggleScan = { viewModel.toggleBleRadarScan() }
-                                )
-                            }
+                            RadioTab.GNSS -> GnssScreen(
+                                state = gnssState,
+                                onAccelerateGps = { viewModel.accelerateGps() }
+                            )
+                            RadioTab.WIFI -> WifiScreen(
+                                state = wifiState,
+                                onRunPing = { viewModel.runPingDiagnostics() }
+                            )
+                            RadioTab.BLUETOOTH -> BluetoothScreen(
+                                state = btState,
+                                onToggleScan = { viewModel.toggleBleRadarScan() }
+                            )
                         }
                     }
                 }
@@ -175,10 +173,13 @@ fun MagicTopAppBar(
     onRequestShizuku: () -> Unit,
     onRefresh: () -> Unit
 ) {
+    val colors = LocalMagicColors.current
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = MagicOsBgDark.copy(alpha = 0.92f),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, MagicCardBorder)
+        color = colors.card,
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, colors.cardBorder),
+        shadowElevation = if (colors.isDark) 0.dp else 1.dp
     ) {
         Column(
             modifier = Modifier
@@ -198,19 +199,19 @@ fun MagicTopAppBar(
                         modifier = Modifier
                             .size(10.dp)
                             .clip(RoundedCornerShape(5.dp))
-                            .background(MagicCyan)
+                            .background(HonorBlue)
                     )
                     Column {
                         Text(
                             text = stringResource(R.string.app_name),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MagicTextPrimary
+                            color = colors.textPrimary
                         )
                         Text(
-                            text = "MagicOS 10/11 Spectrum Suite",
+                            text = "Honor MagicOS Telecom Suite",
                             fontSize = 11.sp,
-                            color = MagicTextSecondary
+                            color = colors.textSecondary
                         )
                     }
                 }
@@ -232,7 +233,7 @@ fun MagicTopAppBar(
                         Icon(
                             Icons.Default.Refresh,
                             contentDescription = null,
-                            tint = MagicTextSecondary,
+                            tint = colors.textSecondary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -247,10 +248,12 @@ fun MagicBottomNavigationBar(
     selectedTab: RadioTab,
     onTabSelected: (RadioTab) -> Unit
 ) {
+    val colors = LocalMagicColors.current
+
     NavigationBar(
-        containerColor = MagicCardBg.copy(alpha = 0.96f),
-        contentColor = MagicTextPrimary,
-        tonalElevation = 8.dp
+        containerColor = colors.card,
+        contentColor = colors.textPrimary,
+        tonalElevation = if (colors.isDark) 4.dp else 8.dp
     ) {
         RadioTab.entries.forEach { tab ->
             val isSelected = tab == selectedTab
@@ -272,11 +275,11 @@ fun MagicBottomNavigationBar(
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MagicCyan,
-                    selectedTextColor = MagicCyan,
-                    unselectedIconColor = MagicTextTertiary,
-                    unselectedTextColor = MagicTextTertiary,
-                    indicatorColor = MagicCyan.copy(alpha = 0.16f)
+                    selectedIconColor = HonorBlue,
+                    selectedTextColor = HonorBlue,
+                    unselectedIconColor = colors.textTertiary,
+                    unselectedTextColor = colors.textTertiary,
+                    indicatorColor = HonorBlue.copy(alpha = if (colors.isDark) 0.18f else 0.12f)
                 )
             )
         }

@@ -32,6 +32,7 @@ fun BluetoothScreen(
     state: BluetoothState,
     onToggleScan: () -> Unit
 ) {
+    val colors = LocalMagicColors.current
     val scrollState = rememberScrollState()
 
     Column(
@@ -47,21 +48,21 @@ fun BluetoothScreen(
             title = stringResource(R.string.bt_title),
             trailingContent = {
                 MagicCapsulePill(
-                    text = "Honor Hi-Res Audio",
+                    text = "Hi-Res Audio Engine",
                     accentColor = MagicPurple
                 )
             }
         ) {
             Text(
-                text = state.activeDeviceName ?: "Honor Earbuds 3 Pro (Đang ghép nối)",
+                text = state.activeDeviceName ?: "Chưa kết nối tai nghe Bluetooth",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = MagicTextPrimary
+                color = colors.textPrimary
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(stringResource(R.string.bt_codec_active), fontSize = 12.sp, color = MagicTextSecondary)
+            Text(stringResource(R.string.bt_codec_active), fontSize = 12.sp, color = colors.textSecondary)
             Text(
                 text = state.activeCodecName,
                 fontSize = 18.sp,
@@ -69,19 +70,21 @@ fun BluetoothScreen(
                 color = MagicEmerald
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            if (state.activeDeviceName != null) {
+                Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(stringResource(R.string.bt_sample_rate), fontSize = 11.sp, color = MagicTextSecondary)
-                    Text("${state.sampleRateKhz} kHz", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MagicCyan)
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(stringResource(R.string.bt_bit_depth), fontSize = 11.sp, color = MagicTextSecondary)
-                    Text("${state.bitDepth} bit Hi-Res", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MagicAmber)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(stringResource(R.string.bt_sample_rate), fontSize = 11.sp, color = colors.textSecondary)
+                        Text("${state.sampleRateKhz} kHz", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = HonorBlue)
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(stringResource(R.string.bt_bit_depth), fontSize = 11.sp, color = colors.textSecondary)
+                        Text("${state.bitDepth} bit Hi-Res", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MagicAmber)
+                    }
                 }
             }
         }
@@ -93,7 +96,7 @@ fun BluetoothScreen(
             trailingContent = {
                 MagicCapsulePill(
                     text = if (state.isScanning) "ĐANG QUÉT RADAR" else "RADAR SẴN SÀNG",
-                    accentColor = if (state.isScanning) MagicEmerald else MagicTextSecondary
+                    accentColor = if (state.isScanning) MagicEmerald else colors.textSecondary
                 )
             }
         ) {
@@ -101,7 +104,7 @@ fun BluetoothScreen(
                 Text(
                     text = "Nhấn nút bên dưới để quét toàn bộ thiết bị phát sóng BLE (AirTag, SmartTag, đồng hồ, tai nghe) xung quanh và ước lượng khoảng cách.",
                     fontSize = 12.sp,
-                    color = MagicTextSecondary,
+                    color = colors.textSecondary,
                     lineHeight = 16.sp
                 )
             } else {
@@ -110,7 +113,7 @@ fun BluetoothScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(MagicCardSubtle)
+                            .background(colors.cardSubtle)
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -120,12 +123,12 @@ fun BluetoothScreen(
                                 text = dev.name,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (dev.name.contains("AirTag", ignoreCase = true)) MagicRed else MagicTextPrimary
+                                color = if (dev.name.contains("AirTag", ignoreCase = true)) MagicRed else colors.textPrimary
                             )
                             Text(
                                 text = dev.address,
                                 fontSize = 10.sp,
-                                color = MagicTextSecondary,
+                                color = colors.textSecondary,
                                 fontFamily = FontFamily.Monospace
                             )
                         }
@@ -135,13 +138,13 @@ fun BluetoothScreen(
                                 text = "~${dev.estimatedDistanceMeters} m",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (dev.estimatedDistanceMeters < 2.0) MagicEmerald else MagicCyan,
+                                color = if (dev.estimatedDistanceMeters < 2.0) MagicEmerald else HonorBlue,
                                 fontFamily = FontFamily.Monospace
                             )
                             Text(
                                 text = "${dev.rssi} dBm",
                                 fontSize = 10.sp,
-                                color = MagicTextSecondary,
+                                color = colors.textSecondary,
                                 fontFamily = FontFamily.Monospace
                             )
                         }

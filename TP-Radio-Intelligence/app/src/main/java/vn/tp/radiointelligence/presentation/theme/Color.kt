@@ -3,38 +3,33 @@ package vn.tp.radiointelligence.presentation.theme
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-// MagicOS 10/11 Deep Space Obsidian Theme
-val MagicOsBgDark = Color(0xFF090C15)
-val MagicOsBgMid = Color(0xFF0E1322)
-val MagicOsBgLight = Color(0xFF151C30)
-
-// Glassmorphism Card Surface
-val MagicCardBg = Color(0xFF131929)
-val MagicCardBorder = Color(0xFF25314C)
-val MagicCardSubtle = Color(0xFF0E1422)
-
-// MagicOS Signature Accents
-val MagicCyan = Color(0xFF00E5FF)
-val MagicCyanGlow = Color(0x3300E5FF)
-val MagicEmerald = Color(0xFF00E676)
-val MagicEmeraldGlow = Color(0x3300E676)
-val MagicAmber = Color(0xFFFFB300)
-val MagicRed = Color(0xFFFF5252)
+// Honor Brand Colors
+val HonorBlue = Color(0xFF007DFF)
+val MagicCyan = Color(0xFF00C4D6)
+val MagicEmerald = Color(0xFF00C853)
+val MagicAmber = Color(0xFFFF9100)
+val MagicRed = Color(0xFFFF3B30)
 val MagicPurple = Color(0xFF7C4DFF)
 
-// Text tokens
-val MagicTextPrimary = Color(0xFFF1F5F9)
-val MagicTextSecondary = Color(0xFF94A3B8)
-val MagicTextTertiary = Color(0xFF64748B)
+// Light Theme Tokens (Porcelain White, MagicOS Settings Style)
+val MagicLightBg = Color(0xFFF6F8FA)
+val MagicLightCard = Color(0xFFFFFFFF)
+val MagicLightCardBorder = Color(0xFFE5E9F0)
+val MagicLightCardSubtle = Color(0xFFF0F3F8)
+val MagicLightTextPrimary = Color(0xFF191C21)
+val MagicLightTextSecondary = Color(0xFF6B7280)
+val MagicLightTextTertiary = Color(0xFF9CA3AF)
+
+// Dark Theme Tokens (Obsidian Slate, Deep Comfort)
+val MagicDarkBg = Color(0xFF111318)
+val MagicDarkCard = Color(0xFF1B1E26)
+val MagicDarkCardBorder = Color(0xFF282D39)
+val MagicDarkCardSubtle = Color(0xFF14171E)
+val MagicDarkTextPrimary = Color(0xFFF1F5F9)
+val MagicDarkTextSecondary = Color(0xFF8E96A4)
+val MagicDarkTextTertiary = Color(0xFF5C6473)
 
 // Gradients
-val MagicCyanGradient = Brush.horizontalGradient(listOf(Color(0xFF00B4D8), Color(0xFF00E5FF)))
-val MagicEmeraldGradient = Brush.horizontalGradient(listOf(Color(0xFF00C853), Color(0xFF00E676)))
-val MagicCardGradient = Brush.verticalGradient(listOf(Color(0xFF161F33), Color(0xFF101625)))
-val MagicRadioWaveGradient = Brush.verticalGradient(
-    listOf(
-        Color(0xFF090C15),
-        Color(0xFF0E1424),
-        Color(0xFF080B12)
-    )
-)
+val MagicCyanGradient = Brush.horizontalGradient(listOf(Color(0xFF00B4D8), MagicCyan))
+val MagicBlueGradient = Brush.horizontalGradient(listOf(Color(0xFF0066FF), HonorBlue))
+val MagicEmeraldGradient = Brush.horizontalGradient(listOf(Color(0xFF00B048), MagicEmerald))

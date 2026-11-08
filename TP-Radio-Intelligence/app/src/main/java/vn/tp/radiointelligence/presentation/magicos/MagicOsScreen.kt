@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import vn.tp.radiointelligence.R
@@ -33,6 +34,7 @@ fun MagicOsScreen(
     onToggleMobileDataAlwaysOn: (Boolean) -> Unit,
     onToggleAntiRogueBts: (Boolean) -> Unit
 ) {
+    val colors = LocalMagicColors.current
     val scrollState = rememberScrollState()
 
     Column(
@@ -44,34 +46,41 @@ fun MagicOsScreen(
     ) {
         // MagicOS Header Card
         MagicOsCard(
-            pillColor = MagicCyan,
+            pillColor = HonorBlue,
             title = stringResource(R.string.magicos_title),
             trailingContent = {
                 MagicCapsulePill(
-                    text = "MagicOS 10/11 Kernel",
-                    accentColor = MagicCyan
+                    text = "MagicOS System Kernel",
+                    accentColor = HonorBlue
                 )
             }
         ) {
             Text(
-                text = "Bộ điều khiển cờ mạng độc quyền của hệ điều hành MagicOS. Trực tiếp can thiệp vào subsystem Link Turbo, Baseband Modem và bộ lọc an ninh phần cứng.",
+                text = "Bộ điều khiển cờ mạng độc quyền của hệ điều hành MagicOS. Can thiệp trực tiếp vào subsystem Link Turbo, Baseband Modem và bộ lọc an ninh phần cứng.",
                 fontSize = 12.sp,
-                color = MagicTextSecondary,
+                color = colors.textSecondary,
                 lineHeight = 16.sp
             )
         }
 
-        // Tweak 1: Link Turbo Pro
+        // Group 1: Tối ưu Tốc Độ & Modem 5G
+        Text(
+            text = "TỐC ĐỘ & GỘP BĂNG THÔNG",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = colors.textTertiary,
+            modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+        )
+
         MagicOsSwitchRow(
             icon = Icons.Default.ElectricBolt,
-            iconColor = MagicCyan,
+            iconColor = HonorBlue,
             title = stringResource(R.string.magicos_link_turbo),
             description = stringResource(R.string.magicos_link_turbo_desc),
             isChecked = flags.linkTurboEnabled,
             onCheckedChange = onToggleLinkTurbo
         )
 
-        // Tweak 2: Force Constant 5G
         MagicOsSwitchRow(
             icon = Icons.Default.Speed,
             iconColor = MagicEmerald,
@@ -81,17 +90,24 @@ fun MagicOsScreen(
             onCheckedChange = onToggleForce5g
         )
 
-        // Tweak 3: Dual 5G
         MagicOsSwitchRow(
             icon = Icons.Default.SignalCellularAlt,
-            iconColor = MagicCyan,
+            iconColor = HonorBlue,
             title = stringResource(R.string.magicos_dual_5g),
             description = stringResource(R.string.magicos_dual_5g_desc),
             isChecked = flags.dual5gEnabled,
             onCheckedChange = onToggleDual5g
         )
 
-        // Tweak 4: Smart Dual-SIM Data
+        // Group 2: Trải Nghiệm Mạng & Chuyển Đổi
+        Text(
+            text = "ĐỘ TRỄ & CHUYỂN MẠNG THÔNG MINH",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = colors.textTertiary,
+            modifier = Modifier.padding(start = 4.dp, top = 6.dp)
+        )
+
         MagicOsSwitchRow(
             icon = Icons.Default.Sync,
             iconColor = MagicAmber,
@@ -101,7 +117,6 @@ fun MagicOsScreen(
             onCheckedChange = onToggleSmartDualSim
         )
 
-        // Tweak 5: Mobile Data Always On
         MagicOsSwitchRow(
             icon = Icons.Default.Wifi,
             iconColor = MagicPurple,
@@ -111,7 +126,15 @@ fun MagicOsScreen(
             onCheckedChange = onToggleMobileDataAlwaysOn
         )
 
-        // Tweak 6: Anti-Rogue BTS Firewall
+        // Group 3: An Ninh Vô Tuyến
+        Text(
+            text = "BẢO MẬT VÔ TUYẾN PHẦN CỨNG",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = colors.textTertiary,
+            modifier = Modifier.padding(start = 4.dp, top = 6.dp)
+        )
+
         MagicOsSwitchRow(
             icon = Icons.Default.Security,
             iconColor = MagicEmerald,

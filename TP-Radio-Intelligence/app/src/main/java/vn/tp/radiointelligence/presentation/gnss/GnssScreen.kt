@@ -9,8 +9,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,6 +37,7 @@ fun GnssScreen(
     state: GnssState,
     onAccelerateGps: () -> Unit
 ) {
+    val colors = LocalMagicColors.current
     val scrollState = rememberScrollState()
 
     Column(
@@ -62,7 +61,7 @@ fun GnssScreen(
             Text(
                 text = stringResource(R.string.gnss_fast_lock_desc),
                 fontSize = 12.sp,
-                color = MagicTextSecondary,
+                color = colors.textSecondary,
                 lineHeight = 16.sp
             )
             Spacer(modifier = Modifier.height(14.dp))
@@ -76,7 +75,7 @@ fun GnssScreen(
 
         // GNSS Telemetry & Fix Status
         MagicOsCard(
-            pillColor = MagicCyan,
+            pillColor = HonorBlue,
             title = "Định Vị Vệ Tinh GNSS",
             trailingContent = {
                 MagicCapsulePill(
@@ -90,22 +89,22 @@ fun GnssScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("Tọa độ GNSS:", fontSize = 11.sp, color = MagicTextSecondary)
+                    Text("Tọa độ GNSS:", fontSize = 11.sp, color = colors.textSecondary)
                     Text(
                         text = if (state.isFixAcquired) "${String.format("%.5f", state.latitude)}, ${String.format("%.5f", state.longitude)}" else "Đang chờ vị trí...",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = MagicTextPrimary,
+                        color = colors.textPrimary,
                         fontFamily = FontFamily.Monospace
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(stringResource(R.string.gnss_accuracy), fontSize = 11.sp, color = MagicTextSecondary)
+                    Text(stringResource(R.string.gnss_accuracy), fontSize = 11.sp, color = colors.textSecondary)
                     Text(
                         text = if (state.isFixAcquired) "±${String.format("%.1f", state.accuracyMeters)} m" else "--",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (state.accuracyMeters in 0.1f..2.5f) MagicEmerald else MagicCyan,
+                        color = if (state.accuracyMeters in 0.1f..2.5f) MagicEmerald else HonorBlue,
                         fontFamily = FontFamily.Monospace
                     )
                 }
@@ -119,21 +118,21 @@ fun GnssScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 MagicCapsulePill(text = "Bắc Đẩu: ${state.beidouCount}", accentColor = MagicEmerald)
-                MagicCapsulePill(text = "GPS: ${state.gpsCount}", accentColor = MagicCyan)
+                MagicCapsulePill(text = "GPS: ${state.gpsCount}", accentColor = HonorBlue)
                 MagicCapsulePill(text = "L1+L5 Kép: ${state.dualFreqCount}", accentColor = MagicAmber)
             }
         }
 
         // SkyView 2D Polar Radar
         MagicOsCard(
-            pillColor = MagicCyan,
+            pillColor = HonorBlue,
             title = stringResource(R.string.gnss_radar_title),
             trailingContent = {
                 Text(
                     text = "${state.usedSatellites}/${state.totalSatellites} vệ tinh",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MagicCyan
+                    color = HonorBlue
                 )
             }
         ) {
@@ -143,12 +142,12 @@ fun GnssScreen(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(260.dp)
-                        .clip(RoundedCornerShape(130.dp))
-                        .background(Color(0xFF0D1322)),
+                        .size(240.dp)
+                        .clip(RoundedCornerShape(120.dp))
+                        .background(colors.cardSubtle),
                     contentAlignment = Alignment.Center
                 ) {
-                    GnssSkyViewCanvas(satellites = state.satellites)
+                    GnssSkyViewCanvas(satellites = state.satellites, cardBorder = colors.cardBorder)
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -158,10 +157,10 @@ fun GnssScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    LegendItem("BeiDou", MagicEmerald)
-                    LegendItem("GPS", MagicCyan)
-                    LegendItem("Galileo", MagicAmber)
-                    LegendItem("GLONASS", MagicRed)
+                    LegendItem("BeiDou", MagicEmerald, colors.textSecondary)
+                    LegendItem("GPS", HonorBlue, colors.textSecondary)
+                    LegendItem("Galileo", MagicAmber, colors.textSecondary)
+                    LegendItem("GLONASS", MagicRed, colors.textSecondary)
                 }
             }
         }
@@ -175,12 +174,12 @@ fun GnssScreen(
                 Text(
                     text = "Chưa nhận được dữ liệu vệ tinh từ chip định vị GNSS. Đảm bảo quyền Vị trí đã được cấp và đưa thiết bị ra nơi thoáng đãng để thu sóng vệ tinh.",
                     fontSize = 12.sp,
-                    color = MagicTextSecondary,
+                    color = colors.textSecondary,
                     lineHeight = 16.sp
                 )
             } else {
                 state.satellites.forEach { sat ->
-                    SatelliteRow(sat)
+                    SatelliteRow(sat, colors)
                     Spacer(modifier = Modifier.height(6.dp))
                 }
             }
@@ -189,7 +188,7 @@ fun GnssScreen(
 }
 
 @Composable
-fun LegendItem(name: String, color: Color) {
+fun LegendItem(name: String, color: Color, textColor: Color) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -200,25 +199,25 @@ fun LegendItem(name: String, color: Color) {
                 .clip(RoundedCornerShape(4.dp))
                 .background(color)
         )
-        Text(name, fontSize = 11.sp, color = MagicTextSecondary)
+        Text(name, fontSize = 11.sp, color = textColor)
     }
 }
 
 @Composable
-fun GnssSkyViewCanvas(satellites: List<SatelliteInfo>) {
+fun GnssSkyViewCanvas(satellites: List<SatelliteInfo>, cardBorder: Color) {
     Canvas(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         val centerX = size.width / 2f
         val centerY = size.height / 2f
         val radius = size.minDimension / 2f
 
         // Concentric Circles: 0°, 30°, 60°
-        drawCircle(color = MagicCardBorder, radius = radius, center = Offset(centerX, centerY), style = Stroke(width = 1.5f))
-        drawCircle(color = MagicCardBorder, radius = radius * 0.66f, center = Offset(centerX, centerY), style = Stroke(width = 1f))
-        drawCircle(color = MagicCardBorder, radius = radius * 0.33f, center = Offset(centerX, centerY), style = Stroke(width = 1f))
+        drawCircle(color = cardBorder, radius = radius, center = Offset(centerX, centerY), style = Stroke(width = 1.5f))
+        drawCircle(color = cardBorder, radius = radius * 0.66f, center = Offset(centerX, centerY), style = Stroke(width = 1f))
+        drawCircle(color = cardBorder, radius = radius * 0.33f, center = Offset(centerX, centerY), style = Stroke(width = 1f))
 
         // Crosshairs (N-S, E-W)
-        drawLine(color = MagicCardBorder, start = Offset(centerX, centerY - radius), end = Offset(centerX, centerY + radius), strokeWidth = 1f)
-        drawLine(color = MagicCardBorder, start = Offset(centerX - radius, centerY), end = Offset(centerX + radius, centerY), strokeWidth = 1f)
+        drawLine(color = cardBorder, start = Offset(centerX, centerY - radius), end = Offset(centerX, centerY + radius), strokeWidth = 1f)
+        drawLine(color = cardBorder, start = Offset(centerX - radius, centerY), end = Offset(centerX + radius, centerY), strokeWidth = 1f)
 
         // Plot Satellites
         for (sat in satellites) {
@@ -229,7 +228,7 @@ fun GnssSkyViewCanvas(satellites: List<SatelliteInfo>) {
 
             val color = when (sat.constellation) {
                 "BeiDou" -> MagicEmerald
-                "GPS" -> MagicCyan
+                "GPS" -> HonorBlue
                 "Galileo" -> MagicAmber
                 else -> MagicRed
             }
@@ -250,10 +249,10 @@ fun GnssSkyViewCanvas(satellites: List<SatelliteInfo>) {
 }
 
 @Composable
-fun SatelliteRow(sat: SatelliteInfo) {
+fun SatelliteRow(sat: SatelliteInfo, colors: MagicColors) {
     val satColor = when (sat.constellation) {
         "BeiDou" -> MagicEmerald
-        "GPS" -> MagicCyan
+        "GPS" -> HonorBlue
         "Galileo" -> MagicAmber
         else -> MagicRed
     }
@@ -262,7 +261,7 @@ fun SatelliteRow(sat: SatelliteInfo) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(MagicCardSubtle)
+            .background(colors.cardSubtle)
             .padding(horizontal = 10.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -290,13 +289,13 @@ fun SatelliteRow(sat: SatelliteInfo) {
                 .height(6.dp)
                 .clip(RoundedCornerShape(3.dp)),
             color = satColor,
-            trackColor = MagicCardBorder
+            trackColor = colors.cardBorder
         )
 
         Text(
             text = "${String.format("%.1f", sat.cn0DbHz)} dB-Hz",
             fontSize = 11.sp,
-            color = MagicTextPrimary,
+            color = colors.textPrimary,
             fontFamily = FontFamily.Monospace,
             modifier = Modifier.width(65.dp)
         )

@@ -7,7 +7,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,6 +29,7 @@ fun WifiScreen(
     state: WifiState,
     onRunPing: () -> Unit
 ) {
+    val colors = LocalMagicColors.current
     val scrollState = rememberScrollState()
 
     Column(
@@ -41,21 +41,21 @@ fun WifiScreen(
     ) {
         // Wi-Fi 7 & Radio Status Card
         MagicOsCard(
-            pillColor = MagicCyan,
+            pillColor = HonorBlue,
             title = stringResource(R.string.wifi_title),
             trailingContent = {
                 MagicCapsulePill(
                     text = if (state.isConnected) "ĐÃ KẾT NỐI" else "CHƯA KẾT NỐI",
-                    accentColor = if (state.isConnected) MagicEmerald else MagicTextSecondary
+                    accentColor = if (state.isConnected) MagicEmerald else colors.textSecondary
                 )
             }
         ) {
-            Text(stringResource(R.string.wifi_ssid), fontSize = 12.sp, color = MagicTextSecondary)
+            Text(stringResource(R.string.wifi_ssid), fontSize = 12.sp, color = colors.textSecondary)
             Text(
                 text = state.ssid,
                 fontSize = 19.sp,
                 fontWeight = FontWeight.Bold,
-                color = MagicCyan
+                color = HonorBlue
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -65,11 +65,11 @@ fun WifiScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("Chuẩn Vô Tuyến:", fontSize = 11.sp, color = MagicTextSecondary)
-                    Text(state.wifiStandard, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MagicTextPrimary)
+                    Text("Chuẩn Vô Tuyến:", fontSize = 11.sp, color = colors.textSecondary)
+                    Text(state.wifiStandard, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(stringResource(R.string.wifi_channel_width), fontSize = 11.sp, color = MagicTextSecondary)
+                    Text(stringResource(R.string.wifi_channel_width), fontSize = 11.sp, color = colors.textSecondary)
                     Text("${state.channelWidthMhz} MHz", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MagicEmerald)
                 }
             }
@@ -81,21 +81,21 @@ fun WifiScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("Tần số sóng:", fontSize = 11.sp, color = MagicTextSecondary)
+                    Text("Tần số sóng:", fontSize = 11.sp, color = colors.textSecondary)
                     Text(
                         text = if (state.frequencyMhz > 0) "${state.frequencyMhz} MHz" else "--",
                         fontSize = 13.sp,
-                        color = MagicTextPrimary,
+                        color = colors.textPrimary,
                         fontFamily = FontFamily.Monospace
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(stringResource(R.string.wifi_link_speed), fontSize = 11.sp, color = MagicTextSecondary)
+                    Text(stringResource(R.string.wifi_link_speed), fontSize = 11.sp, color = colors.textSecondary)
                     Text(
                         text = if (state.linkSpeedMbps > 0) "${state.linkSpeedMbps} Mbps" else "--",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MagicCyan
+                        color = HonorBlue
                     )
                 }
             }
@@ -105,9 +105,9 @@ fun WifiScreen(
             // MLO Section
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MagicCardSubtle,
+                color = colors.cardSubtle,
                 shape = RoundedCornerShape(14.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MagicCardBorder)
+                border = androidx.compose.foundation.BorderStroke(1.dp, colors.cardBorder)
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Row(
@@ -119,11 +119,11 @@ fun WifiScreen(
                             text = "Đa Liên Kết MLO (Qualcomm FastConnect)",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MagicTextPrimary
+                            color = colors.textPrimary
                         )
                         MagicCapsulePill(
                             text = if (state.isMloActive) "MLO HOẠT ĐỘNG" else "BĂNG TẦN ĐƠN",
-                            accentColor = if (state.isMloActive) MagicEmerald else MagicTextSecondary
+                            accentColor = if (state.isMloActive) MagicEmerald else colors.textSecondary
                         )
                     }
 
@@ -133,7 +133,7 @@ fun WifiScreen(
                             Text(
                                 text = "• $linkDesc",
                                 fontSize = 11.sp,
-                                color = MagicTextSecondary,
+                                color = colors.textSecondary,
                                 modifier = Modifier.padding(start = 4.dp, top = 2.dp)
                             )
                         }
@@ -142,7 +142,7 @@ fun WifiScreen(
                         Text(
                             text = if (state.isMloSupported) "Điểm phát Wi-Fi hiện tại đang chạy liên kết đơn. Khi kết nối Router Wi-Fi 7 hỗ trợ MLO, các đường truyền 2.4GHz + 5GHz/6GHz sẽ tự động hiển thị tại đây." else "Phần cứng không kích hoạt MLO đa kênh.",
                             fontSize = 11.sp,
-                            color = MagicTextSecondary,
+                            color = colors.textSecondary,
                             lineHeight = 15.sp
                         )
                     }
@@ -159,14 +159,14 @@ fun WifiScreen(
                 Text(
                     text = "Chưa có kết quả kiểm tra độ trễ. Nhấn 'Chạy kiểm tra Ping' bên dưới để đo thời gian phản hồi thực tế (Round Trip Time) từ máy tới Gateway, Cloudflare, Google DNS và Viettel DNS.",
                     fontSize = 12.sp,
-                    color = MagicTextSecondary,
+                    color = colors.textSecondary,
                     lineHeight = 16.sp
                 )
             } else {
                 state.pingResults.forEach { (host, ms) ->
                     val color = when {
                         ms < 20 -> MagicEmerald
-                        ms < 50 -> MagicCyan
+                        ms < 50 -> HonorBlue
                         ms < 100 -> MagicAmber
                         else -> MagicRed
                     }
@@ -175,12 +175,12 @@ fun WifiScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(MagicCardSubtle)
+                            .background(colors.cardSubtle)
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(host, fontSize = 13.sp, color = MagicTextPrimary)
+                        Text(host, fontSize = 13.sp, color = colors.textPrimary)
                         Text(
                             text = if (ms >= 999) "Mất gói" else "$ms ms",
                             fontSize = 14.sp,
@@ -197,7 +197,7 @@ fun WifiScreen(
 
             MagicOsButton(
                 text = stringResource(R.string.wifi_btn_ping),
-                brush = MagicCyanGradient,
+                brush = MagicBlueGradient,
                 onClick = onRunPing,
                 icon = Icons.Default.PlayArrow
             )

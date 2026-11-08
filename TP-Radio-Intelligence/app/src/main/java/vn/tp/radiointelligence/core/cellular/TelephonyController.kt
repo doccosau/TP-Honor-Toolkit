@@ -15,6 +15,7 @@ import android.telephony.CellSignalStrengthGsm
 import android.telephony.CellSignalStrengthLte
 import android.telephony.CellSignalStrengthNr
 import android.telephony.CellSignalStrengthWcdma
+import android.telephony.SignalStrength
 import android.telephony.SubscriptionInfo
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
@@ -40,25 +41,27 @@ class TelephonyController(
     val cellularState: StateFlow<CellularState> = _cellularState.asStateFlow()
 
     companion object {
-        // Telephony bitmask constants
         const val BITMASK_LTE = 4096L
         const val BITMASK_LTE_CA = 262144L
         const val BITMASK_NR = 524288L
-        const val BITMASK_4G_ONLY = BITMASK_LTE or BITMASK_LTE_CA // 266240L
-        const val BITMASK_5G_ONLY = BITMASK_NR // 524288L
-        const val BITMASK_NR_LTE = BITMASK_NR or BITMASK_4G_ONLY // 790528L
+        const val BITMASK_4G_ONLY = BITMASK_LTE or BITMASK_LTE_CA
+        const val BITMASK_5G_ONLY = BITMASK_NR
+        const val BITMASK_NR_LTE = BITMASK_NR or BITMASK_4G_ONLY
         const val BITMASK_ALL_AUTO = -1L
     }
 
     suspend fun refreshAll() = withContext(Dispatchers.IO) {
         val slots = querySimSlots()
         val currentSlotIdx = _cellularState.value.selectedSlotIndex.coerceIn(0, (slots.size - 1).coerceAtLeast(0))
-        val currentSubId = slots.getOrNull(currentSlotIdx)?.subId ?: SubscriptionManager.getDefaultSubscriptionId()
+        val currentSlot = slots.getOrNull(currentSlotIdx)
+        val currentSubId = currentSlot?.subId ?: SubscriptionManager.getDefaultSubscriptionId()
 
         val preferredMode = queryPreferredNetworkMode(currentSubId)
         val currentNetworkType = queryActiveNetworkTypeName(currentSubId)
-        val smsc = querySmscAddress(currentSubId)
+        val smsc = querySmscAddress(currentSubId, currentSlot?.recommendedSmsc ?: "")
         val btsData = queryBtsCellData(currentSubId)
+        val hasHardware5g = checkHardware5gSupport()
+        val recommendation = generateSmartRecommendation(currentSlot, btsData)
 
         _cellularState.value = CellularState(
             slots = slots,
@@ -66,7 +69,9 @@ class TelephonyController(
             currentNetworkType = currentNetworkType,
             currentPreferredMode = preferredMode,
             smscNumber = smsc,
-            btsInfo = btsData
+            btsInfo = btsData,
+            hardware5gSupported = hasHardware5g,
+            smartRecommendationReason = recommendation
         )
     }
 
@@ -83,13 +88,41 @@ class TelephonyController(
             val subList: List<SubscriptionInfo>? = subscriptionManager?.activeSubscriptionInfoList
             if (!subList.isNullOrEmpty()) {
                 for (sub in subList) {
+                    val rawCarrierName = sub.carrierName?.toString()?.takeIf { it.isNotBlank() } ?: "SIM ${sub.simSlotIndex + 1}"
+                    val mcc = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) sub.mccString ?: "" else ""
+                    val mnc = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) sub.mncString ?: "" else ""
+                    val mccMnc = if (mcc.isNotBlank() && mnc.isNotBlank()) "$mcc$mnc" else ""
+
+                    // Dynamic Carrier Intelligence Resolution
+                    val carrierDetails = CarrierResolver.resolveCarrier(mccMnc, rawCarrierName)
+
+                    // Signal level & dBm measurement
+                    var signalLevel = 0
+                    var signalDbm = -105
+                    try {
+                        val specificTm = telephonyManager.createForSubscriptionId(sub.subscriptionId)
+                        val sigStrength: SignalStrength? = specificTm.signalStrength
+                        if (sigStrength != null) {
+                            signalLevel = sigStrength.level.coerceIn(0, 4)
+                            val cellSignals = sigStrength.cellSignalStrengths
+                            val bestDbm = cellSignals.mapNotNull { it.dbm.takeIf { d -> d in -140..-44 } }.maxOrNull()
+                            if (bestDbm != null) signalDbm = bestDbm
+                        }
+                    } catch (_: Throwable) {
+                    }
+
                     list.add(
                         SimSlotInfo(
                             slotIndex = sub.simSlotIndex,
                             subId = sub.subscriptionId,
-                            carrierName = sub.carrierName?.toString()?.takeIf { it.isNotBlank() } ?: "SIM ${sub.simSlotIndex + 1}",
-                            displayName = sub.displayName?.toString()?.takeIf { it.isNotBlank() } ?: "SIM ${sub.simSlotIndex + 1}",
-                            isDataActive = (sub.subscriptionId == SubscriptionManager.getDefaultDataSubscriptionId())
+                            carrierName = carrierDetails.operatorName,
+                            displayName = sub.displayName?.toString()?.takeIf { it.isNotBlank() } ?: carrierDetails.operatorName,
+                            isDataActive = (sub.subscriptionId == SubscriptionManager.getDefaultDataSubscriptionId()),
+                            mccMnc = mccMnc,
+                            signalLevel = signalLevel,
+                            signalDbm = signalDbm,
+                            recommendedSmsc = carrierDetails.recommendedSmsc,
+                            carrierDetails = carrierDetails
                         )
                     )
                 }
@@ -111,8 +144,6 @@ class TelephonyController(
     }
 
     suspend fun setPreferredNetworkMode(subId: Int, slotIndex: Int, mode: NetworkModeLock): Boolean = withContext(Dispatchers.IO) {
-        // Multi-layer enforcement:
-        // 1. Android 11+ AOSP official command: cmd phone set-allowed-network-types-for-users
         val bitmask = when (mode) {
             NetworkModeLock.MODE_5G_ONLY -> BITMASK_5G_ONLY
             NetworkModeLock.MODE_4G_ONLY -> BITMASK_4G_ONLY
@@ -124,10 +155,7 @@ class TelephonyController(
             shizukuBridge.executeShellCommand("cmd phone set-allowed-network-types-for-users -s $slotIndex $bitmask")
         }
 
-        // 2. Standard RIL Shell command
         shizukuBridge.executeShellCommand("cmd phone set-preferred-network-type $subId ${mode.code}")
-
-        // 3. Global settings database persistence
         shizukuBridge.executeShellCommand("settings put global preferred_network_mode$subId ${mode.code}")
         shizukuBridge.executeShellCommand("settings put global preferred_network_mode ${mode.code}")
 
@@ -148,8 +176,7 @@ class TelephonyController(
         !res.contains("Error", ignoreCase = true)
     }
 
-    private suspend fun querySmscAddress(subId: Int): String {
-        // 1. Try reflection on TelephonyManager
+    private suspend fun querySmscAddress(subId: Int, dynamicFallback: String): String {
         try {
             val specificTm = telephonyManager.createForSubscriptionId(subId)
             val getSmscMethod = specificTm.javaClass.getMethod("getSmscAddress")
@@ -160,7 +187,6 @@ class TelephonyController(
         } catch (_: Throwable) {
         }
 
-        // 2. Try Shizuku shell commands
         val out = shizukuBridge.executeShellCommand("cmd phone get-smsc-address $subId")
         if (out.isNotBlank() && !out.contains("Error", ignoreCase = true) && !out.contains("Exception", ignoreCase = true)) {
             val cleaned = out.replace("\"", "").trim()
@@ -169,14 +195,13 @@ class TelephonyController(
             }
         }
 
-        return ""
+        return dynamicFallback
     }
 
     suspend fun updateSmscAddress(subId: Int, smscNumber: String): Boolean = withContext(Dispatchers.IO) {
         val sanitized = smscNumber.trim().replace("\"", "")
         if (sanitized.isBlank()) return@withContext false
 
-        // 1. Try reflection on TelephonyManager
         try {
             val specificTm = telephonyManager.createForSubscriptionId(subId)
             val setSmscMethod = specificTm.javaClass.getMethod("setSmscAddress", String::class.java)
@@ -188,7 +213,6 @@ class TelephonyController(
         } catch (_: Throwable) {
         }
 
-        // 2. Shizuku privileged shell fallback
         val cmd = "cmd phone set-smsc-address $subId \"$sanitized\""
         shizukuBridge.executeShellCommand(cmd)
         _cellularState.value = _cellularState.value.copy(smscNumber = sanitized)
@@ -331,8 +355,38 @@ class TelephonyController(
         } catch (_: Throwable) {
         }
 
-        // Return null when real data is unavailable (NO MOCK DATA)
         return null
+    }
+
+    private fun checkHardware5gSupport(): Boolean {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val raf = telephonyManager.supportedRadioAccessFamily
+                (raf and TelephonyManager.NETWORK_TYPE_BITMASK_NR) != 0L
+            } else true
+        } catch (_: Throwable) {
+            true
+        }
+    }
+
+    private fun generateSmartRecommendation(slot: SimSlotInfo?, bts: BtsCellData?): String {
+        slot ?: return "Vui lòng chọn SIM để nhận diện năng lực mạng."
+        val carrier = slot.carrierDetails
+
+        return when {
+            !carrier.is5gCapable -> {
+                "Nhà mạng ${carrier.operatorName} chưa hỗ trợ 5G. Khuyến nghị chọn '4G LTE Only' để sóng phẳng, loại bỏ rớt 2G/3G."
+            }
+            bts?.cellType?.contains("5G", ignoreCase = true) == true -> {
+                "Trạm phát hiện tại đang phát 5G (${bts.bandName}). Khuyến nghị '5G Only' hoặc 'NR/LTE' để tận dụng băng thông cực đại."
+            }
+            bts?.isCarrierAggregation == true -> {
+                "Trạm đang gộp sóng 4G+ CA (${bts.bandName}). Khuyến nghị '4G LTE Only' để ping ổn định nhất khi chơi game và streaming."
+            }
+            else -> {
+                "Khuyến nghị 'NR / 4G LTE' để bỏ hoàn toàn 2G/3G, vừa đảm bảo tốc độ vừa chặn nguy cơ trạm BTS giả mạo."
+            }
+        }
     }
 
     private fun calculateLteBand(earfcn: Int): String {

@@ -1,22 +1,22 @@
 package vn.tp.radiointelligence.presentation.cellular
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CellTower
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.SimCard
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -29,6 +29,9 @@ import vn.tp.radiointelligence.domain.model.NetworkModeLock
 import vn.tp.radiointelligence.presentation.components.MagicCapsulePill
 import vn.tp.radiointelligence.presentation.components.MagicOsButton
 import vn.tp.radiointelligence.presentation.components.MagicOsCard
+import vn.tp.radiointelligence.presentation.components.RecommendationBanner
+import vn.tp.radiointelligence.presentation.components.SignalStrengthArcGauge
+import vn.tp.radiointelligence.presentation.components.SmartSimCard
 import vn.tp.radiointelligence.presentation.theme.*
 
 @Composable
@@ -40,7 +43,9 @@ fun CellularScreen(
     onLaunchNativeRadioInfo: () -> Unit,
     onUpdateSmsc: (String) -> Unit
 ) {
+    val colors = LocalMagicColors.current
     val scrollState = rememberScrollState()
+    val currentSlot = state.slots.getOrNull(state.selectedSlotIndex)
     var inputSmsc by remember(state.smscNumber) { mutableStateOf(state.smscNumber) }
 
     Column(
@@ -50,96 +55,109 @@ fun CellularScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Dual SIM Selector (MagicOS 10/11 Capsule Style)
+        // Dual SIM Selector (Dynamic & Zero Hardcoded)
         if (state.slots.isNotEmpty()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 state.slots.forEach { slot ->
-                    val isSelected = slot.slotIndex == state.selectedSlotIndex
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(18.dp))
-                            .clickable { onSelectSlot(slot.slotIndex) },
-                        color = if (isSelected) MagicCyan.copy(alpha = 0.14f) else MagicCardBg,
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            if (isSelected) MagicCyan else MagicCardBorder
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(14.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Surface(
-                                modifier = Modifier.size(36.dp),
-                                shape = RoundedCornerShape(10.dp),
-                                color = if (isSelected) MagicCyan.copy(alpha = 0.2f) else MagicCardSubtle
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        Icons.Default.SimCard,
-                                        contentDescription = null,
-                                        tint = if (isSelected) MagicCyan else MagicTextSecondary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                            }
-                            Column {
-                                Text(
-                                    text = slot.displayName,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isSelected) MagicCyan else MagicTextPrimary
-                                )
-                                Text(
-                                    text = slot.carrierName,
-                                    fontSize = 11.sp,
-                                    color = MagicTextSecondary,
-                                    maxLines = 1
-                                )
-                            }
-                        }
-                    }
+                    SmartSimCard(
+                        slot = slot,
+                        isSelected = slot.slotIndex == state.selectedSlotIndex,
+                        onClick = { onSelectSlot(slot.slotIndex) },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
 
-        // Active Radio Mode Card
+        // RF Signal Arc Gauge (Real Hardware Measurement)
+        state.btsInfo?.let { bts ->
+            MagicOsCard(
+                pillColor = MagicEmerald,
+                title = "Đo Đạc Vô Tuyến Trạm BTS",
+                trailingContent = {
+                    MagicCapsulePill(
+                        text = if (bts.isCarrierAggregation) "CA Gộp Sóng (4G+/5G+)" else "Băng Tần Đơn",
+                        accentColor = if (bts.isCarrierAggregation) MagicEmerald else colors.textSecondary
+                    )
+                }
+            ) {
+                SignalStrengthArcGauge(
+                    rsrpDbm = bts.rsrp,
+                    rsrqDb = bts.rsrq,
+                    sinrDb = bts.sinr,
+                    bandName = bts.bandName
+                )
+
+                if (bts.timingAdvance > 0) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Khoảng cách ước tính tới trạm:", fontSize = 12.sp, color = colors.textSecondary)
+                        Text(
+                            text = "~${String.format("%.1f", bts.distanceMeters)} m (TA: ${bts.timingAdvance})",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colors.textPrimary,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+
+                if (bts.secondaryBands.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text("Băng tần phụ đang gộp (Carrier Aggregation):", fontSize = 12.sp, color = colors.textSecondary)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        bts.secondaryBands.forEach { secBand ->
+                            MagicCapsulePill(text = secBand, accentColor = HonorBlue)
+                        }
+                    }
+                }
+            }
+        } ?: run {
+            MagicOsCard(
+                pillColor = MagicAmber,
+                title = "Tín Hiệu Trạm Phát Vô Tuyến"
+            ) {
+                Text(
+                    text = "Đang nhận diện sóng vô tuyến từ thẻ SIM đang chọn... Đảm bảo quyền Vị trí (ACCESS_FINE_LOCATION) đã được cấp và SIM đang có kết nối mạng.",
+                    fontSize = 12.sp,
+                    color = colors.textSecondary,
+                    lineHeight = 16.sp
+                )
+            }
+        }
+
+        // Intelligent Recommendation Banner
+        if (state.smartRecommendationReason.isNotBlank()) {
+            RecommendationBanner(reason = state.smartRecommendationReason)
+        }
+
+        // Intelligent Network Mode Lock Card
         MagicOsCard(
-            pillColor = MagicEmerald,
-            title = "Trạng Thái Băng Tần Di Động",
+            pillColor = HonorBlue,
+            title = stringResource(R.string.cellular_lock_mode),
             trailingContent = {
                 MagicCapsulePill(
                     text = state.currentNetworkType,
-                    accentColor = MagicEmerald
+                    accentColor = HonorBlue
                 )
             }
         ) {
-            Text(
-                text = "Modem đang kết nối trực tiếp với trạm vô tuyến di động. Băng tần và công nghệ mạng được cập nhật thời gian thực.",
-                fontSize = 12.sp,
-                color = MagicTextSecondary,
-                lineHeight = 16.sp
-            )
-        }
-
-        // Network Lock Matrix (4636 Core)
-        MagicOsCard(
-            pillColor = MagicCyan,
-            title = stringResource(R.string.cellular_lock_mode)
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 NetworkModeLock.entries.forEach { mode ->
                     val isChecked = state.currentPreferredMode == mode
-                    val title = when (mode) {
-                        NetworkModeLock.MODE_5G_ONLY -> stringResource(R.string.mode_5g_only)
-                        NetworkModeLock.MODE_4G_ONLY -> stringResource(R.string.mode_4g_only)
-                        NetworkModeLock.MODE_NR_LTE -> stringResource(R.string.mode_nr_lte)
-                        NetworkModeLock.MODE_AUTO -> stringResource(R.string.mode_auto)
+                    val (title, subDesc) = when (mode) {
+                        NetworkModeLock.MODE_5G_ONLY -> stringResource(R.string.mode_5g_only) to "Khóa cứng sóng 5G Standalone SA, tốc độ cao nhất"
+                        NetworkModeLock.MODE_4G_ONLY -> stringResource(R.string.mode_4g_only) to "Giữ ping phẳng tuyệt đối, loại trừ hoàn toàn rớt về 3G/2G"
+                        NetworkModeLock.MODE_NR_LTE -> stringResource(R.string.mode_nr_lte) to "Bỏ hẳn 2G/3G để phòng thủ chống trạm BTS giả mạo"
+                        NetworkModeLock.MODE_AUTO -> stringResource(R.string.mode_auto) to "Theo cấu hình mặc định của nhà mạng và hệ điều hành"
                     }
 
                     Surface(
@@ -147,31 +165,38 @@ fun CellularScreen(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
                             .clickable { onSetLockMode(mode) },
-                        color = if (isChecked) MagicCyan.copy(alpha = 0.10f) else Color.Transparent,
+                        color = if (isChecked) HonorBlue.copy(alpha = if (colors.isDark) 0.12f else 0.08f) else colors.cardSubtle,
                         border = androidx.compose.foundation.BorderStroke(
                             1.dp,
-                            if (isChecked) MagicCyan.copy(alpha = 0.4f) else Color.Transparent
+                            if (isChecked) HonorBlue else Color.Transparent
                         )
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                            modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             RadioButton(
                                 selected = isChecked,
                                 onClick = { onSetLockMode(mode) },
                                 colors = RadioButtonDefaults.colors(
-                                    selectedColor = MagicCyan,
-                                    unselectedColor = MagicTextTertiary
+                                    selectedColor = HonorBlue,
+                                    unselectedColor = colors.textTertiary
                                 )
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = title,
-                                fontSize = 14.sp,
-                                fontWeight = if (isChecked) FontWeight.SemiBold else FontWeight.Normal,
-                                color = if (isChecked) MagicCyan else MagicTextPrimary
-                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column {
+                                Text(
+                                    text = title,
+                                    fontSize = 14.sp,
+                                    fontWeight = if (isChecked) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isChecked) HonorBlue else colors.textPrimary
+                                )
+                                Text(
+                                    text = subDesc,
+                                    fontSize = 11.sp,
+                                    color = colors.textSecondary
+                                )
+                            }
                         }
                     }
                 }
@@ -185,18 +210,18 @@ fun CellularScreen(
                     Box(modifier = Modifier.weight(1f)) {
                         MagicOsButton(
                             text = "Reset Radio (2s)",
-                            brush = MagicCardGradient,
+                            brush = Brush.horizontalGradient(listOf(colors.cardSubtle, colors.cardSubtle)),
                             onClick = onRestartRadio,
                             icon = Icons.Default.Refresh,
-                            textColor = MagicCyan
+                            textColor = HonorBlue
                         )
                     }
                     Box(modifier = Modifier.weight(1f)) {
                         MagicOsButton(
                             text = "Menu 4636 Gốc",
-                            brush = MagicCardGradient,
+                            brush = Brush.horizontalGradient(listOf(colors.cardSubtle, colors.cardSubtle)),
                             onClick = onLaunchNativeRadioInfo,
-                            icon = Icons.Default.OpenInNew,
+                            icon = Icons.AutoMirrored.Filled.OpenInNew,
                             textColor = MagicEmerald
                         )
                     }
@@ -204,15 +229,23 @@ fun CellularScreen(
             }
         }
 
-        // SMSC Controller Card
+        // Dynamic SMSC Controller Card (Zero Hardcoded)
         MagicOsCard(
             pillColor = MagicAmber,
-            title = stringResource(R.string.smsc_title)
+            title = stringResource(R.string.smsc_title),
+            trailingContent = {
+                currentSlot?.carrierDetails?.let { carrier ->
+                    MagicCapsulePill(
+                        text = carrier.operatorName,
+                        accentColor = MagicAmber
+                    )
+                }
+            }
         ) {
             Text(
-                text = stringResource(R.string.smsc_desc),
+                text = "Tự động nhận diện nhà mạng của SIM đang chọn để hỗ trợ sửa lỗi SMS Error 38/28 do máy Honor nội địa nhận sai đầu số trung tâm.",
                 fontSize = 12.sp,
-                color = MagicTextSecondary,
+                color = colors.textSecondary,
                 lineHeight = 16.sp
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -220,19 +253,19 @@ fun CellularScreen(
             OutlinedTextField(
                 value = inputSmsc,
                 onValueChange = { inputSmsc = it },
-                label = { Text(stringResource(R.string.smsc_input_hint)) },
+                label = { Text("Số SMSC (+84...)") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MagicCyan,
-                    unfocusedBorderColor = MagicCardBorder,
-                    focusedLabelColor = MagicCyan,
-                    unfocusedLabelColor = MagicTextSecondary,
-                    focusedTextColor = MagicTextPrimary,
-                    unfocusedTextColor = MagicTextPrimary,
-                    focusedContainerColor = MagicCardSubtle,
-                    unfocusedContainerColor = MagicCardSubtle
+                    focusedBorderColor = HonorBlue,
+                    unfocusedBorderColor = colors.cardBorder,
+                    focusedLabelColor = HonorBlue,
+                    unfocusedLabelColor = colors.textSecondary,
+                    focusedTextColor = colors.textPrimary,
+                    unfocusedTextColor = colors.textPrimary,
+                    focusedContainerColor = colors.cardSubtle,
+                    unfocusedContainerColor = colors.cardSubtle
                 ),
                 textStyle = androidx.compose.ui.text.TextStyle(
                     fontFamily = FontFamily.Monospace,
@@ -240,148 +273,37 @@ fun CellularScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = stringResource(R.string.smsc_apply_preset),
-                fontSize = 12.sp,
-                color = MagicTextSecondary
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                val presets = listOf(
-                    "Viettel" to "+84980000015",
-                    "VinaPhone" to "+8491020005",
-                    "MobiFone" to "+84900000011",
-                    "Wintel" to "+84559000000"
-                )
-                presets.forEach { (name, num) ->
-                    val isSelected = inputSmsc == num
-                    Surface(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20))
-                            .clickable { inputSmsc = num },
-                        color = if (isSelected) MagicCyan.copy(alpha = 0.2f) else MagicCardSubtle,
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            if (isSelected) MagicCyan else MagicCardBorder
-                        )
-                    ) {
-                        Text(
-                            text = name,
-                            fontSize = 11.sp,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isSelected) MagicCyan else MagicTextSecondary,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-            MagicOsButton(
-                text = stringResource(R.string.smsc_btn_update),
-                brush = MagicCyanGradient,
-                onClick = { onUpdateSmsc(inputSmsc) },
-                icon = Icons.Default.Send
-            )
-        }
-
-        // BTS Base Station Field Test Card
-        if (state.btsInfo != null) {
-            val bts = state.btsInfo
-            MagicOsCard(
-                pillColor = MagicEmerald,
-                title = stringResource(R.string.field_test_title),
-                trailingContent = {
-                    MagicCapsulePill(
-                        text = if (bts.isCarrierAggregation) "CA Gộp Sóng 4G+/5G+" else "Băng Tần Đơn",
-                        accentColor = if (bts.isCarrierAggregation) MagicEmerald else MagicTextSecondary
-                    )
-                }
-            ) {
-                val rsrpColor = when {
-                    bts.rsrp >= -85 -> MagicEmerald
-                    bts.rsrp >= -100 -> MagicCyan
-                    bts.rsrp >= -115 -> MagicAmber
-                    else -> MagicRed
-                }
-
+            // Dynamic Recommendation for the Active SIM
+            currentSlot?.recommendedSmsc?.takeIf { it.isNotBlank() }?.let { autoSmsc ->
+                Spacer(modifier = Modifier.height(10.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(stringResource(R.string.field_test_rsrp), fontSize = 13.sp, color = MagicTextSecondary)
                     Text(
-                        text = "${bts.rsrp} dBm",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = rsrpColor,
-                        fontFamily = FontFamily.Monospace
+                        text = "Số khuyến nghị cho ${currentSlot.carrierName}:",
+                        fontSize = 12.sp,
+                        color = colors.textSecondary
                     )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(stringResource(R.string.field_test_rsrq), fontSize = 13.sp, color = MagicTextSecondary)
-                    Text("${bts.rsrq} dB", fontSize = 14.sp, color = MagicTextPrimary, fontFamily = FontFamily.Monospace)
-                }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(stringResource(R.string.field_test_sinr), fontSize = 13.sp, color = MagicTextSecondary)
-                    Text("${bts.sinr} dB", fontSize = 14.sp, color = MagicTextPrimary, fontFamily = FontFamily.Monospace)
-                }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(stringResource(R.string.field_test_band), fontSize = 13.sp, color = MagicTextSecondary)
-                    Text(bts.bandName, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MagicCyan)
-                }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(stringResource(R.string.field_test_distance), fontSize = 13.sp, color = MagicTextSecondary)
-                    Text(
-                        text = if (bts.timingAdvance > 0) "~${String.format("%.1f", bts.distanceMeters)} m (TA: ${bts.timingAdvance})" else "Không xác định",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MagicTextPrimary,
-                        fontFamily = FontFamily.Monospace
-                    )
-                }
-
-                if (bts.secondaryBands.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(text = "Băng tần phụ đang gộp (Scell):", fontSize = 12.sp, color = MagicTextSecondary)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        bts.secondaryBands.forEach { secBand ->
-                            MagicCapsulePill(text = secBand, accentColor = MagicCyan)
-                        }
+                    TextButton(onClick = { inputSmsc = autoSmsc }) {
+                        Text(
+                            text = "Nạp $autoSmsc",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = HonorBlue
+                        )
                     }
                 }
             }
-        } else {
-            MagicOsCard(
-                pillColor = MagicAmber,
-                title = stringResource(R.string.field_test_title)
-            ) {
-                Text(
-                    text = "Đang đọc tín hiệu trạm phát BTS vô tuyến từ modem... Đảm bảo máy đã cắm SIM hoạt động và đã cấp quyền Vị trí (ACCESS_FINE_LOCATION).",
-                    fontSize = 12.sp,
-                    color = MagicTextSecondary,
-                    lineHeight = 16.sp
-                )
-            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+            MagicOsButton(
+                text = stringResource(R.string.smsc_btn_update),
+                brush = MagicBlueGradient,
+                onClick = { onUpdateSmsc(inputSmsc) },
+                icon = Icons.AutoMirrored.Filled.Send
+            )
         }
     }
 }
