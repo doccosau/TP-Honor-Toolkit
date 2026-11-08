@@ -2548,29 +2548,156 @@ class AdbService {
         const remotePublicDir = '/sdcard/Honor/Themes';
         const remoteCacheDir = `${remoteSysDir}/.cache/${safeFilename}`;
 
-        this.addLog('step', '>>> [2/5] Đang kéo toàn bộ gói tài nguyên qua luồng TAR nhị phân...');
-        const socket = await this.adbInstance.createSocket('exec:tar -C /data/themes/0 -cf - .');
-        const reader = socket.readable.getReader();
-        const chunks = [];
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          if (value) chunks.push(value);
+        const readAllChunks = async (reader) => {
+          const chunks = [];
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            if (value) chunks.push(value);
+          }
+          const total = chunks.reduce((acc, c) => acc + c.length, 0);
+          const out = new Uint8Array(total);
+          let pos = 0;
+          for (const c of chunks) {
+            out.set(c, pos);
+            pos += c.length;
+          }
+          return out;
+        };
+
+        this.addLog('step', '>>> [2/5] Đang kéo gói tài nguyên từ thiết bị (Hệ thống đa tầng Failsafe)...');
+        let files = {};
+        const tempDump = `/sdcard/Download/.tp_theme_dump_${Date.now()}`;
+
+        // Lớp 1: Streaming TAR trực tiếp (sh -c "cd /data/themes/0 && tar -cf - .")
+        try {
+          const socket = await this.adbInstance.createSocket('exec:sh -c "cd /data/themes/0 && tar -cf - ."');
+          const tarBytes = await readAllChunks(socket.readable.getReader());
+          if (tarBytes.length >= 512) {
+            const parsed = this.parseTarStream(tarBytes);
+            if (parsed['description.xml'] || parsed['./description.xml']) {
+              files = parsed;
+              this.addLog('info', '✦ Trích xuất luồng TAR trực tiếp thành công.');
+            }
+          }
+        } catch (e1) {
+          console.warn('[Theme Extract Layer 1 failed]:', e1);
         }
 
-        let totalLen = chunks.reduce((acc, c) => acc + c.length, 0);
-        let tarBytes = new Uint8Array(totalLen);
-        let pos = 0;
-        for (const c of chunks) {
-          tarBytes.set(c, pos);
-          pos += c.length;
-        }
-
-        this.addLog('step', `>>> [3/5] Đang bóc tách tệp (${(totalLen / (1024 * 1024)).toFixed(2)} MB) & xóa bỏ cờ bản quyền trial...`);
-        const files = this.parseTarStream(tarBytes);
+        // Lớp 2: Thử cú pháp tar trực tiếp thứ 2 (tar -cf - -C /data/themes/0 .)
         if (!files['description.xml'] && !files['./description.xml']) {
-          throw new Error('Không thể đọc description.xml từ luồng dữ liệu trích xuất');
+          try {
+            const socket = await this.adbInstance.createSocket('exec:tar -cf - -C /data/themes/0 .');
+            const tarBytes = await readAllChunks(socket.readable.getReader());
+            if (tarBytes.length >= 512) {
+              const parsed = this.parseTarStream(tarBytes);
+              if (parsed['description.xml'] || parsed['./description.xml']) {
+                files = parsed;
+                this.addLog('info', '✦ Trích xuất luồng TAR (-C) thành công.');
+              }
+            }
+          } catch (e2) {
+            console.warn('[Theme Extract Layer 2 failed]:', e2);
+          }
         }
+
+        // Lớp 3: Sao chép an toàn sang /sdcard/Download/ và nén TAR (Vượt mọi rào cản SELinux/Permission của /data/)
+        if (!files['description.xml'] && !files['./description.xml']) {
+          this.addLog('info', '✦ Kích hoạt bộ đệm hệ thống an toàn tại /sdcard/Download/ để giải phóng quyền...');
+          await this.executeShell(`mkdir -p "${tempDump}" && cp -r /data/themes/0/* "${tempDump}/" 2>/dev/null`);
+          try {
+            const socket = await this.adbInstance.createSocket(`exec:sh -c "cd ${tempDump} && tar -cf - ."`);
+            const tarBytes = await readAllChunks(socket.readable.getReader());
+            if (tarBytes.length >= 512) {
+              const parsed = this.parseTarStream(tarBytes);
+              if (parsed['description.xml'] || parsed['./description.xml']) {
+                files = parsed;
+                this.addLog('info', '✦ Trích xuất luồng TAR qua bộ đệm an toàn thành công.');
+              }
+            }
+          } catch (e3) {
+            console.warn('[Theme Extract Layer 3 failed]:', e3);
+          }
+        }
+
+        // Lớp 4: Kéo từng file trực tiếp bằng giao thức gốc AdbSync (Hoàn toàn độc lập với lệnh tar)
+        if (!files['description.xml'] && !files['./description.xml']) {
+          this.addLog('info', '✦ Kích hoạt giao thức nhị phân nguyên bản AdbSync (Zero-tar fallback)...');
+          await this.executeShell(`mkdir -p "${tempDump}" && cp -r /data/themes/0/* "${tempDump}/" 2>/dev/null`);
+          
+          const fileListRaw = await this.executeShell(`cd "${tempDump}" && find . -type f 2>/dev/null`);
+          let relPaths = fileListRaw.split(/\r?\n/).map((l) => l.trim()).filter((l) => l && l !== '.');
+          if (relPaths.length === 0) {
+            relPaths = [
+              'description.xml',
+              'wallpaper_meta.json',
+              'wallpapereditor_config.xml',
+              'cover.jpg',
+              'cover.png',
+              'icons',
+              'com.hihonor.android.launcher',
+              'com.huawei.android.launcher',
+              'com.android.systemui',
+              'com.android.settings',
+              'framework-res-hwext',
+              'unlock',
+            ];
+          }
+
+          let sync = null;
+          try {
+            sync = await this.adbInstance.sync();
+            for (const rawRel of relPaths) {
+              const cleanRel = rawRel.replace(/^\.\//, '').replace(/^\//, '');
+              const remotePath = `${tempDump}/${cleanRel}`;
+              try {
+                const stream = sync.read(remotePath);
+                const fileBytes = await readAllChunks(stream.getReader());
+                if (fileBytes && fileBytes.length > 0) {
+                  files[cleanRel] = fileBytes;
+                }
+              } catch (errPull) {}
+            }
+            if (files['description.xml']) {
+              this.addLog('info', `✦ AdbSync đã tải thành công ${Object.keys(files).length} tệp tài nguyên theme.`);
+            }
+          } catch (syncErr) {
+            console.warn('[Theme Extract Layer 4 AdbSync failed]:', syncErr);
+          } finally {
+            if (sync) {
+              try { await sync.dispose(); } catch {}
+            }
+          }
+        }
+
+        // Lớp 5: Siêu dự phòng đảm bảo description.xml không bao giờ thiếu
+        if (!files['description.xml'] && !files['./description.xml']) {
+          this.addLog('info', '✦ Đọc trực tiếp tệp cấu hình description.xml qua kênh shell...');
+          const rawXml = await this.executeShell(`cat "${tempDump}/description.xml" 2>/dev/null || cat /data/themes/0/description.xml 2>/dev/null`);
+          if (rawXml && rawXml.includes('<')) {
+            files['description.xml'] = new TextEncoder().encode(rawXml);
+          }
+        }
+
+        // Dọn sạch rác bộ đệm
+        await this.executeShell(`rm -rf "${tempDump}" 2>/dev/null || true`);
+
+        // Chuẩn hóa tên tệp trong Map
+        const normalizedFiles = {};
+        for (const [rawPath, fileData] of Object.entries(files)) {
+          const clean = rawPath.replace(/^\.\//, '').replace(/^\//, '');
+          if (clean && fileData && fileData.length > 0) {
+            normalizedFiles[clean] = fileData;
+          }
+        }
+        files = normalizedFiles;
+
+        if (!files['description.xml']) {
+          throw new Error('Không thể đọc description.xml từ thiết bị qua tất cả 5 tầng giao thức');
+        }
+
+        const totalExtractedBytes = Object.values(files).reduce((acc, f) => acc + f.length, 0);
+        this.addLog('step', `>>> [3/5] Đã bóc tách thành công ${(totalExtractedBytes / (1024 * 1024)).toFixed(2)} MB (${Object.keys(files).length} tệp) & xóa cờ trial...`);
 
         this.addLog('step', '>>> [4/5] Đang đóng gói chuẩn ZIP Deflate .hnt (Method 8, PK Header)...');
         const zip = new JSZip();
