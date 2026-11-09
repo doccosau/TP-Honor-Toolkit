@@ -13,6 +13,7 @@ export default function InspectionTab({ device }) {
   const [hapticTesting, setHapticTesting] = useState(false);
   const [audioTesting, setAudioTesting] = useState(false);
   const [diagFeedback, setDiagFeedback] = useState(null);
+  const [isCalibrating, setIsCalibrating] = useState(false);
 
   const isOnline = device && device.connected;
 
@@ -90,6 +91,19 @@ export default function InspectionTab({ device }) {
     await adbService.testHardware('audio');
     setDiagFeedback('Đã phát âm thanh HONOR_Marimba.ogg qua loa thoại và loa ngoài dưới đáy điện thoại.');
     setTimeout(() => setAudioTesting(false), 1500);
+  };
+
+  const handleCalibrateBattery = async () => {
+    setIsCalibrating(true);
+    try {
+      await adbService.runAdbCommand('dumpsys batterystats --reset');
+      setDiagFeedback('Đã cân chỉnh và xóa cache thống kê pin (dumpsys batterystats --reset) thành công! Hệ thống sẽ học lại ngưỡng sạc chuẩn.');
+      await loadData();
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setIsCalibrating(false);
+    }
   };
 
   // Real data - NO mock numbers
@@ -263,6 +277,33 @@ export default function InspectionTab({ device }) {
                 {hasBattery && batteryData.current_ma ? `Dòng điện thực: ${Math.abs(batteryData.current_ma)} mA` : '--'}
               </div>
             </div>
+          </div>
+
+          {/* Quick Battery Calibration Action */}
+          <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-bright)' }}>
+                Cân Chỉnh Pin & Xóa Cache Thống Kê (Battery Stats Reset)
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
+                Xóa dữ liệu chu kỳ pin cũ, ép hệ điều hành nhận diện đúng dung lượng thực, khắc phục pin ảo.
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn-tool"
+              style={{ fontSize: '11.5px', padding: '5px 12px' }}
+              disabled={!isOnline || isCalibrating}
+              onClick={handleCalibrateBattery}
+              title="Chạy lệnh dumpsys batterystats --reset để cân chỉnh pin"
+            >
+              <span className="svg-icon" style={{ color: '#10b981' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M23 12a11.05 11.05 0 0 0-22 0zm-5 0a6 6 0 1 1-12 0 6 6 0 0 1 12 0z"></path>
+                </svg>
+              </span>
+              <span>{isCalibrating ? 'Đang cân chỉnh...' : 'Cân Chỉnh Pin'}</span>
+            </button>
           </div>
         </div>
 

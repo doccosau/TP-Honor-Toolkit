@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { adbService } from '../services/adbService';
+import bloatData from '../data/bloatware.json';
 
 export default function BackupTab({ device, onRestoreAll }) {
   const isOnline = Boolean(device && device.connected);
@@ -8,8 +9,8 @@ export default function BackupTab({ device, onRestoreAll }) {
   const [activeDrawer, setActiveDrawer] = useState(null);
   const [successNotice, setSuccessNotice] = useState(null);
 
-  // Core system bloatware packages list for rollback
-  const DEFAULT_RESTORE_PACKAGES = [
+  // Danh sách ứng dụng hệ thống chuẩn từ bloatware.json để khôi phục
+  const DEFAULT_RESTORE_PACKAGES = bloatData?.safety_levels?.level_1_safe?.packages?.map((p) => p.package) || [
     'com.hihonor.servicecenter',
     'com.baidu.swan',
     'com.hihonor.android.UEInfoCheck',

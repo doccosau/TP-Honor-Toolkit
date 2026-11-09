@@ -480,16 +480,16 @@ def download_apk_with_progress(url, dest_path, app_name, referer=None):
         return False
 
 def ensure_apk_available(filename):
-    # Check 1: Root directory of toolkit
-    local_root = os.path.join(BASE_DIR, filename)
-    if os.path.exists(local_root) and os.path.getsize(local_root) > 10000:
-        return local_root
-
-    # Check 2: apks/ directory cache
+    # Check 1: apks/ directory cache (Chuẩn hóa ưu tiên kho lưu trữ chuyên dụng)
     apks_dir = os.path.join(BASE_DIR, 'apks')
     local_apks = os.path.join(apks_dir, filename)
     if os.path.exists(local_apks) and os.path.getsize(local_apks) > 10000:
         return local_apks
+
+    # Check 2: Root directory fallback (Tương thích ngược nếu người dùng để ở gốc)
+    local_root = os.path.join(BASE_DIR, filename)
+    if os.path.exists(local_root) and os.path.getsize(local_root) > 10000:
+        return local_root
 
     # Auto download
     cfg = APK_SOURCES.get(filename)
@@ -2004,7 +2004,7 @@ def handle_action(payload):
             pkgs = [a['package'] for a in scan_res.get('vn_apps', []) if a['installed']]
         
         total = len(pkgs)
-        add_log('info', f'Bắt đầu cấp quyền chạy nền & Doze Whitelist cho {total} ứng dụng VN...')
+        add_log('info', f'Bắt đầu cấp quyền chạy nền & Doze Whitelist cho {total} ứng dụng...')
         success_count = 0
         for i, p in enumerate(pkgs, 1):
             add_log('cmd', f'[{i}/{total}] $ adb shell dumpsys deviceidle whitelist +{p}')
@@ -2024,7 +2024,7 @@ def handle_action(payload):
             add_log('success', f'  ↳ Hoàn tất: {p} (Đã cấp 8 AppOps & NetPolicy Whitelist)')
             success_count += 1
         
-        add_log('success', f'=== [HOÀN TẤT 100%] Đã Whitelist & cấp quyền chạy nền thông báo không trễ cho {success_count}/{total} ứng dụng VN! ===')
+        add_log('success', f'=== [HOÀN TẤT 100%] Đã Whitelist & cấp quyền chạy nền thông báo không trễ cho {success_count}/{total} ứng dụng! ===')
         return {'success': True, 'count': success_count}
 
     elif action == 'debloat_packages':
@@ -2269,6 +2269,13 @@ def handle_action(payload):
         if infinite_bluetooth:
             add_log('success', '  ↳ Đã mở khóa Âm Lượng Bluetooth Vô Cực (Phá vỡ giới hạn âm lượng tai nghe TWS).')
 
+        # 9. Show Realtime Network Speed in Statusbar
+        show_speed = payload.get('show_network_speed', True)
+        speed_val = '1' if show_speed else '0'
+        run_cmd(['adb', 'shell', 'settings', 'put', 'system', 'show_network_speed_enabled', speed_val])
+        if show_speed:
+            add_log('success', '  ↳ Đã bật hiển thị tốc độ mạng thời gian thực (KB/s) trên thanh trạng thái.')
+
         add_log('success', '=== [HOÀN TẤT 100%] Đã áp dụng toàn bộ cấu hình Mạng & 5G NR Tối Ưu thành công! ===')
         return {'success': True}
 
@@ -2282,7 +2289,9 @@ def handle_action(payload):
         run_cmd(['adb', 'shell', 'pm', 'disable-user', '--user', '0', 'com.hihonor.android.UEInfoCheck'])
         add_log('cmd', '$ adb shell pm disable-user --user 0 com.hihonor.collectcenter')
         run_cmd(['adb', 'shell', 'pm', 'disable-user', '--user', '0', 'com.hihonor.collectcenter'])
-        add_log('success', '=== [HOÀN TẤT 100%] Đã tắt sạch Telemetry & ngắt log server TQ (UEInfoCheck, collectcenter, hiviewtunnel)! ===')
+        # Khóa toàn diện 11 cờ Settings Secure quảng cáo và marketing ngầm
+        apply_all_marketing_off(True)
+        add_log('success', '=== [HOÀN TẤT 100%] Đã tắt sạch Telemetry & ngắt log server TQ (UEInfoCheck, collectcenter, hiviewtunnel, 11 khóa Marketing)! ===')
         return {'success': True}
 
     elif action == 'apply_display':
@@ -2728,15 +2737,17 @@ def handle_action(payload):
         add_log('step', '>>> [BƯỚC 1/8] Whitelist Doze & Cấp 8 AppOps cho ứng dụng Việt Nam...')
         handle_action({'action': 'whitelist_all_vn'})
 
-        # Bước 2: Safe debloat 12 app rác TQ
-        add_log('step', '>>> [BƯỚC 2/8] Gỡ bỏ an toàn 12 ứng dụng rác nội địa Trung Quốc...')
-        safe_12 = [
-            "com.honor.browser", "com.hihonor.browserhomepage", "com.hihonor.gamecenter",
-            "com.hihonor.game.kitserver", "com.hihonor.quickgame", "com.hihonor.cloudmusic",
-            "com.honor.yoyocards", "com.hihonor.hiboard", "com.hihonor.redteamobile.roaming",
-            "com.sohu.inputmethod.sogou.honor", "com.hihonor.servicecenter", "com.baidu.swan"
-        ]
-        handle_action({'action': 'debloat_packages', 'packages': safe_12})
+        # Bước 2: Safe debloat các app rác TQ từ level_1_safe
+        add_log('step', '>>> [BƯỚC 2/8] Gỡ bỏ an toàn các ứng dụng rác nội địa Trung Quốc...')
+        safe_pkgs = [p['package'] for p in BLOAT_DB.get('safety_levels', {}).get('level_1_safe', {}).get('packages', [])]
+        if not safe_pkgs:
+            safe_pkgs = [
+                "com.honor.browser", "com.hihonor.browserhomepage", "com.hihonor.gamecenter",
+                "com.hihonor.game.kitserver", "com.hihonor.quickgame", "com.hihonor.cloudmusic",
+                "com.honor.yoyocards", "com.hihonor.hiboard", "com.hihonor.redteamobile.roaming",
+                "com.sohu.inputmethod.sogou.honor", "com.hihonor.servicecenter", "com.baidu.swan"
+            ]
+        handle_action({'action': 'debloat_packages', 'packages': safe_pkgs})
 
         # Bước 3: Wi-Fi Siêu Tốc & DNS Cloudflare DoT
         add_log('step', '>>> [BƯỚC 3/8] Tối ưu Wi-Fi Siêu Tốc & Kích hoạt DNS Cloudflare DoT chống giật lag...')

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import vnAppsData from '../data/vietnamApps.json';
 import { adbService } from '../services/adbService';
 import AppIcon from './AppIcon';
+import VietnamAppsTab from './VietnamAppsTab';
 
 // Danh sách các ứng dụng hệ thống cốt lõi bất khả xâm phạm (Chống bootloop / mất sóng)
 const PROTECTED_PACKAGES = new Set([
@@ -50,13 +51,6 @@ export default function AppManagerTab({
   const [selectedPkgs, setSelectedPkgs] = useState(new Set());
   const [actionLoadingPkg, setActionLoadingPkg] = useState(null);
   const apkInputRef = useRef(null);
-
-  // VN FCM View State
-  const [vnStatusFilter, setVnStatusFilter] = useState('installed');
-  const [vnSelectedCat, setVnSelectedCat] = useState('all');
-  const [vnSearch, setVnSearch] = useState('');
-  const [vnSelectedPackages, setVnSelectedPackages] = useState(new Set());
-  const [vnIsExtracting, setVnIsExtracting] = useState(false);
 
   const isOnline = device && device.connected;
 
@@ -338,76 +332,6 @@ export default function AppManagerTab({
     };
   }, [allVnApps]);
 
-  const vnCategoryOptions = useMemo(() => {
-    const map = new Map();
-    allVnApps.forEach((app) => {
-      if (!map.has(app.category)) {
-        map.set(app.category, 0);
-      }
-      map.set(app.category, map.get(app.category) + 1);
-    });
-    return Array.from(map.entries());
-  }, [allVnApps]);
-
-  const filteredVnApps = useMemo(() => {
-    const q = vnSearch.toLowerCase().trim();
-    return allVnApps.filter((app) => {
-      if (vnStatusFilter === 'installed' && !app.installed) return false;
-      if (vnStatusFilter === 'need_whitelist' && (!app.installed || app.whitelisted)) return false;
-      if (vnSelectedCat !== 'all' && app.category !== vnSelectedCat) return false;
-      if (q) {
-        const matchName = (app.name || '').toLowerCase().includes(q);
-        const matchPkg = (app.package || '').toLowerCase().includes(q);
-        if (!matchName && !matchPkg) return false;
-      }
-      return true;
-    });
-  }, [allVnApps, vnStatusFilter, vnSelectedCat, vnSearch]);
-
-  const handleVnToggle = (pkg) => {
-    setVnSelectedPackages((prev) => {
-      const next = new Set(prev);
-      if (next.has(pkg)) next.delete(pkg);
-      else next.add(pkg);
-      return next;
-    });
-  };
-
-  const handleVnSelectAll = () => {
-    const selectable = filteredVnApps.filter((a) => isOnline && a.installed);
-    if (vnSelectedPackages.size === selectable.length && selectable.length > 0) {
-      setVnSelectedPackages(new Set());
-    } else {
-      setVnSelectedPackages(new Set(selectable.map((a) => a.package)));
-    }
-  };
-
-  const handleVnWhitelistSelected = () => {
-    if (vnSelectedPackages.size === 0) return;
-    onWhitelistAll?.(Array.from(vnSelectedPackages));
-  };
-
-  const handleVnExtractApk = async () => {
-    const pkg = Array.from(vnSelectedPackages)[0];
-    if (!pkg) return;
-    setVnIsExtracting(true);
-    try {
-      const res = await adbService.extractApk(pkg);
-      if (res && res.success) {
-        const a = document.createElement('a');
-        a.href = res.url;
-        a.download = res.filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      } else {
-        alert(res?.error || 'Lỗi trích xuất APK');
-      }
-    } finally {
-      setVnIsExtracting(false);
-    }
-  };
-
   return (
     <div className="tab-pane active" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {/* Top View Mode Switcher */}
@@ -627,6 +551,19 @@ export default function AppManagerTab({
                 </button>
                 <button
                   type="button"
+                  className="btn-tool primary"
+                  onClick={() => onWhitelistAll?.(Array.from(selectedPkgs))}
+                  title="Cấp quyền Doze / Whitelist chạy nền không trễ thông báo cho các ứng dụng đã chọn"
+                >
+                  <span className="svg-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </span>
+                  <span>Cấp Doze ({selectedPkgs.size})</span>
+                </button>
+                <button
+                  type="button"
                   className="btn-tool danger"
                   onClick={handleBulkUninstall}
                   title="Gỡ cài đặt các ứng dụng đã chọn"
@@ -640,6 +577,22 @@ export default function AppManagerTab({
                   <span>Gỡ Bỏ</span>
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Tips: Bảo vệ pin thông minh */}
+          {selectedPkgs.size > 0 && (
+            <div style={{ fontSize: '11px', color: 'var(--text-dim)', padding: '6px 10px', background: 'rgba(0,0,0,0.25)', borderRadius: '6px', border: '1px dashed var(--border-color)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="svg-icon" style={{ color: '#10b981' }}>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+              </span>
+              <span>
+                <b>Mẹo tiết kiệm pin:</b> Chỉ nên cấp Doze Whitelist cho ứng dụng nhắn tin, ngân hàng hoặc công việc (Telegram, Discord, Binance...). Không nên cấp cho Game và app mua sắm để bảo vệ thời lượng pin.
+              </span>
             </div>
           )}
 
@@ -864,199 +817,13 @@ export default function AppManagerTab({
 
       {/* VIEW 2: VIETNAM APPS & FCM OPTIMIZATION PLAYBOOK */}
       {viewMode === 'vn_fcm' && (
-        <div className="specs-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* Header Action Bar */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="svg-icon" style={{ color: '#ef4444' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
-              </span>
-              <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-bright)' }}>
-                Tối Ưu Hóa Thông Báo FCM Ứng Dụng Việt Nam (Zalo, Banking, VNeID...)
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {vnCounts.installed > 0 && (
-                <button
-                  className="btn-tool primary"
-                  onClick={() => {
-                    const installedPkgs = allVnApps.filter((a) => a.installed).map((a) => a.package);
-                    if (installedPkgs.length > 0) {
-                      onWhitelistAll?.(installedPkgs);
-                    }
-                  }}
-                  disabled={!isOnline}
-                  title="Cấp Whitelist Doze & toàn quyền chạy nền không trễ cho ứng dụng VN"
-                >
-                  <span className="svg-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  </span>
-                  <span>Cấp Doze Cho {vnCounts.installed} Apps VN Trên Máy</span>
-                </button>
-              )}
-
-              {vnSelectedPackages.size > 0 && (
-                <button
-                  className="btn-tool"
-                  onClick={handleVnWhitelistSelected}
-                  disabled={!isOnline}
-                >
-                  <span>Cấp Whitelist ({vnSelectedPackages.size}) Đã Chọn</span>
-                </button>
-              )}
-
-              {vnSelectedPackages.size === 1 && (
-                <button
-                  className="btn-tool"
-                  onClick={handleVnExtractApk}
-                  disabled={!isOnline || vnIsExtracting}
-                  title="Trích xuất file cài đặt APK từ điện thoại và tải về máy tính"
-                >
-                  <span>{vnIsExtracting ? 'Đang xuất...' : 'Trích Xuất APK Ra PC'}</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Filter Pills */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid var(--border-light)', paddingTop: '10px' }}>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <button
-                className={`btn-tool ${vnStatusFilter === 'installed' ? 'primary' : ''}`}
-                style={{ fontSize: '11px', padding: '3px 10px' }}
-                onClick={() => { setVnStatusFilter('installed'); setVnSelectedPackages(new Set()); }}
-              >
-                <span className="svg-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </span>
-                <span>Đang có trên máy ({vnCounts.installed})</span>
-              </button>
-              <button
-                className={`btn-tool ${vnStatusFilter === 'need_whitelist' ? 'primary' : ''}`}
-                style={{ fontSize: '11px', padding: '3px 10px' }}
-                onClick={() => { setVnStatusFilter('need_whitelist'); setVnSelectedPackages(new Set()); }}
-              >
-                <span className="svg-icon" style={{ color: '#f59e0b' }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                  </svg>
-                </span>
-                <span>Chưa Whitelist ({vnCounts.needWhitelist})</span>
-              </button>
-              <button
-                className={`btn-tool ${vnStatusFilter === 'all' ? 'primary' : ''}`}
-                style={{ fontSize: '11px', padding: '3px 10px' }}
-                onClick={() => { setVnStatusFilter('all'); setVnSelectedPackages(new Set()); }}
-              >
-                <span>Tất cả DB ({vnCounts.total})</span>
-              </button>
-            </div>
-
-            <div style={{ minWidth: '220px' }}>
-              <input
-                type="text"
-                placeholder="Tìm app VN..."
-                value={vnSearch}
-                onChange={(e) => setVnSearch(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '5px 10px',
-                  fontSize: '11.5px',
-                  background: 'rgba(0,0,0,0.3)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--text-bright)',
-                }}
-              />
-            </div>
-          </div>
-
-          {/* VN Apps Table */}
-          <table className="inspection-table" style={{ fontSize: '12px' }}>
-            <thead>
-              <tr>
-                <th style={{ width: '40px', textAlign: 'center' }}>
-                  <input
-                    type="checkbox"
-                    checked={vnSelectedPackages.size > 0 && vnSelectedPackages.size === filteredVnApps.filter((a) => a.installed).length}
-                    onChange={handleVnSelectAll}
-                  />
-                </th>
-                <th style={{ width: '38%' }}>Ứng Dụng</th>
-                <th style={{ width: '22%' }}>Nhóm Phân Loại</th>
-                <th style={{ width: '20%' }}>Cài Đặt</th>
-                <th style={{ width: '20%', textAlign: 'right' }}>Thông Báo FCM</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredVnApps.length > 0 ? (
-                filteredVnApps.map((app) => (
-                  <tr
-                    key={app.package}
-                    style={{
-                      cursor: app.installed ? 'pointer' : 'default',
-                      background: vnSelectedPackages.has(app.package) ? 'rgba(56, 189, 248, 0.1)' : undefined,
-                    }}
-                    onClick={() => {
-                      if (app.installed) handleVnToggle(app.package);
-                    }}
-                  >
-                    <td
-                      style={{ textAlign: 'center', cursor: app.installed ? 'pointer' : 'default' }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (app.installed) handleVnToggle(app.package);
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={vnSelectedPackages.has(app.package)}
-                        disabled={!app.installed}
-                        readOnly
-                        style={{ pointerEvents: 'none', cursor: app.installed ? 'pointer' : 'not-allowed' }}
-                      />
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <AppIcon pkg={app.package} name={app.name} isUser={true} size={30} />
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <strong style={{ color: 'var(--text-bright)' }}>{app.name}</strong>
-                          <code style={{ fontSize: '10.5px', color: 'var(--text-dim)' }}>{app.package}</code>
-                        </div>
-                      </div>
-                    </td>
-                    <td>{app.category}</td>
-                    <td>
-                      <span className={`status-pill ${app.installed ? 'pill-pass' : ''}`}>
-                        {app.installed ? 'Đã cài đặt' : 'Chưa cài'}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <span className={`status-pill ${app.whitelisted ? 'pill-pass' : 'pill-warn'}`}>
-                        {app.whitelisted ? 'Đã cấp Doze FCM' : 'Chưa cấp'}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)' }}>
-                    Không có ứng dụng nào phù hợp.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <VietnamAppsTab
+          device={device}
+          scannedPackages={scannedPackages}
+          isScanning={isScanning}
+          onWhitelistAll={onWhitelistAll}
+          onRefreshScan={onRefreshScan}
+        />
       )}
     </div>
   );

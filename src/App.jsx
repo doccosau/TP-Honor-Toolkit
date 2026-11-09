@@ -596,15 +596,15 @@ export default function App() {
       list = (scannedPackages?.vn_apps || []).filter((a) => a.installed).map((a) => a.package);
     }
     if (list.length === 0) {
-      addToast('warning', 'Không có app', 'Không tìm thấy ứng dụng Việt Nam nào đang cài đặt trên máy để cấp Doze.');
+      addToast('warning', 'Không có app', 'Không tìm thấy ứng dụng nào được chọn hoặc đang cài đặt để cấp Doze.');
       return;
     }
 
     setIsExecuting(true);
-    setExecutingTask(`Whitelist ${list.length} app VN`);
+    setExecutingTask(`Whitelist ${list.length} ứng dụng`);
     try {
       await adbService.whitelistApps(list);
-      addToast('success', 'Doze Whitelist', `Đã cấp quyền chạy nền không trễ thông báo cho ${list.length} ứng dụng VN!`);
+      addToast('success', 'Doze Whitelist', `Đã cấp quyền chạy nền không trễ thông báo cho ${list.length} ứng dụng!`);
       await refreshScan();
       handleRefresh();
     } catch (e) {
@@ -770,6 +770,7 @@ export default function App() {
             onDisableTelemetry={handleDisableTelemetry}
             onFixWeather={handleFixWeather}
             onReboot={handleReboot}
+            onNavigateTab={setActiveTab}
           />
         )}
 

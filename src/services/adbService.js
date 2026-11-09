@@ -17,66 +17,66 @@ import vnAppsData from '../data/vietnamApps.json';
 
 const DEVICES_DB = devicesData.devices || [];
 
-const COMMON_APP_NAMES = {
-  'com.zing.zalo': 'Zalo',
-  'com.vng.zingmp3': 'Zing MP3',
-  'com.facebook.katana': 'Facebook',
-  'com.facebook.orca': 'Messenger',
-  'com.instagram.android': 'Instagram',
-  'com.whatsapp': 'WhatsApp',
-  'org.telegram.messenger': 'Telegram',
-  'com.ss.android.ugc.trill': 'TikTok',
-  'com.zhiliaoapp.musically': 'TikTok Global',
-  'com.google.android.youtube': 'YouTube',
-  'com.google.android.apps.youtube.music': 'YouTube Music',
-  'com.android.chrome': 'Google Chrome',
-  'com.google.android.gm': 'Gmail',
-  'com.google.android.apps.maps': 'Google Maps',
-  'com.google.android.apps.photos': 'Google Photos',
-  'com.google.android.googlequicksearchbox': 'Google App',
-  'com.google.android.apps.bard': 'Gemini',
-  'com.openai.chatgpt': 'ChatGPT',
-  'com.shopee.vn': 'Shopee',
-  'com.lazada.android': 'Lazada',
-  'com.grabtaxi.passenger': 'Grab',
-  'xyz.be.consumer': 'Be',
-  'com.gsm.customer': 'Xanh SM',
-  'vn.gov.vneid': 'VNeID',
-  'com.vnid': 'VNeID (VnID)',
-  'com.bhxh.vssid': 'VssID',
-  'com.vnpay.momo': 'MoMo',
-  'com.mservice.momotransfer': 'MoMo',
-  'com.vnpay.bidv': 'BIDV SmartBanking',
-  'com.vcombank.vcb': 'Vietcombank VCB Digibank',
-  'com.VCB': 'Vietcombank',
-  'vn.com.techcombank.bb.app': 'Techcombank Mobile',
-  'com.mbmobile': 'MBBank',
-  'com.viettel.viettelpay': 'Viettel Money',
-  'vn.io.nhacquan': 'Nhạc Của Tui',
-  'mark.via': 'Via Browser',
-  'mark.via.gp': 'Via Browser',
-  'org.mozilla.firefox': 'Firefox',
-  'com.brave.browser': 'Brave',
-  'com.coccoc.trinhduyet': 'Cốc Cốc',
-  'org.localsend.localsend_app': 'LocalSend',
-  'com.hihonor.photos': 'Bộ Sưu Tập Honor',
-  'com.hihonor.camera': 'Máy Ảnh Honor',
-  'com.hihonor.soundrecorder': 'Ghi Âm Honor',
-  'com.hihonor.calculator': 'Máy Tính',
-  'com.hihonor.android.totemweather': 'Thời Tiết Honor',
-  'com.hihonor.systemmanager': 'Trình Quản Lý Hệ Thống',
-  'com.hihonor.gamecenter': 'Trung Tâm Trò Chơi Honor',
-  'com.hihonor.appmarket': 'Chợ Ứng Dụng Honor',
-  'com.hihonor.notepad': 'Ghi Chú Honor',
-  'com.hihonor.deskclock': 'Đồng Hồ & Báo Thức',
-  'com.hihonor.contacts': 'Danh Bạ',
-  'com.android.mms': 'Tin Nhắn SMS',
-  'com.android.settings': 'Cài Đặt Hệ Thống',
-  'com.android.vending': 'Google Play Store',
-  'com.google.android.gms': 'Dịch Vụ Google Play (GMS)',
-  'com.google.android.gsf': 'Khung Dịch Vụ Google (GSF)',
-  'com.hihonor.magicvoice': 'Trợ Lý Giọng Nói YOYO (MagicVoice)',
-};
+// Nạp tự động tên ứng dụng từ vietnamApps.json và bloatware.json (Single Source of Truth)
+const COMMON_APP_NAMES = (() => {
+  const map = {
+    'com.zing.zalo': 'Zalo',
+    'com.facebook.katana': 'Facebook',
+    'com.facebook.orca': 'Messenger',
+    'com.instagram.android': 'Instagram',
+    'com.whatsapp': 'WhatsApp',
+    'org.telegram.messenger': 'Telegram',
+    'com.ss.android.ugc.trill': 'TikTok',
+    'com.google.android.youtube': 'YouTube',
+    'com.google.android.apps.youtube.music': 'YouTube Music',
+    'com.android.chrome': 'Google Chrome',
+    'com.google.android.gm': 'Gmail',
+    'com.google.android.apps.maps': 'Google Maps',
+    'com.google.android.apps.photos': 'Google Photos',
+    'com.google.android.googlequicksearchbox': 'Google App',
+    'com.google.android.apps.bard': 'Gemini',
+    'com.openai.chatgpt': 'ChatGPT',
+    'com.android.vending': 'Google Play Store',
+    'com.google.android.gms': 'Dịch Vụ Google Play (GMS)',
+    'com.google.android.gsf': 'Khung Dịch Vụ Google (GSF)',
+    'com.hihonor.photos': 'Bộ Sưu Tập Honor',
+    'com.hihonor.camera': 'Máy Ảnh Honor',
+    'com.hihonor.soundrecorder': 'Ghi Âm Honor',
+    'com.hihonor.calculator': 'Máy Tính',
+    'com.hihonor.android.totemweather': 'Thời Tiết Honor',
+    'com.hihonor.systemmanager': 'Trình Quản Lý Hệ Thống',
+    'com.hihonor.notepad': 'Ghi Chú Honor',
+    'com.hihonor.deskclock': 'Đồng Hồ & Báo Thức',
+    'com.hihonor.contacts': 'Danh Bạ',
+    'com.android.mms': 'Tin Nhắn SMS',
+    'com.android.settings': 'Cài Đặt Hệ Thống',
+    'com.hihonor.magicvoice': 'Trợ Lý Giọng Nói YOYO (MagicVoice)',
+  };
+
+  // Nạp từ vietnamApps.json
+  if (vnAppsData?.categories) {
+    Object.values(vnAppsData.categories).forEach((cat) => {
+      (cat.apps || []).forEach((app) => {
+        if (app.package && app.name) {
+          map[app.package] = app.name;
+        }
+      });
+    });
+  }
+
+  // Nạp từ bloatware.json
+  if (bloatData?.safety_levels) {
+    Object.values(bloatData.safety_levels).forEach((tier) => {
+      (tier.packages || []).forEach((p) => {
+        if (p.package && p.name) {
+          map[p.package] = p.name;
+        }
+      });
+    });
+  }
+
+  return map;
+})();
 
 class AdbService {
   constructor() {
@@ -549,6 +549,7 @@ class AdbService {
     disableVerboseLogging = true,
     networkMode5G = 'default',
     infiniteBluetooth = false,
+    showNetworkSpeed = true,
     resetDefaults = false,
   } = {}) {
     this.addLog('info', `Đang cấu hình Mạng: Captive ${captive}, DNS ${dns}, 5G ${networkMode5G}...`);
@@ -567,6 +568,7 @@ class AdbService {
           disable_verbose_logging: disableVerboseLogging,
           network_mode_5g: networkMode5G,
           infinite_bluetooth: infiniteBluetooth,
+          show_network_speed: showNetworkSpeed,
           reset_defaults: resetDefaults,
         }),
       });
@@ -664,6 +666,7 @@ class AdbService {
     }
 
     await this.runAdbCommand(`settings put secure infinite_volume_music_bt_a2dp ${infiniteBluetooth ? 1 : 0}`);
+    await this.runAdbCommand(`settings put system show_network_speed_enabled ${showNetworkSpeed ? 1 : 0}`);
 
     this.addLog('success', 'Đã lưu và áp dụng cấu hình Mạng & Private DNS thành công.');
     return { success: true };
@@ -956,6 +959,8 @@ class AdbService {
     await this.runAdbCommand('dumpsys deviceidle whitelist -com.hihonor.hiviewtunnel');
     await this.runAdbCommand('pm disable-user --user 0 com.hihonor.android.UEInfoCheck');
     await this.runAdbCommand('pm disable-user --user 0 com.hihonor.collectcenter');
+    // Khóa toàn diện 11 cờ Settings Secure quảng cáo và marketing ngầm
+    await this.applyAllMarketingOff(true);
     this.addLog('success', 'Đã tắt sạch Telemetry & thu thập log ngầm TQ thành công!');
     return { success: true };
   }
@@ -1297,7 +1302,7 @@ class AdbService {
       });
     }
 
-    this.addLog('info', `Đang cấp quyền chạy nền không bị ngắt Doze cho ${list.length} ứng dụng Việt Nam...`);
+    this.addLog('info', `Đang cấp quyền chạy nền không bị ngắt Doze cho ${list.length} ứng dụng...`);
     if (this.mode === 'webusb' && this.adbInstance) {
       let idx = 0;
       for (const pkg of list) {
@@ -1388,15 +1393,15 @@ class AdbService {
         this.addLog('info', '  ↳ Chưa phát hiện ứng dụng VN cần Whitelist, tiếp tục bước sau.');
       }
 
-      // Bước 2: Debloat 12 app rác TQ
-      this.addLog('step', '▶ [BƯỚC 2/8] Dọn dẹp Debloat an toàn 12 ứng dụng rác, quảng cáo nội địa...');
-      const safe12 = [
+      // Bước 2: Debloat an toàn các app rác TQ từ level_1_safe
+      this.addLog('step', '▶ [BƯỚC 2/8] Dọn dẹp Debloat an toàn các ứng dụng rác, quảng cáo nội địa...');
+      const safeBloatList = bloatData?.safety_levels?.level_1_safe?.packages?.map((p) => p.package) || [
         "com.honor.browser", "com.hihonor.browserhomepage", "com.hihonor.gamecenter",
         "com.hihonor.game.kitserver", "com.hihonor.quickgame", "com.hihonor.cloudmusic",
         "com.honor.yoyocards", "com.hihonor.hiboard", "com.hihonor.redteamobile.roaming",
         "com.sohu.inputmethod.sogou.honor", "com.hihonor.servicecenter", "com.baidu.swan"
       ];
-      await this.debloatPackages(safe12);
+      await this.debloatPackages(safeBloatList);
 
       // Bước 3: Wi-Fi Siêu Tốc & DNS Cloudflare DoT
       this.addLog('step', '▶ [BƯỚC 3/8] Tối ưu hóa Wi-Fi Siêu Tốc & Kích hoạt Private DNS Cloudflare DoT...');

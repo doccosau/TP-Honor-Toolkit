@@ -11,6 +11,7 @@ export default function NetworkTab({ device, onApplyNetwork }) {
   const [googleRtt, setGoogleRtt] = useState(true);
   const [disableVerboseLogging, setDisableVerboseLogging] = useState(true);
   const [infiniteBluetooth, setInfiniteBluetooth] = useState(false);
+  const [showNetworkSpeed, setShowNetworkSpeed] = useState(true);
 
   // Active module drawer state: null = Master Hub, 'cellular' | 'wifi' | 'captive' | 'dns' | 'bluetooth' = Open Drawer
   const [activeModule, setActiveModule] = useState(null);
@@ -60,6 +61,7 @@ export default function NetworkTab({ device, onApplyNetwork }) {
         googleRtt,
         disableVerboseLogging,
         infiniteBluetooth,
+        showNetworkSpeed,
       });
     } finally {
       setIsApplying(false);
@@ -176,6 +178,22 @@ export default function NetworkTab({ device, onApplyNetwork }) {
         type: 'toggle',
         checked: disableVerboseLogging,
         onChange: (checked) => setDisableVerboseLogging(checked),
+      },
+      {
+        id: 'network_speed',
+        category: 'wifi',
+        categoryLabel: 'Driver Wi-Fi',
+        title: 'Hiển Thị Tốc Độ Mạng Thời Gian Thực (Network Speed)',
+        scope: 'system: show_network_speed_enabled',
+        summary: 'Hiển thị tốc độ download/upload KB/s trên thanh trạng thái cạnh cột sóng.',
+        desc: 'Kích hoạt hiển thị tốc độ truyền dữ liệu mạng theo thời gian thực trên thanh trạng thái cạnh cột sóng Wi-Fi/4G.',
+        adbCommand: 'adb shell settings put system show_network_speed_enabled 1',
+        impact: 'Dễ dàng giám sát tốc độ mạng khi tải file hoặc xem livestream.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'toggle',
+        checked: showNetworkSpeed,
+        onChange: (checked) => setShowNetworkSpeed(checked),
       },
       {
         id: 'captive_portal',
