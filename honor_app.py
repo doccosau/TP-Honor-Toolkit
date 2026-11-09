@@ -2264,10 +2264,12 @@ def handle_action(payload):
             add_log('info', '  ↳ Đã khôi phục Chế độ Mạng Di Động về tự động theo SIM.')
 
         # 8. Infinite Bluetooth Volume (HonorHook discovery)
-        bt_val = '1' if infinite_bluetooth else '0'
-        run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'infinite_volume_music_bt_a2dp', bt_val])
-        if infinite_bluetooth:
-            add_log('success', '  ↳ Đã mở khóa Âm Lượng Bluetooth Vô Cực (Phá vỡ giới hạn âm lượng tai nghe TWS).')
+        if 'infinite_bluetooth' in payload:
+            infinite_bluetooth = payload.get('infinite_bluetooth')
+            bt_val = '1' if infinite_bluetooth else '0'
+            run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'infinite_volume_music_bt_a2dp', bt_val])
+            if infinite_bluetooth:
+                add_log('success', '  ↳ Đã mở khóa Âm Lượng Bluetooth Vô Cực (Phá vỡ giới hạn âm lượng tai nghe TWS).')
 
         # 9. Show Realtime Network Speed in Statusbar
         show_speed = payload.get('show_network_speed', True)

@@ -364,20 +364,6 @@ export default function ToolboxTab({
     }
   };
 
-  const handleCalibrateBattery = async () => {
-    if (!window.confirm('Cân chỉnh pin sẽ xóa bộ đếm chu kỳ và lịch sử tiêu thụ điện cũ của hệ điều hành. Tiếp tục?')) return;
-    try {
-      const res = await adbService.calibrateBattery();
-      if (res && res.success) {
-        alert('Đã reset thống kê pin và kích hoạt chu kỳ học lại dung lượng thực tế thành công!');
-      } else {
-        alert(res?.error || 'Lỗi cân chỉnh pin');
-      }
-    } catch (e) {
-      alert(e.message);
-    }
-  };
-
   // Master Tools Inventory
   const allTools = useMemo(() => {
     const list = [];
@@ -684,22 +670,6 @@ export default function ToolboxTab({
         onExecute: onFixWeather,
       },
       {
-        id: 'sys_battery_calib',
-        category: 'system',
-        categoryLabel: 'Hệ Thống',
-        title: 'Cân Chỉnh Pin & Xóa Cache Thống Kê (Battery Stats Reset)',
-        scope: 'dumpsys batterystats --reset',
-        summary: 'Reset dữ liệu chu kỳ pin cũ để hệ điều hành nhận diện đúng dung lượng thực.',
-        desc: 'Xóa tệp thống kê pin tích lũy lâu ngày của Android, ép thuật toán BatteryManager học lại ngưỡng sạc đầy 100% và ngưỡng ngắt nguồn 0%, khắc phục tình trạng pin ảo hoặc sụt pin nhanh.',
-        adbCommand: 'adb shell dumpsys batterystats --reset',
-        impact: 'Phần trăm pin hiển thị chuẩn xác, kéo dài thời gian sử dụng thực tế.',
-        safety: 'An Toàn Tuyệt Đối',
-        recommended: true,
-        type: 'action',
-        actionLabel: 'Cân Chỉnh Pin',
-        onExecute: handleCalibrateBattery,
-      },
-      {
         id: 'sys_reboot_menu',
         category: 'system',
         categoryLabel: 'Hệ Thống',
@@ -802,8 +772,8 @@ export default function ToolboxTab({
       },
       {
         id: 'screen',
-        title: 'Chiếu Màn Hình & Scrcpy 120Hz',
-        subtitle: 'Điều Khiển Chuột & Phím Siêu Mượt',
+        title: 'Chiếu & Ghi Màn Hình 120Hz',
+        subtitle: 'Scrcpy, Web Mirror & Quay Video MP4',
         badge: '120 FPS • < 30ms',
         badgeType: 'tag-safe',
         desc: 'Khởi chạy Scrcpy điều khiển điện thoại bằng chuột/phím máy tính với độ trễ siêu thấp, xem màn hình trực tiếp trong trình duyệt, chụp ảnh PNG và quay video MP4.',
@@ -814,15 +784,15 @@ export default function ToolboxTab({
             <line x1="12" y1="17" x2="12" y2="21"></line>
           </svg>
         ),
-        countLabel: '4 Tiện Ích Màn Hình',
+        countLabel: '4 Tiện Ích Truyền Phát',
       },
       {
         id: 'system',
         title: 'Hiệu Năng & Hệ Thống',
-        subtitle: 'Biên Dịch Native ART & Wi-Fi ADB',
+        subtitle: 'Biên Dịch Native ART & Fix Độ C',
         badge: 'dex2oat 65+ App',
         badgeType: 'tag-safe',
-        desc: 'Biên dịch trước bytecode thành mã máy Native 64-bit cho 65+ ứng dụng Việt Nam (Zalo, Facebook, TikTok, Ngân hàng), mở kết nối Wi-Fi ADB cổng 5555 và cân chỉnh pin.',
+        desc: 'Biên dịch trước bytecode thành mã máy Native 64-bit cho 65+ ứng dụng Việt Nam (Zalo, Facebook, TikTok, Ngân hàng), mở kết nối Wi-Fi ADB cổng 5555, sửa app thời tiết sang độ C và trung tâm Reboot.',
         icon: (
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
@@ -833,7 +803,7 @@ export default function ToolboxTab({
             <line x1="15" y1="20" x2="15" y2="23"></line>
           </svg>
         ),
-        countLabel: '5 Trình Bảo Trì',
+        countLabel: '4 Trình Bảo Trì',
       },
     ],
     [telemetryBlockedCount]

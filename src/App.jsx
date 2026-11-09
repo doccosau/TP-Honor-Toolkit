@@ -735,7 +735,6 @@ export default function App() {
             isScanning={isScanning}
             onDebloat={handleDebloat}
             onRestore={handleRestore}
-            onRestoreAll={handleRestoreAll}
             onRefreshScan={refreshScan}
           />
         )}

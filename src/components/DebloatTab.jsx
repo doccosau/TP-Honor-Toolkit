@@ -8,7 +8,6 @@ export default function DebloatTab({
   isScanning,
   onDebloat,
   onRestore,
-  onRestoreAll,
   onRefreshScan,
 }) {
   const [statusFilter, setStatusFilter] = useState('installed'); // 'installed' | 'all' | 'uninstalled'
@@ -241,12 +240,18 @@ export default function DebloatTab({
               </button>
             )}
 
-            {onRestoreAll && (
+            {counts.uninstalled > 0 && (
               <button
-                className="btn-tool"
-                onClick={onRestoreAll}
+                className="btn-tool success"
+                onClick={() => {
+                  const uninstalledPkgs = allPackages
+                    .filter((p) => p.status === 'uninstalled')
+                    .map((p) => p.package);
+                  if (uninstalledPkgs.length === 0) return;
+                  onRestore(uninstalledPkgs);
+                }}
                 disabled={!isOnline}
-                title="Khôi phục toàn bộ các ứng dụng hệ thống đã gỡ về mặc định xuất xưởng"
+                title="Cài đặt lại toàn bộ các ứng dụng rác đã gỡ bỏ cho User 0 (Bảo vệ nguyên vẹn Màn hình và Mạng)"
               >
                 <span className="svg-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -254,7 +259,7 @@ export default function DebloatTab({
                     <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
                   </svg>
                 </span>
-                <span>Khôi Phục Xuất Xưởng</span>
+                <span>Khôi Phục Tất Cả App Đã Gỡ ({counts.uninstalled})</span>
               </button>
             )}
           </div>

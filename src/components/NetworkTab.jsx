@@ -10,10 +10,9 @@ export default function NetworkTab({ device, onApplyNetwork }) {
   const [disableWifiSleep, setDisableWifiSleep] = useState(true);
   const [googleRtt, setGoogleRtt] = useState(true);
   const [disableVerboseLogging, setDisableVerboseLogging] = useState(true);
-  const [infiniteBluetooth, setInfiniteBluetooth] = useState(false);
   const [showNetworkSpeed, setShowNetworkSpeed] = useState(true);
 
-  // Active module drawer state: null = Master Hub, 'cellular' | 'wifi' | 'captive' | 'dns' | 'bluetooth' = Open Drawer
+  // Active module drawer state: null = Master Hub, 'cellular' | 'wifi' | 'captive' | 'dns' = Open Drawer
   const [activeModule, setActiveModule] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
 
@@ -60,7 +59,6 @@ export default function NetworkTab({ device, onApplyNetwork }) {
         disableWifiSleep,
         googleRtt,
         disableVerboseLogging,
-        infiniteBluetooth,
         showNetworkSpeed,
       });
     } finally {
@@ -84,7 +82,6 @@ export default function NetworkTab({ device, onApplyNetwork }) {
       setDisableWifiSleep(false);
       setGoogleRtt(false);
       setDisableVerboseLogging(false);
-      setInfiniteBluetooth(false);
     } finally {
       setIsApplying(false);
     }
@@ -230,22 +227,6 @@ export default function NetworkTab({ device, onApplyNetwork }) {
         recommended: true,
         type: 'custom_dns',
       },
-      {
-        id: 'infinite_bt_volume',
-        category: 'bluetooth',
-        categoryLabel: 'Âm Thanh & BT',
-        title: 'Âm Lượng Bluetooth Vô Cực (Infinite BT A2DP)',
-        scope: 'secure: infinite_volume_music_bt_a2dp',
-        summary: 'Phá vỡ mức giới hạn 75-80dB do quy định áp đặt lên tai nghe Bluetooth.',
-        desc: 'HonorHook phát hiện cờ ẩn `infinite_volume_music_bt_a2dp` trên MagicOS giúp phá vỡ mức giới hạn âm lượng an toàn, tăng công suất phát âm thanh cho tai nghe TWS & loa không dây.',
-        adbCommand: 'adb shell settings put secure infinite_volume_music_bt_a2dp 1',
-        impact: 'Âm lượng tai nghe TWS và loa Bluetooth to hơn 30-40%, âm trường sâu và sống động.',
-        safety: 'An Toàn (Không nghe âm lượng quá lớn trong thời gian dài)',
-        recommended: false,
-        type: 'toggle',
-        checked: infiniteBluetooth,
-        onChange: (checked) => setInfiniteBluetooth(checked),
-      },
     ],
     [
       networkMode5G,
@@ -253,14 +234,14 @@ export default function NetworkTab({ device, onApplyNetwork }) {
       disableWifiPro,
       googleRtt,
       disableVerboseLogging,
+      showNetworkSpeed,
       captive,
       dnsPreset,
       customDns,
-      infiniteBluetooth,
     ]
   );
 
-  // 5 Master Network Modules for Hub
+  // 4 Master Network Modules for Hub
   const masterNetworkModules = useMemo(
     () => [
       {
@@ -326,22 +307,8 @@ export default function NetworkTab({ device, onApplyNetwork }) {
         ),
         countLabel: 'DoT Mã Hóa TLS',
       },
-      {
-        id: 'bluetooth',
-        title: 'Âm Lượng Bluetooth Vô Cực (Infinite BT A2DP)',
-        subtitle: 'Khuếch Đại Âm Thanh Tai Nghe & Loa',
-        badge: infiniteBluetooth ? 'Vô Cực Bật' : 'Mặc Định 80dB',
-        badgeType: infiniteBluetooth ? 'tag-safe' : 'tag-neutral',
-        desc: 'Phá vỡ giới hạn an toàn âm lượng 75-80dB của hệ thống. Tăng công suất âm thanh cho tai nghe TWS và loa không dây to hơn 30-40%, âm trường sâu và sống động.',
-        icon: (
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"></polyline>
-          </svg>
-        ),
-        countLabel: '1 Khóa A2DP',
-      },
     ],
-    [networkMode5G, disableWifiSleep, captive, dnsPreset, infiniteBluetooth]
+    [networkMode5G, disableWifiSleep, captive, dnsPreset]
   );
 
   const activeModuleMeta = useMemo(() => {

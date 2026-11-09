@@ -548,7 +548,7 @@ class AdbService {
     googleRtt = true,
     disableVerboseLogging = true,
     networkMode5G = 'default',
-    infiniteBluetooth = false,
+    infiniteBluetooth = undefined,
     showNetworkSpeed = true,
     resetDefaults = false,
   } = {}) {
@@ -567,7 +567,7 @@ class AdbService {
           google_rtt: googleRtt,
           disable_verbose_logging: disableVerboseLogging,
           network_mode_5g: networkMode5G,
-          infinite_bluetooth: infiniteBluetooth,
+          ...(infiniteBluetooth !== undefined ? { infinite_bluetooth: infiniteBluetooth } : {}),
           show_network_speed: showNetworkSpeed,
           reset_defaults: resetDefaults,
         }),
@@ -665,7 +665,9 @@ class AdbService {
       await this.runAdbCommand('settings delete global preferred_network_mode');
     }
 
-    await this.runAdbCommand(`settings put secure infinite_volume_music_bt_a2dp ${infiniteBluetooth ? 1 : 0}`);
+    if (infiniteBluetooth !== undefined) {
+      await this.runAdbCommand(`settings put secure infinite_volume_music_bt_a2dp ${infiniteBluetooth ? 1 : 0}`);
+    }
     await this.runAdbCommand(`settings put system show_network_speed_enabled ${showNetworkSpeed ? 1 : 0}`);
 
     this.addLog('success', 'Đã lưu và áp dụng cấu hình Mạng & Private DNS thành công.');
