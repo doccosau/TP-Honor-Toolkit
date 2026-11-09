@@ -2140,15 +2140,30 @@ class AdbService {
   }
 
   /**
-   * 1-Click Install TP Power Intelligence on Phone
+   * Automated OTA Fetch & Direct ADB Install TP Power Intelligence on Phone
    */
-  async installTppiBattery(otaData = {}) {
-    this.addLog('info', 'Đang chuẩn bị cài đặt TP Power Intelligence lên điện thoại...');
+  async installTppiBattery(otaData = {}, onProgress = null) {
+    this.addLog('info', 'Đang tự động khởi động quy trình nạp TP Power Intelligence từ máy chủ OTA...');
+    onProgress?.('fetching_ota');
+
+    // 1. Đảm bảo có dữ liệu OTA mới nhất từ Cloud API
+    let liveOta = otaData;
+    if (!liveOta || !liveOta.download_url) {
+      liveOta = await this.fetchTppiLatestOta();
+    }
+    const targetUrl = liveOta?.download_url_arm64 || liveOta?.download_url || 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.1-b42.apk';
+    const verName = liveOta?.version_name || '3.0.1';
+    const verCode = liveOta?.version_code || 42;
+    const filename = `TPPI-PowerIntelligence-v${verName}-b${verCode}.apk`;
+
     if (this.mode === 'webusb' && this.adbInstance) {
-      this.addLog('step', '>>> [CÀI ĐẶT WEBUSB] Đang tải gói cài đặt từ máy chủ OTA...');
-      const targetUrl = otaData.download_url || 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.1-b42.apk';
+      this.addLog('step', `>>> [WEBUSB TỰ ĐỘNG] Đang tải trực tiếp gói cài đặt v${verName} từ máy chủ OTA...`);
+      onProgress?.('downloading_apk');
       const fileResp = await fetch(targetUrl);
-      if (!fileResp.ok) throw new Error('Không thể tải file APK từ máy chủ OTA');
+      if (!fileResp.ok) {
+        onProgress?.('failed');
+        throw new Error('Không thể tải file APK từ máy chủ OTA');
+      }
       const blob = await fileResp.blob();
       const reader = new FileReader();
       const b64Promise = new Promise((resolve) => {
@@ -2159,32 +2174,51 @@ class AdbService {
         reader.readAsDataURL(blob);
       });
       const dataB64 = await b64Promise;
-      const res = await this.installUploadedApk('TPPI-PowerIntelligence-v3.0.1-Release.apk', dataB64);
+
+      onProgress?.('installing_adb');
+      this.addLog('step', `>>> [WEBUSB TỰ ĐỘNG] Đang nạp trực tiếp qua ADB vào điện thoại: ${filename}...`);
+      const res = await this.installUploadedApk(filename, dataB64);
       if (res && res.success) {
+        onProgress?.('granting_permissions');
+        this.addLog('step', '>>> [WEBUSB TỰ ĐỘNG] Đang tự động cấp quyền Doze Whitelist & Widget MagicOS...');
         await this.runAdbCommand('dumpsys deviceidle whitelist +vn.tp.powerintelligence');
         await this.runAdbCommand('cmd appops set vn.tp.powerintelligence POST_NOTIFICATION allow');
         await this.runAdbCommand('cmd appops set vn.tp.powerintelligence SYSTEM_ALERT_WINDOW allow');
         await this.runAdbCommand('cmd appops set vn.tp.powerintelligence PACKAGE_USAGE_STATS allow');
         await this.runAdbCommand('cmd appops set vn.tp.powerintelligence SCHEDULE_EXACT_ALARM allow');
-        this.addLog('success', 'Đã cài đặt và cấp quyền Doze Whitelist cho TP Power Intelligence thành công!');
-        return { success: true };
+        onProgress?.('completed');
+        this.addLog('success', `Đã tự động cài đặt và kích hoạt TP Power Intelligence v${verName} thành công!`);
+        return { success: true, version_name: verName, version_code: verCode };
       }
+      onProgress?.('failed');
       return res;
     }
 
     try {
+      onProgress?.('downloading_apk');
       const resp = await fetch('/api/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'install_tppi_battery',
-          download_url: otaData.download_url,
-          filename: 'TPPI-PowerIntelligence-v3.0.1-Release.apk',
-          version_name: otaData.version_name,
+          download_url: targetUrl,
+          filename: filename,
+          version_name: verName,
+          version_code: verCode,
         }),
       });
-      if (resp.ok) return await resp.json();
-    } catch (e) {}
+      if (resp.ok) {
+        const json = await resp.json();
+        if (json.success) {
+          onProgress?.('completed');
+        } else {
+          onProgress?.('failed');
+        }
+        return json;
+      }
+    } catch (e) {
+      onProgress?.('failed');
+    }
     return { success: false, error: 'Lỗi gửi yêu cầu cài đặt tới máy chủ' };
   }
 

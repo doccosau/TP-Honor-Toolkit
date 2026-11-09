@@ -518,6 +518,19 @@ def ensure_apk_available(filename):
     add_log('error', f'Không thể tự động tải {filename} từ các máy chủ phát hành!')
     return None
 
+def fetch_tppi_ota_info():
+    """Truy vấn bản phát hành mới nhất từ máy chủ Cloud OTA của TP Power Intelligence"""
+    url = 'https://tppi.nhacquan.io.vn/api/ota/latest'
+    req = urllib.request.Request(url, headers={'User-Agent': 'TP-Honor-Optimization-Toolkit/2.0'})
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            if data and data.get('status') == 'success' and data.get('data'):
+                return data['data']
+    except Exception as e:
+        logger.warning(f"Lỗi truy vấn OTA TPPI API: {e}")
+    return None
+
 def is_device_connected():
     code, out, _ = run_cmd(['adb', 'get-state'], timeout=4)
     return code == 0 and 'device' in out
@@ -2740,57 +2753,62 @@ def handle_action(payload):
         return {'success': True}
 
     elif action == 'install_tppi_battery':
-        add_log('step', '>>> [CÀI ĐẶT] Đang chuẩn bị cài đặt TP Power Intelligence (Quản Gia Pin & Năng Lượng AI)...')
-        custom_url = payload.get('download_url')
-        filename = payload.get('filename') or 'TPPI-PowerIntelligence-v3.0.1-Release.apk'
+        add_log('step', '>>> [TỰ ĐỘNG CÀI ĐẶT] Khởi động quy trình tự động nạp TP Power Intelligence từ máy chủ OTA...')
+        
+        # Bước 1: Tự động truy vấn bản phát hành mới nhất từ máy chủ Cloud OTA
+        add_log('info', '  ↳ [1/4] Đang kết nối máy chủ OTA https://tppi.nhacquan.io.vn/api/ota/latest...')
+        ota_info = fetch_tppi_ota_info()
+        
+        ver_name = (ota_info.get('version_name') if ota_info else None) or payload.get('version_name') or '3.0.1'
+        ver_code = (ota_info.get('version_code') if ota_info else None) or payload.get('version_code') or 42
+        dl_url = (ota_info.get('download_url_arm64') or ota_info.get('download_url')) if ota_info else payload.get('download_url')
+        if not dl_url:
+            dl_url = 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.1-b42.apk'
+        expected_size = (ota_info.get('file_size') if ota_info else None) or 22848357
+        size_mb = f"{expected_size / (1024 * 1024):.1f}"
 
+        add_log('success', f'  ↳ Phát hiện bản phát hành mới nhất: v{ver_name} (Build {ver_code}) • {size_mb} MB')
+
+        # Bước 2: Tự động tải tệp APK từ API vào bộ nhớ đệm
         apks_dir = os.path.join(BASE_DIR, 'apks')
+        os.makedirs(apks_dir, exist_ok=True)
+        filename = f'TPPI-PowerIntelligence-v{ver_name}-b{ver_code}.apk'
         dest_apk = os.path.join(apks_dir, filename)
 
-        apk_path = None
-        # Ưu tiên kiểm tra file có sẵn cục bộ trong apks/ hoặc root
-        if os.path.exists(dest_apk) and os.path.getsize(dest_apk) > 1000000:
-            apk_path = dest_apk
+        if not os.path.exists(dest_apk) or os.path.getsize(dest_apk) < 1000000:
+            add_log('info', f'  ↳ [2/4] Đang tự động tải gói cài đặt chính thức từ Cloud OTA...')
+            if not download_apk_with_progress(dl_url, dest_apk, f'TP Power Intelligence v{ver_name}'):
+                fallback_names = ['TPPI-PowerIntelligence-v3.0.1-Release.apk', 'TP-Power-Intelligence-v3.0.1-Release.apk']
+                for fb in fallback_names:
+                    fb_p = os.path.join(apks_dir, fb)
+                    if os.path.exists(fb_p) and os.path.getsize(fb_p) > 1000000:
+                        dest_apk = fb_p
+                        break
         else:
-            # Kiểm tra các biến thể tên file khác có sẵn
-            alt_names = ['TP-Power-Intelligence-v3.0.1-Release.apk', 'TPPI-PowerIntelligence-v3.0.1-b42.apk', 'TPPI-PowerIntelligence-v3.0.0-release.apk']
-            for alt in alt_names:
-                alt_p = os.path.join(apks_dir, alt)
-                if os.path.exists(alt_p) and os.path.getsize(alt_p) > 1000000:
-                    apk_path = alt_p
-                    break
+            add_log('info', f'  ↳ [2/4] Gói cài đặt v{ver_name} đã sẵn sàng trong bộ đệm.')
 
-        # Nếu chưa có sẵn cục bộ, tự động tải từ URL OTA
-        if not apk_path:
-            target_url = custom_url or 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.1-b42.apk'
-            add_log('info', f'Đang tải tệp APK từ máy chủ phát hành ({target_url})...')
-            if download_apk_with_progress(target_url, dest_apk, 'TP Power Intelligence'):
-                apk_path = dest_apk
+        if not os.path.exists(dest_apk) or os.path.getsize(dest_apk) < 1000000:
+            add_log('error', 'Không thể tải gói cài đặt từ máy chủ OTA và không có bộ đệm hợp lệ.')
+            return {'success': False, 'error': 'Tải APK từ máy chủ OTA thất bại'}
 
-        if not apk_path:
-            apk_path = ensure_apk_available('TPPI-PowerIntelligence-v3.0.1-Release.apk')
-
-        if not apk_path:
-            add_log('error', 'Không tìm thấy file APK TP Power Intelligence và không thể tải về từ máy chủ!')
-            return {'success': False, 'error': 'Không tìm thấy file APK để cài đặt'}
-
-        add_log('cmd', f'$ adb install -r -d "{os.path.basename(apk_path)}"')
-        code, out, err = run_cmd(['adb', 'install', '-r', '-d', apk_path], timeout=180)
+        # Bước 3: Nạp trực tiếp APK vào điện thoại qua ADB
+        add_log('step', f'  ↳ [3/4] Đang truyền tải & nạp trực tiếp APK vào thiết bị qua ADB: {os.path.basename(dest_apk)}...')
+        code, out, err = run_cmd(['adb', 'install', '-r', '-d', dest_apk], timeout=180)
         if code != 0 and 'Success' not in out:
-            add_log('error', f'Cài đặt TP Power Intelligence thất bại: {err or out}')
+            add_log('error', f'Cài đặt thất bại qua ADB: {err or out}')
             return {'success': False, 'error': err or out}
 
-        # Cấp quyền Whitelist Doze & AppOps
-        add_log('info', '  ↳ Cài đặt APK thành công. Đang cấp quyền Doze Whitelist & Widget làm mát...')
+        # Bước 4: Tự động cấp quyền Whitelist Doze & AppOps cho 8 Widgets MagicOS
+        add_log('step', '  ↳ [4/4] Tự động cấp quyền Doze Whitelist & Widget làm mát MagicOS...')
         run_cmd(['adb', 'shell', 'dumpsys', 'deviceidle', 'whitelist', '+vn.tp.powerintelligence'])
         run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'POST_NOTIFICATION', 'allow'])
         run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'SYSTEM_ALERT_WINDOW', 'allow'])
         run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'PACKAGE_USAGE_STATS', 'allow'])
         run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'SCHEDULE_EXACT_ALARM', 'allow'])
 
-        add_log('success', '=== [HOÀN TẤT 100%] ĐÃ CÀI ĐẶT THÀNH CÔNG TP POWER INTELLIGENCE! ===')
-        add_log('info', '  ✦ Đã cấp quyền Whitelist Doze, cho phép 8 MagicOS Widgets hoạt động mượt mà.')
-        return {'success': True}
+        add_log('success', f'=== [HOÀN TẤT 100%] ĐÃ TỰ ĐỘNG CÀI ĐẶT & KÍCH HOẠT TP POWER INTELLIGENCE v{ver_name}! ===')
+        add_log('info', '  ✦ Đã cấp quyền Doze Whitelist & 4 quyền AppOps: Giám sát BMS và 8 Widget MagicOS đã sẵn sàng.')
+        return {'success': True, 'version_name': ver_name, 'version_code': ver_code}
 
     elif action == 'check_app_version':
         pkg = payload.get('package', 'vn.tp.powerintelligence')

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { adbService } from '../services/adbService';
 
 export default function InspectionTab({ device }) {
@@ -15,13 +15,41 @@ export default function InspectionTab({ device }) {
   const [diagFeedback, setDiagFeedback] = useState(null);
   const [isCalibrating, setIsCalibrating] = useState(false);
 
-  // TP Power Intelligence States
+  // TP Power Intelligence States & Auto-Deployment Pipeline
   const [tppiOta, setTppiOta] = useState(null);
   const [tppiAppStatus, setTppiAppStatus] = useState({ installed: false, versionName: '', versionCode: 0 });
   const [isInstallingTppi, setIsInstallingTppi] = useState(false);
+  const [deployStep, setDeployStep] = useState(null); // null | 'fetching_ota' | 'downloading_apk' | 'installing_adb' | 'granting_permissions' | 'completed' | 'failed'
   const [isLaunchingTppi, setIsLaunchingTppi] = useState(false);
+  const autoDeployAttemptedRef = useRef(false);
 
   const isOnline = device && device.connected;
+
+  const triggerAutoDeploy = async (otaInfo = null) => {
+    if (!isOnline || isInstallingTppi) return;
+    setIsInstallingTppi(true);
+    setDeployStep('fetching_ota');
+    setDiagFeedback('Đang tự động kết nối máy chủ OTA & nạp TP Power Intelligence lên máy...');
+    try {
+      const res = await adbService.installTppiBattery(otaInfo || tppiOta || {}, (step) => {
+        setDeployStep(step);
+      });
+      if (res && res.success) {
+        setDeployStep('completed');
+        setDiagFeedback('Đã tự động tải APK từ OTA API và kích hoạt TP Power Intelligence thành công!');
+        const freshStat = await adbService.checkAppInstalled('vn.tp.powerintelligence');
+        if (freshStat) setTppiAppStatus(freshStat);
+      } else {
+        setDeployStep('failed');
+        setDiagFeedback(res?.error || 'Tự động cài đặt thất bại. Vui lòng mở khóa màn hình điện thoại.');
+      }
+    } catch (e) {
+      setDeployStep('failed');
+      setDiagFeedback(e.message || 'Lỗi tự động cài đặt');
+    } finally {
+      setIsInstallingTppi(false);
+    }
+  };
 
   const loadData = async () => {
     setIsLoading(true);
@@ -40,6 +68,12 @@ export default function InspectionTab({ device }) {
       if (isOnline) {
         const appStat = await adbService.checkAppInstalled('vn.tp.powerintelligence');
         if (appStat) setTppiAppStatus(appStat);
+
+        // TỰ ĐỘNG LẤY APK TỪ API VÀ CÀI VÀO MÁY NẾU CHƯA CÓ
+        if (appStat && !appStat.installed && !autoDeployAttemptedRef.current) {
+          autoDeployAttemptedRef.current = true;
+          triggerAutoDeploy(ota);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -60,6 +94,8 @@ export default function InspectionTab({ device }) {
   }, [tppiAppStatus, tppiOta]);
 
   useEffect(() => {
+    autoDeployAttemptedRef.current = false;
+    setDeployStep(null);
     loadData();
   }, [device?.serial]);
 
@@ -129,26 +165,6 @@ export default function InspectionTab({ device }) {
       alert(e.message);
     } finally {
       setIsCalibrating(false);
-    }
-  };
-
-  const handleInstallTppi = async () => {
-    if (!isOnline) return;
-    setIsInstallingTppi(true);
-    setDiagFeedback('Đang kết nối máy chủ OTA & cài đặt TP Power Intelligence lên điện thoại...');
-    try {
-      const res = await adbService.installTppiBattery(tppiOta || {});
-      if (res && res.success) {
-        setDiagFeedback('Đã cài đặt & cấp quyền Doze Whitelist cho TP Power Intelligence thành công! 8 Widgets MagicOS đã sẵn sàng.');
-        const appStat = await adbService.checkAppInstalled('vn.tp.powerintelligence');
-        if (appStat) setTppiAppStatus(appStat);
-      } else {
-        alert(res?.error || 'Cài đặt thất bại');
-      }
-    } catch (e) {
-      alert(e.message);
-    } finally {
-      setIsInstallingTppi(false);
     }
   };
 
@@ -405,19 +421,24 @@ export default function InspectionTab({ device }) {
 
               {/* Status Badge */}
               <div>
-                {tppiAppStatus.installed ? (
+                {isInstallingTppi ? (
+                  <span className="badge-tag tag-warn" style={{ fontSize: '10.5px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#f59e0b', animation: 'pulse 1.2s infinite' }}></span>
+                    Đang Tự Động Nạp Vào Điện Thoại...
+                  </span>
+                ) : tppiAppStatus.installed ? (
                   isUpdateAvailable ? (
                     <span className="badge-tag tag-warn" style={{ fontSize: '10.5px' }}>
-                      Có Bản Mới v{tppiOta?.version_name || '3.0.1'} (Máy: v{tppiAppStatus.versionName})
+                      Có Bản Cập Nhật v{tppiOta?.version_name || '3.0.1'} (Máy: v{tppiAppStatus.versionName})
                     </span>
                   ) : (
                     <span className="badge-tag tag-safe" style={{ fontSize: '10.5px' }}>
-                      Đã Cài Đặt (v{tppiAppStatus.versionName || '3.0.1'})
+                      Đã Kích Hoạt (v{tppiAppStatus.versionName || '3.0.1'} - b{tppiAppStatus.versionCode || 42})
                     </span>
                   )
                 ) : (
                   <span className="badge-tag tag-neutral" style={{ fontSize: '10.5px' }}>
-                    Chưa Cài Đặt (Bản Mới v{tppiOta?.version_name || '3.0.1'})
+                    {isOnline ? 'Chuẩn Bị Tự Động Nạp...' : 'Tự Động Nạp Khi Cắm Cáp ADB'}
                   </span>
                 )}
               </div>
@@ -455,10 +476,10 @@ export default function InspectionTab({ device }) {
               </div>
             </div>
 
-            {/* Live OTA Release Metadata Card */}
-            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            {/* Live OTA Release Channel Bar */}
+            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
               <div>
-                <span style={{ color: 'var(--text-dim)' }}>Bản phát hành OTA: </span>
+                <span style={{ color: 'var(--text-dim)' }}>Kênh phát hành OTA: </span>
                 <b style={{ color: 'var(--text-bright)' }}>v{tppiOta?.version_name || '3.0.1'}</b>
                 <span style={{ color: 'var(--text-dim)', marginLeft: '6px' }}>• Build {tppiOta?.version_code || 42}</span>
                 <span style={{ color: 'var(--text-dim)', marginLeft: '6px' }}>• {tppiOta?.release_date || '07/11/2026'}</span>
@@ -468,86 +489,104 @@ export default function InspectionTab({ device }) {
                   </span>
                 )}
               </div>
-              <a
-                href="https://tppi.nhacquan.io.vn"
-                target="_blank"
-                rel="noreferrer"
-                style={{ color: '#38bdf8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              >
-                <span>Trang Chủ TPPI</span>
-                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                  <polyline points="15 3 21 3 21 9"></polyline>
-                  <line x1="10" y1="14" x2="21" y2="3"></line>
+              <span style={{ color: '#10b981', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10.5px', fontWeight: 500 }}>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
-              </a>
+                <span>OTA Cloud Engine Tự Động</span>
+              </span>
             </div>
 
-            {/* Action Buttons Toolbar */}
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', paddingTop: '4px' }}>
-              {/* Primary 1-Click Install Button */}
-              <button
-                type="button"
-                className="btn-tool primary"
-                onClick={handleInstallTppi}
-                disabled={!isOnline || isInstallingTppi}
-                style={{ padding: '6px 14px', fontSize: '12px', fontWeight: 600 }}
-              >
-                <span className="svg-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </span>
-                <span>
-                  {isInstallingTppi
-                    ? 'Đang Cài Đặt Trực Tiếp...'
-                    : !tppiAppStatus.installed
-                    ? `Cài Đặt Lên Điện Thoại (v${tppiOta?.version_name || '3.0.1'})`
-                    : isUpdateAvailable
-                    ? `Cập Nhật Lên v${tppiOta?.version_name || '3.0.1'}`
-                    : 'Cài Đặt Lại Gói APK'}
-                </span>
-              </button>
-
-              {/* Launch App Button (if installed) */}
-              {tppiAppStatus.installed && (
-                <button
-                  type="button"
-                  className="btn-tool"
-                  onClick={handleLaunchTppi}
-                  disabled={!isOnline || isLaunchingTppi}
-                  style={{ padding: '6px 12px', fontSize: '12px' }}
-                  title="Khởi chạy ứng dụng TP Power Intelligence trên màn hình điện thoại"
-                >
-                  <span className="svg-icon" style={{ color: '#10b981' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                    </svg>
+            {/* Automated Deployment Pipeline / Status Box */}
+            {isInstallingTppi || (deployStep && deployStep !== 'completed') ? (
+              <div style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11.5px', fontWeight: 600, color: 'var(--text-bright)' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ color: '#10b981' }}>⚡</span>
+                    <span>Quy Trình Tự Động Nạp APK Lên Điện Thoại</span>
                   </span>
-                  <span>{isLaunchingTppi ? 'Đang mở...' : 'Mở Trên Điện Thoại'}</span>
-                </button>
-              )}
-
-              {/* Direct Download APK to PC Button */}
-              <a
-                href={tppiOta?.download_url || 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.1-b42.apk'}
-                target="_blank"
-                rel="noreferrer"
-                download="TPPI-PowerIntelligence-v3.0.1.apk"
-                className="btn-tool"
-                style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none' }}
-                title="Tải tệp cài đặt APK trực tiếp về máy tính"
-              >
-                <span className="svg-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                </span>
-                <span>Tải APK Về PC</span>
-              </a>
-            </div>
+                  <span style={{ fontSize: '10.5px', color: deployStep === 'failed' ? '#ef4444' : '#10b981' }}>
+                    {deployStep === 'fetching_ota' && '1/4: Đọc API OTA Cloud...'}
+                    {deployStep === 'downloading_apk' && '2/4: Tải gói APK từ máy chủ...'}
+                    {deployStep === 'installing_adb' && '3/4: Nạp APK trực tiếp vào máy...'}
+                    {deployStep === 'granting_permissions' && '4/4: Cấp Doze Whitelist & Widget...'}
+                    {deployStep === 'failed' && 'Cần xác nhận ADB trên điện thoại'}
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', fontSize: '10px' }}>
+                  <div style={{ background: ['fetching_ota', 'downloading_apk', 'installing_adb', 'granting_permissions', 'completed'].includes(deployStep) ? 'rgba(16, 185, 129, 0.15)' : 'var(--panel-alt)', border: `1px solid ${['fetching_ota', 'downloading_apk', 'installing_adb', 'granting_permissions', 'completed'].includes(deployStep) ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-light)'}`, borderRadius: '6px', padding: '6px', textAlign: 'center' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--text-bright)' }}>1. API Cloud</div>
+                    <div style={{ color: 'var(--text-dim)', marginTop: '2px' }}>v{tppiOta?.version_name || '3.0.1'}</div>
+                  </div>
+                  <div style={{ background: ['downloading_apk', 'installing_adb', 'granting_permissions', 'completed'].includes(deployStep) ? 'rgba(16, 185, 129, 0.15)' : 'var(--panel-alt)', border: `1px solid ${['downloading_apk', 'installing_adb', 'granting_permissions', 'completed'].includes(deployStep) ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-light)'}`, borderRadius: '6px', padding: '6px', textAlign: 'center' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--text-bright)' }}>2. Tải APK</div>
+                    <div style={{ color: 'var(--text-dim)', marginTop: '2px' }}>{((tppiOta?.file_size || 22848357) / 1024 / 1024).toFixed(1)} MB</div>
+                  </div>
+                  <div style={{ background: ['installing_adb', 'granting_permissions', 'completed'].includes(deployStep) ? 'rgba(16, 185, 129, 0.15)' : 'var(--panel-alt)', border: `1px solid ${['installing_adb', 'granting_permissions', 'completed'].includes(deployStep) ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-light)'}`, borderRadius: '6px', padding: '6px', textAlign: 'center' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--text-bright)' }}>3. Nạp ADB</div>
+                    <div style={{ color: 'var(--text-dim)', marginTop: '2px' }}>Cài vào máy</div>
+                  </div>
+                  <div style={{ background: ['granting_permissions', 'completed'].includes(deployStep) ? 'rgba(16, 185, 129, 0.15)' : 'var(--panel-alt)', border: `1px solid ${['granting_permissions', 'completed'].includes(deployStep) ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-light)'}`, borderRadius: '6px', padding: '6px', textAlign: 'center' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--text-bright)' }}>4. Doze Quyền</div>
+                    <div style={{ color: 'var(--text-dim)', marginTop: '2px' }}>8 Widgets</div>
+                  </div>
+                </div>
+                {deployStep === 'failed' && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                    <span style={{ fontSize: '11px', color: '#ef4444' }}>
+                      Cài đặt chưa hoàn tất. Vui lòng mở sáng màn hình điện thoại và cho phép gỡ lỗi ADB.
+                    </span>
+                    <button
+                      type="button"
+                      className="btn-tool primary"
+                      onClick={() => triggerAutoDeploy(tppiOta)}
+                      style={{ fontSize: '11px', padding: '4px 10px' }}
+                    >
+                      Thử Lại Tự Động Nạp
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : tppiAppStatus.installed ? (
+              <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '8px', padding: '10px 12px', fontSize: '11.5px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <div style={{ fontWeight: 600, color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '13px' }}>✓</span>
+                    <span>Đã tự động cài đặt & kích hoạt TP Power Intelligence trên máy</span>
+                  </div>
+                  <div style={{ color: 'var(--text-dim)', fontSize: '11px', marginTop: '2px' }}>
+                    Đã cấp quyền Doze Whitelist & 4 quyền AppOps nền. 8 MagicOS Widgets sẵn sàng làm mát 1-chạm.
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    className="btn-tool"
+                    onClick={handleLaunchTppi}
+                    disabled={!isOnline || isLaunchingTppi}
+                    style={{ padding: '5px 12px', fontSize: '11.5px', background: 'rgba(16, 185, 129, 0.15)', borderColor: 'rgba(16, 185, 129, 0.3)' }}
+                    title="Khởi chạy ứng dụng TP Power Intelligence trên màn hình điện thoại"
+                  >
+                    <span className="svg-icon" style={{ color: '#10b981' }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                      </svg>
+                    </span>
+                    <span>{isLaunchingTppi ? 'Đang mở...' : 'Mở Trên Điện Thoại'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-tool"
+                    onClick={() => triggerAutoDeploy(tppiOta)}
+                    disabled={!isOnline || isInstallingTppi}
+                    style={{ padding: '5px 10px', fontSize: '11.5px' }}
+                    title="Tự động đồng bộ nạp lại bản phát hành mới nhất từ Cloud OTA API"
+                  >
+                    <span>{isUpdateAvailable ? 'Cập Nhật Bản Mới' : 'Đồng Bộ Lại'}</span>
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
 
