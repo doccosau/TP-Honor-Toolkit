@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { adbService } from '../services/adbService';
 
 export default function InspectionTab({ device }) {
@@ -15,6 +15,12 @@ export default function InspectionTab({ device }) {
   const [diagFeedback, setDiagFeedback] = useState(null);
   const [isCalibrating, setIsCalibrating] = useState(false);
 
+  // TP Power Intelligence States
+  const [tppiOta, setTppiOta] = useState(null);
+  const [tppiAppStatus, setTppiAppStatus] = useState({ installed: false, versionName: '', versionCode: 0 });
+  const [isInstallingTppi, setIsInstallingTppi] = useState(false);
+  const [isLaunchingTppi, setIsLaunchingTppi] = useState(false);
+
   const isOnline = device && device.connected;
 
   const loadData = async () => {
@@ -26,12 +32,32 @@ export default function InspectionTab({ device }) {
       if (insp) setInspectionData(insp);
       const ptr = await adbService.executeShell('settings get system pointer_location');
       if (ptr) setPointerActive(ptr.trim() === '1');
+
+      // Fetch TPPI OTA API and check installed package on phone
+      const ota = await adbService.fetchTppiLatestOta();
+      if (ota) setTppiOta(ota);
+
+      if (isOnline) {
+        const appStat = await adbService.checkAppInstalled('vn.tp.powerintelligence');
+        if (appStat) setTppiAppStatus(appStat);
+      }
     } catch (e) {
       console.error(e);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const isUpdateAvailable = useMemo(() => {
+    if (!tppiAppStatus.installed || !tppiOta) return false;
+    if (tppiOta.version_code && tppiAppStatus.versionCode) {
+      return tppiOta.version_code > tppiAppStatus.versionCode;
+    }
+    if (tppiOta.version_name && tppiAppStatus.versionName) {
+      return tppiOta.version_name !== tppiAppStatus.versionName;
+    }
+    return false;
+  }, [tppiAppStatus, tppiOta]);
 
   useEffect(() => {
     loadData();
@@ -106,6 +132,39 @@ export default function InspectionTab({ device }) {
     }
   };
 
+  const handleInstallTppi = async () => {
+    if (!isOnline) return;
+    setIsInstallingTppi(true);
+    setDiagFeedback('Đang kết nối máy chủ OTA & cài đặt TP Power Intelligence lên điện thoại...');
+    try {
+      const res = await adbService.installTppiBattery(tppiOta || {});
+      if (res && res.success) {
+        setDiagFeedback('Đã cài đặt & cấp quyền Doze Whitelist cho TP Power Intelligence thành công! 8 Widgets MagicOS đã sẵn sàng.');
+        const appStat = await adbService.checkAppInstalled('vn.tp.powerintelligence');
+        if (appStat) setTppiAppStatus(appStat);
+      } else {
+        alert(res?.error || 'Cài đặt thất bại');
+      }
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setIsInstallingTppi(false);
+    }
+  };
+
+  const handleLaunchTppi = async () => {
+    if (!isOnline) return;
+    setIsLaunchingTppi(true);
+    try {
+      await adbService.launchApp('vn.tp.powerintelligence');
+      setDiagFeedback('Đã mở ứng dụng TP Power Intelligence trên màn hình điện thoại!');
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setIsLaunchingTppi(false);
+    }
+  };
+
   // Real data - NO mock numbers
   const hasBattery = !!batteryData && batteryData.connected;
   const healthPct = hasBattery ? batteryData.health_percent : null;
@@ -176,134 +235,319 @@ export default function InspectionTab({ device }) {
         </div>
       </div>
 
-      {/* Main 2-Column Section: Left Battery, Right Inspection Checklist */}
+      {/* Main 2-Column Section: Left Battery + TPPI App, Right Inspection Checklist */}
       <div className="inspection-main-grid">
-        {/* Left: Battery Health Card */}
-        <div className="specs-card inspection-card">
-          <div className="specs-header-title">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span className="svg-icon" style={{ color: '#10b981' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect>
-                  <line x1="22" y1="11" x2="22" y2="13"></line>
-                </svg>
-              </span>
-              <span>Tình Trạng Sức Khỏe Pin Thực Tế</span>
-            </div>
-            <span className={`badge-tag ${hasBattery ? 'tag-safe' : 'tag-neutral'}`}>
-              {hasBattery ? batteryData.rating : 'Chưa kết nối'}
-            </span>
-          </div>
-
-          {/* Circular Battery Health Gauge */}
-          <div className="battery-gauge-wrapper">
-            <div className="battery-circle-container">
-              <svg className="battery-svg-ring" width="136" height="136" viewBox="0 0 136 136">
-                <circle
-                  className="battery-ring-bg"
-                  cx="68"
-                  cy="68"
-                  r={radius}
-                  strokeWidth="9"
-                />
-                <circle
-                  className="battery-ring-fill"
-                  cx="68"
-                  cy="68"
-                  r={radius}
-                  strokeWidth="9"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={strokeDashoffset}
-                />
-              </svg>
-              <div className="battery-center-content">
-                <span className="battery-pct-number">
-                  {hasBattery ? `${healthPct}%` : '--'}
+        {/* Left Column: Battery Health Card + TP Power Intelligence Companion */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Card 1: Battery Health Card */}
+          <div className="specs-card inspection-card">
+            <div className="specs-header-title">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="svg-icon" style={{ color: '#10b981' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect>
+                    <line x1="22" y1="11" x2="22" y2="13"></line>
+                  </svg>
                 </span>
-                <span className="battery-pct-label">Dung lượng tối đa</span>
+                <span>Tình Trạng Sức Khỏe Pin Thực Tế</span>
               </div>
-            </div>
-
-            <div className="battery-summary-status">
-              <div className="status-title">
-                {hasBattery ? `Pin ${batteryData.technology || 'Chính Hãng'}` : 'Chưa Kết Nối Điện Thoại'}
-              </div>
-              <div className="status-desc">
-                {hasBattery
-                  ? (batteryData.desc_status || `Dữ liệu đọc trực tiếp từ cảm biến BMS: Dung lượng tối đa ${healthPct}%, ${cycleCount ? `đã qua ${cycleCount} chu kỳ sạc.` : 'chu kỳ sạc bảo mật chip BMS (Pin mới 100%).'}`)
-                  : 'Vui lòng cắm cáp USB và bật Gỡ lỗi ADB để hệ thống đọc thông số pin thật từ máy.'}
-              </div>
-            </div>
-          </div>
-
-          {/* 4 Detail Metric Tiles */}
-          <div className="battery-tiles-grid">
-            <div className="metric-tile">
-              <div className="metric-label">Chu kỳ sạc (Cycle Count)</div>
-              <div className="metric-value highlight">
-                {hasBattery ? (cycleCount !== null && cycleCount > 0 ? `${cycleCount} lần` : (batteryData.cycle_count_display || 'BMS Bảo Mật')) : '--'}
-              </div>
-              <div className="metric-hint">
-                {hasBattery ? (cycleCount !== null && cycleCount > 0 ? 'Đọc trực tiếp từ cảm biến chip BMS' : (batteryData.cycle_subtext || 'Chip BMS Honor E-Series bảo mật (Pin mới 100%)')) : '--'}
-              </div>
-            </div>
-
-            <div className="metric-tile">
-              <div className="metric-label">Dung lượng Tối đa / Thiết kế</div>
-              <div className="metric-value highlight">
-                {hasBattery ? `${fullMah} / ${designMah} mAh` : '--'}
-              </div>
-              <div className="metric-hint">
-                {hasBattery ? `Mức sạc hiện tại: ${batteryLevel}% (${currentMah} mAh)` : '--'}
-              </div>
-            </div>
-
-            <div className="metric-tile">
-              <div className="metric-label">Nhiệt độ & Điện áp</div>
-              <div className="metric-value">
-                {hasBattery ? `${batteryData.temperature}°C • ${batteryData.voltage_v}V` : '--'}
-              </div>
-              <div className="metric-hint">
-                {hasBattery ? `Cảm biến nhiệt độ pin: ${batteryData.temperature}°C` : '--'}
-              </div>
-            </div>
-
-            <div className="metric-tile">
-              <div className="metric-label">Công suất & Trạng thái</div>
-              <div className="metric-value">
-                {hasBattery ? `${batteryData.wattage}W • ${batteryData.status}` : '--'}
-              </div>
-              <div className="metric-hint">
-                {hasBattery && batteryData.current_ma ? `Dòng điện thực: ${Math.abs(batteryData.current_ma)} mA` : '--'}
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Battery Calibration Action */}
-          <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-            <div>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-bright)' }}>
-                Cân Chỉnh Pin & Xóa Cache Thống Kê (Battery Stats Reset)
-              </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
-                Xóa dữ liệu chu kỳ pin cũ, ép hệ điều hành nhận diện đúng dung lượng thực, khắc phục pin ảo.
-              </div>
-            </div>
-            <button
-              type="button"
-              className="btn-tool"
-              style={{ fontSize: '11.5px', padding: '5px 12px' }}
-              disabled={!isOnline || isCalibrating}
-              onClick={handleCalibrateBattery}
-              title="Chạy lệnh dumpsys batterystats --reset để cân chỉnh pin"
-            >
-              <span className="svg-icon" style={{ color: '#10b981' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M23 12a11.05 11.05 0 0 0-22 0zm-5 0a6 6 0 1 1-12 0 6 6 0 0 1 12 0z"></path>
-                </svg>
+              <span className={`badge-tag ${hasBattery ? 'tag-safe' : 'tag-neutral'}`}>
+                {hasBattery ? batteryData.rating : 'Chưa kết nối'}
               </span>
-              <span>{isCalibrating ? 'Đang cân chỉnh...' : 'Cân Chỉnh Pin'}</span>
-            </button>
+            </div>
+
+            {/* Circular Battery Health Gauge */}
+            <div className="battery-gauge-wrapper">
+              <div className="battery-circle-container">
+                <svg className="battery-svg-ring" width="136" height="136" viewBox="0 0 136 136">
+                  <circle
+                    className="battery-ring-bg"
+                    cx="68"
+                    cy="68"
+                    r={radius}
+                    strokeWidth="9"
+                  />
+                  <circle
+                    className="battery-ring-fill"
+                    cx="68"
+                    cy="68"
+                    r={radius}
+                    strokeWidth="9"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                  />
+                </svg>
+                <div className="battery-center-content">
+                  <span className="battery-pct-number">
+                    {hasBattery ? `${healthPct}%` : '--'}
+                  </span>
+                  <span className="battery-pct-label">Dung lượng tối đa</span>
+                </div>
+              </div>
+
+              <div className="battery-summary-status">
+                <div className="status-title">
+                  {hasBattery ? `Pin ${batteryData.technology || 'Chính Hãng'}` : 'Chưa Kết Nối Điện Thoại'}
+                </div>
+                <div className="status-desc">
+                  {hasBattery
+                    ? (batteryData.desc_status || `Dữ liệu đọc trực tiếp từ cảm biến BMS: Dung lượng tối đa ${healthPct}%, ${cycleCount ? `đã qua ${cycleCount} chu kỳ sạc.` : 'chu kỳ sạc bảo mật chip BMS (Pin mới 100%).'}`)
+                    : 'Vui lòng cắm cáp USB và bật Gỡ lỗi ADB để hệ thống đọc thông số pin thật từ máy.'}
+                </div>
+              </div>
+            </div>
+
+            {/* 4 Detail Metric Tiles */}
+            <div className="battery-tiles-grid">
+              <div className="metric-tile">
+                <div className="metric-label">Chu kỳ sạc (Cycle Count)</div>
+                <div className="metric-value highlight">
+                  {hasBattery ? (cycleCount !== null && cycleCount > 0 ? `${cycleCount} lần` : (batteryData.cycle_count_display || 'BMS Bảo Mật')) : '--'}
+                </div>
+                <div className="metric-hint">
+                  {hasBattery ? (cycleCount !== null && cycleCount > 0 ? 'Đọc trực tiếp từ cảm biến chip BMS' : (batteryData.cycle_subtext || 'Chip BMS Honor E-Series bảo mật (Pin mới 100%)')) : '--'}
+                </div>
+              </div>
+
+              <div className="metric-tile">
+                <div className="metric-label">Dung lượng Tối đa / Thiết kế</div>
+                <div className="metric-value highlight">
+                  {hasBattery ? `${fullMah} / ${designMah} mAh` : '--'}
+                </div>
+                <div className="metric-hint">
+                  {hasBattery ? `Mức sạc hiện tại: ${batteryLevel}% (${currentMah} mAh)` : '--'}
+                </div>
+              </div>
+
+              <div className="metric-tile">
+                <div className="metric-label">Nhiệt độ & Điện áp</div>
+                <div className="metric-value">
+                  {hasBattery ? `${batteryData.temperature}°C • ${batteryData.voltage_v}V` : '--'}
+                </div>
+                <div className="metric-hint">
+                  {hasBattery ? `Cảm biến nhiệt độ pin: ${batteryData.temperature}°C` : '--'}
+                </div>
+              </div>
+
+              <div className="metric-tile">
+                <div className="metric-label">Công suất & Trạng thái</div>
+                <div className="metric-value">
+                  {hasBattery ? `${batteryData.wattage}W • ${batteryData.status}` : '--'}
+                </div>
+                <div className="metric-hint">
+                  {hasBattery && batteryData.current_ma ? `Dòng điện thực: ${Math.abs(batteryData.current_ma)} mA` : '--'}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Battery Calibration Action */}
+            <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-bright)' }}>
+                  Cân Chỉnh Pin & Xóa Cache Thống Kê (Battery Stats Reset)
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
+                  Xóa dữ liệu chu kỳ pin cũ, ép hệ điều hành nhận diện đúng dung lượng thực, khắc phục pin ảo.
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn-tool"
+                style={{ fontSize: '11.5px', padding: '5px 12px' }}
+                disabled={!isOnline || isCalibrating}
+                onClick={handleCalibrateBattery}
+                title="Chạy lệnh dumpsys batterystats --reset để cân chỉnh pin"
+              >
+                <span className="svg-icon" style={{ color: '#10b981' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M23 12a11.05 11.05 0 0 0-22 0zm-5 0a6 6 0 1 1-12 0 6 6 0 0 1 12 0z"></path>
+                  </svg>
+                </span>
+                <span>{isCalibrating ? 'Đang cân chỉnh...' : 'Cân Chỉnh Pin'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Card 2: TP Power Intelligence Companion App Showcase & Installer */}
+          <div className="specs-card inspection-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {/* Header Title with Badge */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2))',
+                    border: '1px solid rgba(16, 185, 129, 0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#10b981',
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                  </svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-bright)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>TP Power Intelligence</span>
+                    <span className="badge-tag tag-safe" style={{ fontSize: '10px', padding: '1px 6px' }}>
+                      App Pin Chính Chủ
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
+                    Quản Gia Pin & Năng Lượng AI Độc Quyền cho MagicOS • Tịch Phong Team
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Badge */}
+              <div>
+                {tppiAppStatus.installed ? (
+                  isUpdateAvailable ? (
+                    <span className="badge-tag tag-warn" style={{ fontSize: '10.5px' }}>
+                      Có Bản Mới v{tppiOta?.version_name || '3.0.1'} (Máy: v{tppiAppStatus.versionName})
+                    </span>
+                  ) : (
+                    <span className="badge-tag tag-safe" style={{ fontSize: '10.5px' }}>
+                      Đã Cài Đặt (v{tppiAppStatus.versionName || '3.0.1'})
+                    </span>
+                  )
+                ) : (
+                  <span className="badge-tag tag-neutral" style={{ fontSize: '10.5px' }}>
+                    Chưa Cài Đặt (Bản Mới v{tppiOta?.version_name || '3.0.1'})
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Feature Highlights Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginTop: '2px' }}>
+              <div style={{ background: 'var(--panel-alt)', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                <span style={{ fontSize: '14px', lineHeight: 1 }}>🔋</span>
+                <div>
+                  <div style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-bright)' }}>Chip BMS Realtime</div>
+                  <div style={{ fontSize: '10.5px', color: 'var(--text-dim)', marginTop: '1px' }}>Đo nội trở, dòng mA & phát hiện sụt áp pin thật</div>
+                </div>
+              </div>
+              <div style={{ background: 'var(--panel-alt)', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                <span style={{ fontSize: '14px', lineHeight: 1 }}>📱</span>
+                <div>
+                  <div style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-bright)' }}>8 MagicOS Widgets</div>
+                  <div style={{ fontSize: '10.5px', color: 'var(--text-dim)', marginTop: '1px' }}>Kích thước 2x2, 4x1, 4x2 làm mát CPU 1-chạm</div>
+                </div>
+              </div>
+              <div style={{ background: 'var(--panel-alt)', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                <span style={{ fontSize: '14px', lineHeight: 1 }}>🛡️</span>
+                <div>
+                  <div style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-bright)' }}>Bảo Vệ Cell Pin AI</div>
+                  <div style={{ fontSize: '10.5px', color: 'var(--text-dim)', marginTop: '1px' }}>Chống phồng pin Silicon-Carbon & sạc đêm</div>
+                </div>
+              </div>
+              <div style={{ background: 'var(--panel-alt)', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                <span style={{ fontSize: '14px', lineHeight: 1 }}>🔄</span>
+                <div>
+                  <div style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-bright)' }}>OTA Update Cloud</div>
+                  <div style={{ fontSize: '10.5px', color: 'var(--text-dim)', marginTop: '1px' }}>Tự động đồng bộ từ tppi.nhacquan.io.vn</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Live OTA Release Metadata Card */}
+            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <div>
+                <span style={{ color: 'var(--text-dim)' }}>Bản phát hành OTA: </span>
+                <b style={{ color: 'var(--text-bright)' }}>v{tppiOta?.version_name || '3.0.1'}</b>
+                <span style={{ color: 'var(--text-dim)', marginLeft: '6px' }}>• Build {tppiOta?.version_code || 42}</span>
+                <span style={{ color: 'var(--text-dim)', marginLeft: '6px' }}>• {tppiOta?.release_date || '07/11/2026'}</span>
+                {tppiOta?.file_size && (
+                  <span style={{ color: '#10b981', marginLeft: '6px' }}>
+                    • {(tppiOta.file_size / 1024 / 1024).toFixed(1)} MB
+                  </span>
+                )}
+              </div>
+              <a
+                href="https://tppi.nhacquan.io.vn"
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: '#38bdf8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              >
+                <span>Trang Chủ TPPI</span>
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </a>
+            </div>
+
+            {/* Action Buttons Toolbar */}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', paddingTop: '4px' }}>
+              {/* Primary 1-Click Install Button */}
+              <button
+                type="button"
+                className="btn-tool primary"
+                onClick={handleInstallTppi}
+                disabled={!isOnline || isInstallingTppi}
+                style={{ padding: '6px 14px', fontSize: '12px', fontWeight: 600 }}
+              >
+                <span className="svg-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </span>
+                <span>
+                  {isInstallingTppi
+                    ? 'Đang Cài Đặt Trực Tiếp...'
+                    : !tppiAppStatus.installed
+                    ? `Cài Đặt Lên Điện Thoại (v${tppiOta?.version_name || '3.0.1'})`
+                    : isUpdateAvailable
+                    ? `Cập Nhật Lên v${tppiOta?.version_name || '3.0.1'}`
+                    : 'Cài Đặt Lại Gói APK'}
+                </span>
+              </button>
+
+              {/* Launch App Button (if installed) */}
+              {tppiAppStatus.installed && (
+                <button
+                  type="button"
+                  className="btn-tool"
+                  onClick={handleLaunchTppi}
+                  disabled={!isOnline || isLaunchingTppi}
+                  style={{ padding: '6px 12px', fontSize: '12px' }}
+                  title="Khởi chạy ứng dụng TP Power Intelligence trên màn hình điện thoại"
+                >
+                  <span className="svg-icon" style={{ color: '#10b981' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                  </span>
+                  <span>{isLaunchingTppi ? 'Đang mở...' : 'Mở Trên Điện Thoại'}</span>
+                </button>
+              )}
+
+              {/* Direct Download APK to PC Button */}
+              <a
+                href={tppiOta?.download_url || 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.1-b42.apk'}
+                target="_blank"
+                rel="noreferrer"
+                download="TPPI-PowerIntelligence-v3.0.1.apk"
+                className="btn-tool"
+                style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none' }}
+                title="Tải tệp cài đặt APK trực tiếp về máy tính"
+              >
+                <span className="svg-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                </span>
+                <span>Tải APK Về PC</span>
+              </a>
+            </div>
           </div>
         </div>
 

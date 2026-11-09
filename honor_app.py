@@ -335,6 +335,13 @@ APK_SOURCES = {
         'name': 'Google Play Store (Cửa hàng CH Play)',
         'package': 'com.android.vending',
         'urls': []
+    },
+    'TPPI-PowerIntelligence-v3.0.1-Release.apk': {
+        'name': 'TP Power Intelligence (Quản Gia Pin & Năng Lượng AI)',
+        'package': 'vn.tp.powerintelligence',
+        'urls': [
+            'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.1-b42.apk'
+        ]
     }
 }
 
@@ -1962,6 +1969,8 @@ ACTION_TITLES = {
     'install_play_store': 'Cài đặt Cửa hàng Google Play Store',
     'setup_full_google_ecosystem': 'Kích hoạt trọn gói Hệ sinh thái Google & CH Play',
     'master_optimize': 'Thực thi Quy trình Tối ưu hóa Toàn diện 8 bước',
+    'install_tppi_battery': 'Cài đặt TP Power Intelligence (Quản Gia Pin & Năng Lượng AI)',
+    'check_app_version': 'Kiểm tra phiên bản ứng dụng trên điện thoại',
     'launch_scrcpy': 'Khởi chạy Scrcpy điều khiển & chiếu màn hình 120Hz',
     'reboot_device': 'Khởi động lại điện thoại',
     'kill_adb_server': 'Khởi động lại ADB Server',
@@ -2729,6 +2738,77 @@ def handle_action(payload):
         add_log('info', '  ✦ Bây giờ bạn có thể mở màn hình điện thoại để đăng nhập tài khoản Google và tải ứng dụng từ CH Play bình thường.')
         add_log('success', '=======================================================')
         return {'success': True}
+
+    elif action == 'install_tppi_battery':
+        add_log('step', '>>> [CÀI ĐẶT] Đang chuẩn bị cài đặt TP Power Intelligence (Quản Gia Pin & Năng Lượng AI)...')
+        custom_url = payload.get('download_url')
+        filename = payload.get('filename') or 'TPPI-PowerIntelligence-v3.0.1-Release.apk'
+
+        apks_dir = os.path.join(BASE_DIR, 'apks')
+        dest_apk = os.path.join(apks_dir, filename)
+
+        apk_path = None
+        # Ưu tiên kiểm tra file có sẵn cục bộ trong apks/ hoặc root
+        if os.path.exists(dest_apk) and os.path.getsize(dest_apk) > 1000000:
+            apk_path = dest_apk
+        else:
+            # Kiểm tra các biến thể tên file khác có sẵn
+            alt_names = ['TP-Power-Intelligence-v3.0.1-Release.apk', 'TPPI-PowerIntelligence-v3.0.1-b42.apk', 'TPPI-PowerIntelligence-v3.0.0-release.apk']
+            for alt in alt_names:
+                alt_p = os.path.join(apks_dir, alt)
+                if os.path.exists(alt_p) and os.path.getsize(alt_p) > 1000000:
+                    apk_path = alt_p
+                    break
+
+        # Nếu chưa có sẵn cục bộ, tự động tải từ URL OTA
+        if not apk_path:
+            target_url = custom_url or 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.1-b42.apk'
+            add_log('info', f'Đang tải tệp APK từ máy chủ phát hành ({target_url})...')
+            if download_apk_with_progress(target_url, dest_apk, 'TP Power Intelligence'):
+                apk_path = dest_apk
+
+        if not apk_path:
+            apk_path = ensure_apk_available('TPPI-PowerIntelligence-v3.0.1-Release.apk')
+
+        if not apk_path:
+            add_log('error', 'Không tìm thấy file APK TP Power Intelligence và không thể tải về từ máy chủ!')
+            return {'success': False, 'error': 'Không tìm thấy file APK để cài đặt'}
+
+        add_log('cmd', f'$ adb install -r -d "{os.path.basename(apk_path)}"')
+        code, out, err = run_cmd(['adb', 'install', '-r', '-d', apk_path], timeout=180)
+        if code != 0 and 'Success' not in out:
+            add_log('error', f'Cài đặt TP Power Intelligence thất bại: {err or out}')
+            return {'success': False, 'error': err or out}
+
+        # Cấp quyền Whitelist Doze & AppOps
+        add_log('info', '  ↳ Cài đặt APK thành công. Đang cấp quyền Doze Whitelist & Widget làm mát...')
+        run_cmd(['adb', 'shell', 'dumpsys', 'deviceidle', 'whitelist', '+vn.tp.powerintelligence'])
+        run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'POST_NOTIFICATION', 'allow'])
+        run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'SYSTEM_ALERT_WINDOW', 'allow'])
+        run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'PACKAGE_USAGE_STATS', 'allow'])
+        run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'SCHEDULE_EXACT_ALARM', 'allow'])
+
+        add_log('success', '=== [HOÀN TẤT 100%] ĐÃ CÀI ĐẶT THÀNH CÔNG TP POWER INTELLIGENCE! ===')
+        add_log('info', '  ✦ Đã cấp quyền Whitelist Doze, cho phép 8 MagicOS Widgets hoạt động mượt mà.')
+        return {'success': True}
+
+    elif action == 'check_app_version':
+        pkg = payload.get('package', 'vn.tp.powerintelligence')
+        code, out, _ = run_cmd(['adb', 'shell', f'dumpsys package {pkg} | grep -E "versionName|versionCode"'])
+        if not out or 'versionName' not in out:
+            return {'success': True, 'installed': False}
+        ver_name = ''
+        ver_code = 0
+        for line in out.splitlines():
+            line = line.strip()
+            if 'versionName=' in line:
+                ver_name = line.split('versionName=')[-1].strip()
+            elif 'versionCode=' in line:
+                try:
+                    ver_code = int(line.split('versionCode=')[-1].split()[0].strip())
+                except:
+                    pass
+        return {'success': True, 'installed': True, 'version_name': ver_name, 'version_code': ver_code}
 
     elif action == 'master_optimize':
         add_log('step', '=======================================================')

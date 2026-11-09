@@ -2073,6 +2073,122 @@ class AdbService {
   }
 
   /**
+   * Fetch Latest TP Power Intelligence Release from OTA Cloud API
+   */
+  async fetchTppiLatestOta() {
+    try {
+      const resp = await fetch('https://tppi.nhacquan.io.vn/api/ota/latest', { cache: 'no-store' });
+      if (resp.ok) {
+        const json = await resp.json();
+        if (json && json.data) return json.data;
+      }
+    } catch (e) {
+      console.warn('Lỗi gọi API OTA TPPI:', e);
+    }
+    // Fallback default info
+    return {
+      version_name: '3.0.1',
+      version_code: 42,
+      channel: 'stable',
+      release_date: '2026-11-07',
+      download_url: 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.1-b42.apk',
+      file_size: 22848357,
+      changelog_vi: [
+        'Giám sát sức khỏe pin thời gian thực với chip BMS Honor',
+        '8 Card Widgets MagicOS làm mát CPU tức thì 1-chạm',
+        'Thuật toán AI bảo vệ và chống phồng rộp cell pin Silicon-Carbon'
+      ]
+    };
+  }
+
+  /**
+   * Check app installed status and version on device
+   */
+  async checkAppInstalled(pkg = 'vn.tp.powerintelligence') {
+    if (this.mode === 'webusb' && this.adbInstance) {
+      const dump = await this.executeShell(`dumpsys package ${pkg}`);
+      if (!dump || dump.includes('Unable to find package') || !dump.includes('versionName=')) {
+        return { installed: false };
+      }
+      let versionName = '';
+      let versionCode = 0;
+      for (const line of dump.split('\n')) {
+        const l = line.trim();
+        if (l.startsWith('versionName=')) versionName = l.split('=')[1]?.trim() || '';
+        if (l.startsWith('versionCode=')) versionCode = parseInt(l.split('=')[1]?.split(' ')[0]?.trim() || '0');
+      }
+      return { installed: true, versionName, versionCode };
+    }
+
+    try {
+      const resp = await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'check_app_version', package: pkg }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        return {
+          installed: !!data.installed,
+          versionName: data.version_name || '',
+          versionCode: data.version_code || 0,
+        };
+      }
+    } catch (e) {}
+
+    return { installed: false };
+  }
+
+  /**
+   * 1-Click Install TP Power Intelligence on Phone
+   */
+  async installTppiBattery(otaData = {}) {
+    this.addLog('info', 'Đang chuẩn bị cài đặt TP Power Intelligence lên điện thoại...');
+    if (this.mode === 'webusb' && this.adbInstance) {
+      this.addLog('step', '>>> [CÀI ĐẶT WEBUSB] Đang tải gói cài đặt từ máy chủ OTA...');
+      const targetUrl = otaData.download_url || 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.1-b42.apk';
+      const fileResp = await fetch(targetUrl);
+      if (!fileResp.ok) throw new Error('Không thể tải file APK từ máy chủ OTA');
+      const blob = await fileResp.blob();
+      const reader = new FileReader();
+      const b64Promise = new Promise((resolve) => {
+        reader.onloadend = () => {
+          const b64 = (reader.result || '').split(',')[1];
+          resolve(b64);
+        };
+        reader.readAsDataURL(blob);
+      });
+      const dataB64 = await b64Promise;
+      const res = await this.installUploadedApk('TPPI-PowerIntelligence-v3.0.1-Release.apk', dataB64);
+      if (res && res.success) {
+        await this.runAdbCommand('dumpsys deviceidle whitelist +vn.tp.powerintelligence');
+        await this.runAdbCommand('cmd appops set vn.tp.powerintelligence POST_NOTIFICATION allow');
+        await this.runAdbCommand('cmd appops set vn.tp.powerintelligence SYSTEM_ALERT_WINDOW allow');
+        await this.runAdbCommand('cmd appops set vn.tp.powerintelligence PACKAGE_USAGE_STATS allow');
+        await this.runAdbCommand('cmd appops set vn.tp.powerintelligence SCHEDULE_EXACT_ALARM allow');
+        this.addLog('success', 'Đã cài đặt và cấp quyền Doze Whitelist cho TP Power Intelligence thành công!');
+        return { success: true };
+      }
+      return res;
+    }
+
+    try {
+      const resp = await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'install_tppi_battery',
+          download_url: otaData.download_url,
+          filename: 'TPPI-PowerIntelligence-v3.0.1-Release.apk',
+          version_name: otaData.version_name,
+        }),
+      });
+      if (resp.ok) return await resp.json();
+    } catch (e) {}
+    return { success: false, error: 'Lỗi gửi yêu cầu cài đặt tới máy chủ' };
+  }
+
+  /**
    * Install Drag & Drop APK
    */
   async installUploadedApk(filename, dataB64) {
