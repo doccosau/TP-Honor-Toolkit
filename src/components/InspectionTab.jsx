@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { adbService } from '../services/adbService';
 
 export default function InspectionTab({ device }) {
@@ -21,7 +21,6 @@ export default function InspectionTab({ device }) {
   const [isInstallingTppi, setIsInstallingTppi] = useState(false);
   const [deployStep, setDeployStep] = useState(null); // null | 'fetching_ota' | 'downloading_apk' | 'installing_adb' | 'granting_permissions' | 'completed' | 'failed'
   const [isLaunchingTppi, setIsLaunchingTppi] = useState(false);
-  const autoDeployAttemptedRef = useRef(false);
 
   const isOnline = device && device.connected;
 
@@ -68,12 +67,6 @@ export default function InspectionTab({ device }) {
       if (isOnline) {
         const appStat = await adbService.checkAppInstalled('vn.tp.powerintelligence');
         if (appStat) setTppiAppStatus(appStat);
-
-        // TỰ ĐỘNG LẤY APK TỪ API VÀ CÀI VÀO MÁY NẾU CHƯA CÓ
-        if (appStat && !appStat.installed && !autoDeployAttemptedRef.current) {
-          autoDeployAttemptedRef.current = true;
-          triggerAutoDeploy(ota);
-        }
       }
     } catch (e) {
       console.error(e);
@@ -94,7 +87,6 @@ export default function InspectionTab({ device }) {
   }, [tppiAppStatus, tppiOta]);
 
   useEffect(() => {
-    autoDeployAttemptedRef.current = false;
     setDeployStep(null);
     loadData();
   }, [device?.serial]);
@@ -438,7 +430,7 @@ export default function InspectionTab({ device }) {
                   )
                 ) : (
                   <span className="badge-tag tag-neutral" style={{ fontSize: '10.5px' }}>
-                    {isOnline ? 'Chuẩn Bị Tự Động Nạp...' : 'Tự Động Nạp Khi Cắm Cáp ADB'}
+                    Chưa Cài Đặt (Khuyên Dùng Cho Pin)
                   </span>
                 )}
               </div>
@@ -586,7 +578,34 @@ export default function InspectionTab({ device }) {
                   </button>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-light)', borderRadius: '8px', padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <div style={{ fontWeight: 600, color: 'var(--text-bright)', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ color: '#10b981' }}>✦</span>
+                    <span>Cài đặt Quản Gia Pin lên điện thoại (Tùy chọn)</span>
+                  </div>
+                  <div style={{ color: 'var(--text-dim)', fontSize: '11px', marginTop: '2px' }}>
+                    Tự động lấy bản mới nhất từ API OTA, nạp trực tiếp qua ADB và cấp quyền Doze Whitelist cho 8 MagicOS Widgets.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn-tool primary"
+                  onClick={() => triggerAutoDeploy(tppiOta)}
+                  disabled={!isOnline || isInstallingTppi}
+                  style={{ padding: '7px 16px', fontSize: '12px', fontWeight: 600 }}
+                  title="Cài đặt TP Power Intelligence lên điện thoại"
+                >
+                  <span className="svg-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                  </span>
+                  <span>{isInstallingTppi ? 'Đang Nạp Vào Máy...' : `Cài Đặt Lên Điện Thoại (v${tppiOta?.version_name || '3.0.1'})`}</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
