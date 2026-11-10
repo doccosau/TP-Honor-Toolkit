@@ -195,6 +195,96 @@
           "name": "EasyGo (Chia Sẻ & Phân Phối Liên Kết TQ)",
           "desc": "Dịch vụ phân phối liên kết rác nội địa ngốn RAM ngầm.",
           "recommended": true
+        },
+        {
+          "package": "com.hihonor.search",
+          "name": "Honor Search (Tìm Kiếm Nội Địa TQ)",
+          "desc": "Công cụ tìm kiếm nội địa TQ, tự kích hoạt khi vuốt màn hình, đẩy tin tức tiếng Trung và gửi từ khóa về máy chủ đại lục.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.searchservice",
+          "name": "Honor Search Service (Dịch Vụ Tìm Kiếm TQ)",
+          "desc": "Dịch vụ chạy nền cấp dữ liệu tìm kiếm cho Honor Search. Gỡ để giải phóng RAM ngầm.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.android.pushagent",
+          "name": "Honor Push Agent (Kênh Quảng Cáo Ngầm TQ)",
+          "desc": "Tiến trình chạy nền nhận và đẩy thông báo quảng cáo từ các dịch vụ nội địa Honor Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.android.AutoRegSms",
+          "name": "China Telecom Auto Reg SMS (Tự Gửi SMS TQ)",
+          "desc": "Dịch vụ tự động gửi tin nhắn SMS ngầm để đăng ký thiết bị với nhà mạng Trung Quốc, ngốn tài nguyên vô ích tại Việt Nam.",
+          "recommended": true
+        },
+        {
+          "package": "com.honor.datapulse",
+          "name": "Honor DataPulse (Thu Thập Dữ Liệu Xung Nhịp)",
+          "desc": "Dịch vụ thu thập thông số phần cứng và phân tích hành vi người dùng gửi về máy chủ Honor.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.hiviewpush",
+          "name": "HiView Push (Kênh Đẩy Dữ Liệu Ngầm TQ)",
+          "desc": "Kênh đẩy dữ liệu sự cố và telemetry của hệ thống HiView về server Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.detectrepair",
+          "name": "Chẩn Đoán & Sửa Lỗi Từ Xa TQ",
+          "desc": "Dịch vụ tự động ghi log lỗi hệ thống và gửi chẩn đoán từ xa về máy chủ Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.cipservice",
+          "name": "Honor CIP Service (Định Danh Nội Địa TQ)",
+          "desc": "Dịch vụ xác thực và định danh chứng chỉ nội địa Trung Quốc chạy thường trực trong RAM.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.assetsync",
+          "name": "Asset Sync (Đồng Bộ Tài Nguyên TQ)",
+          "desc": "Dịch vụ đồng bộ tài nguyên quảng cáo, theme và hình ảnh nội địa Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.assetsyncservice",
+          "name": "Asset Sync Service (Dịch Vụ Đồng Bộ Tạp Nham)",
+          "desc": "Tiến trình nền hỗ trợ tải các tài nguyên nội địa của hệ sinh thái Honor TQ.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.quickengine",
+          "name": "Quick App Engine (Nền Tảng Mini-App TQ)",
+          "desc": "Khung chạy ngầm các ứng dụng mini không cần cài đặt (Quick Apps) của Trung Quốc, gây ngốn RAM.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.livewallpaper.paradise",
+          "name": "Hình Nền Động Paradise TQ",
+          "desc": "Dịch vụ hình nền động nội địa Paradise chạy ngầm gây hao pin và tốn dung lượng RAM.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.android.upgradeguide",
+          "name": "Hướng Dẫn Nâng Cấp HnUpgradeGuide",
+          "desc": "Hướng dẫn nâng cấp hệ thống chứa các nội dung tiếng Trung không cần thiết.",
+          "recommended": true
+        },
+        {
+          "package": "com.baidu.input_hihonor",
+          "name": "Bàn Phím Baidu Cho Honor",
+          "desc": "Bàn phím đối tác Baidu tích hợp trong ROM gốc. Nên gỡ để dùng Gboard / Laban Key / Bàn phím Honor gốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.bjbyhd.screenreader_hihonor",
+          "name": "Trình Đọc Màn Hình Baidu (Screen Reader)",
+          "desc": "Trình đọc màn hình tiếng Trung của đối tác Bắc Kinh Baidu tải sẵn trong ROM.",
+          "recommended": true
         }
       ]
     },
@@ -264,6 +354,60 @@
           "name": "NetEase Cloud Music (Nhạc 163 TQ)",
           "desc": "Trình phát nhạc NetEase Trung Quốc.",
           "recommended": true
+        },
+        {
+          "package": "com.hihonor.appmarket",
+          "name": "Honor App Market (Chợ Ứng Dụng Honor TQ)",
+          "desc": "Kho ứng dụng nội địa Trung Quốc. Tự động tải lại app rác khi quét cập nhật và đẩy quảng cáo tiếng Trung. Nên gỡ để dùng CH Play.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.gameassistant",
+          "name": "Honor Game Assistant (Trợ Lý Game TQ)",
+          "desc": "Trợ lý trò chơi nội địa TQ, tự động nổi bong bóng và thông báo gợi ý game, nạp thẻ tiếng Trung.",
+          "recommended": true
+        },
+        {
+          "package": "com.honor.reader",
+          "name": "Honor Reader (Kho Truyện Chữ TQ)",
+          "desc": "Kho tiểu thuyết, sách báo Hoa ngữ tải sẵn, chứa nhiều module quảng cáo nội địa.",
+          "recommended": true
+        },
+        {
+          "package": "com.tencent.qqlive",
+          "name": "Tencent Video (QQ Live TQ)",
+          "desc": "Ứng dụng xem phim và livestream tiếng Trung của Tencent tải sẵn trên máy.",
+          "recommended": true
+        },
+        {
+          "package": "com.tencent.qqmusic",
+          "name": "Tencent QQ Music (Kho Nhạc TQ)",
+          "desc": "Kho nhạc trực tuyến Hoa ngữ của tập đoàn Tencent, bị chặn bản quyền tại Việt Nam.",
+          "recommended": true
+        },
+        {
+          "package": "com.xingin.xhs",
+          "name": "Tiểu Hồng Thư (Xiaohongshu / RED)",
+          "desc": "Mạng xã hội thương mại điện tử Tiểu Hồng Thư Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.ss.android.ugc.aweme",
+          "name": "Douyin (TikTok Nội Địa Trung Quốc)",
+          "desc": "Ứng dụng video ngắn Douyin nội địa Trung Quốc (Khác với TikTok quốc tế).",
+          "recommended": true
+        },
+        {
+          "package": "com.unionpay.tsmservice",
+          "name": "China UnionPay TSM Service",
+          "desc": "Dịch vụ thanh toán thẻ ngân hàng UnionPay nội địa Trung Quốc.",
+          "recommended": true
+        },
+        {
+          "package": "com.hihonor.hnpanpayservice",
+          "name": "Honor Pan Pay (Ví Thanh Toán Honor TQ)",
+          "desc": "Dịch vụ thanh toán qua thẻ và ví điện tử Honor nội địa đại lục.",
+          "recommended": true
         }
       ]
     },
@@ -278,6 +422,60 @@
           "package": "com.hihonor.assistant",
           "name": "Trợ Lý Ảo YOYO Assistant (Tiếng Trung)",
           "desc": "Trợ lý giọng nói YOYO chỉ hỗ trợ tiếng Trung. Nếu bạn không nói tiếng Trung và muốn nhường phím cho Google Assistant thì có thể gỡ.",
+          "recommended": false
+        },
+        {
+          "package": "com.hihonor.magicvoice",
+          "name": "YOYO Voice (Trợ Lý Giọng Nói Tiếng Trung)",
+          "desc": "Trợ lý ảo tiếng Trung của Honor. Chiếm phím nguồn, không hỗ trợ tiếng Việt. Nên gỡ để nhường phím gọi Google Assistant / Gemini.",
+          "recommended": false
+        },
+        {
+          "package": "com.hihonor.voiceengine",
+          "name": "Honor Voice Engine (Bộ Máy Giọng Nói YOYO)",
+          "desc": "Công cụ nhận dạng và xử lý ngôn ngữ tiếng Trung của trợ lý YOYO.",
+          "recommended": false
+        },
+        {
+          "package": "com.hihonor.aipluginengine",
+          "name": "Honor AI Plugin Engine",
+          "desc": "Nền tảng plugin AI nội địa của Honor phục vụ các tính năng nhận diện tiếng Trung.",
+          "recommended": false
+        },
+        {
+          "package": "com.hihonor.tips",
+          "name": "Honor Tips (Mẹo & Hướng Dẫn Honor)",
+          "desc": "Ứng dụng hướng dẫn tính năng, thường xuyên hiển thị popup thông báo tiếng Trung.",
+          "recommended": false
+        },
+        {
+          "package": "com.hihonor.parentcontrol",
+          "name": "Kiểm Soát Trẻ Em (Honor Parent Control)",
+          "desc": "Dịch vụ quản lý thời gian sử dụng thiết bị cho trẻ em theo quy định đại lục Trung Quốc.",
+          "recommended": false
+        },
+        {
+          "package": "com.hihonor.mirror",
+          "name": "Gương Soi Honor Mirror",
+          "desc": "Ứng dụng gương soi ảo đơn giản, có thể gỡ nếu không dùng đến.",
+          "recommended": false
+        },
+        {
+          "package": "com.hihonor.pcassistant",
+          "name": "Honor PC Assistant (Trợ Lý Kết Nối PC TQ)",
+          "desc": "Cầu nối kết nối máy tính của Honor nội địa Trung Quốc.",
+          "recommended": false
+        },
+        {
+          "package": "com.hihonor.smartiot",
+          "name": "Honor Smart IoT",
+          "desc": "Nền tảng kết nối các thiết bị nhà thông minh thuộc hệ sinh thái Honor đại lục.",
+          "recommended": false
+        },
+        {
+          "package": "com.huawei.smarthome",
+          "name": "Huawei AI Life (Nhà Thông Minh TQ)",
+          "desc": "Ứng dụng quản lý thiết bị thông minh Huawei / Honor nội địa Trung Quốc.",
           "recommended": false
         }
       ]

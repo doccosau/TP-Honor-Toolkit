@@ -48,15 +48,18 @@ export default function DebloatTab({
     let installed = 0;
     let uninstalled = 0;
     allPackages.forEach((p) => {
-      if (p.status === 'active' || p.status === 'disabled') installed++;
-      else if (p.status === 'uninstalled') uninstalled++;
+      if (p.status === 'active' || (!isOnline && p.status !== 'uninstalled' && p.status !== 'disabled')) {
+        installed++;
+      } else if (p.status === 'uninstalled' || p.status === 'disabled') {
+        uninstalled++;
+      }
     });
     return {
       total: allPackages.length,
       installed,
       uninstalled,
     };
-  }, [allPackages]);
+  }, [allPackages, isOnline]);
 
   // Filtered packages
   const filteredPackages = useMemo(() => {
@@ -64,10 +67,10 @@ export default function DebloatTab({
     return allPackages.filter((pkg) => {
       // 1. Status Filter
       if (statusFilter === 'installed') {
-        // Show apps that are present on phone (or unknown if offline)
-        if (pkg.status === 'uninstalled') return false;
+        // Show apps active on phone (or unknown if offline). Hide already uninstalled or disabled apps.
+        if (pkg.status === 'uninstalled' || pkg.status === 'disabled') return false;
       } else if (statusFilter === 'uninstalled') {
-        if (pkg.status !== 'uninstalled') return false;
+        if (pkg.status !== 'uninstalled' && pkg.status !== 'disabled') return false;
       }
 
       // 2. Tier Filter
@@ -91,29 +94,29 @@ export default function DebloatTab({
   const isSelectable = (pkg) => {
     if (pkg.tierKey === 'level_5_critical_system') return false;
     if (statusFilter === 'uninstalled') {
-      return pkg.status === 'uninstalled';
+      return pkg.status === 'uninstalled' || pkg.status === 'disabled';
     }
     if (statusFilter === 'installed') {
-      return pkg.status !== 'uninstalled';
+      return pkg.status === 'active' || (!isOnline && pkg.status !== 'uninstalled' && pkg.status !== 'disabled');
     }
     return true; // 'all' filter: allow selecting any non-critical package
   };
 
   const selectableFiltered = useMemo(() => {
     return filteredPackages.filter(isSelectable);
-  }, [filteredPackages, statusFilter]);
+  }, [filteredPackages, statusFilter, isOnline]);
 
   const selectedList = useMemo(() => {
     return allPackages.filter((p) => selectedPackages.has(p.package));
   }, [allPackages, selectedPackages]);
 
   const selectedUninstalledCount = useMemo(() => {
-    return selectedList.filter((p) => p.status === 'uninstalled').length;
+    return selectedList.filter((p) => p.status === 'uninstalled' || p.status === 'disabled').length;
   }, [selectedList]);
 
   const selectedInstalledCount = useMemo(() => {
-    return selectedList.filter((p) => p.status === 'active' || p.status === 'disabled').length;
-  }, [selectedList]);
+    return selectedList.filter((p) => p.status === 'active' || (!isOnline && p.status !== 'uninstalled' && p.status !== 'disabled')).length;
+  }, [selectedList, isOnline]);
 
   const handleToggle = (pkgName, selectable) => {
     if (!selectable) return;
@@ -135,7 +138,7 @@ export default function DebloatTab({
 
   const handleExecuteDebloat = () => {
     const pkgs = selectedList
-      .filter((p) => p.status === 'active' || p.status === 'disabled')
+      .filter((p) => p.status === 'active' || (!isOnline && p.status !== 'uninstalled' && p.status !== 'disabled'))
       .map((p) => p.package);
     if (pkgs.length === 0) return;
     onDebloat(pkgs);
@@ -144,7 +147,7 @@ export default function DebloatTab({
 
   const handleExecuteRestore = () => {
     const pkgs = selectedList
-      .filter((p) => p.status === 'uninstalled')
+      .filter((p) => p.status === 'uninstalled' || p.status === 'disabled')
       .map((p) => p.package);
     if (pkgs.length === 0) return;
     onRestore(pkgs);
@@ -245,7 +248,7 @@ export default function DebloatTab({
                 className="btn-tool success"
                 onClick={() => {
                   const uninstalledPkgs = allPackages
-                    .filter((p) => p.status === 'uninstalled')
+                    .filter((p) => p.status === 'uninstalled' || p.status === 'disabled')
                     .map((p) => p.package);
                   if (uninstalledPkgs.length === 0) return;
                   onRestore(uninstalledPkgs);
@@ -307,7 +310,7 @@ export default function DebloatTab({
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
               </span>
-              <span>Đã gỡ bỏ ({counts.uninstalled})</span>
+              <span>Đã gỡ / vô hiệu hóa ({counts.uninstalled})</span>
             </button>
           </div>
 
@@ -427,7 +430,7 @@ export default function DebloatTab({
                 filteredPackages.map((pkg) => {
                   const selectable = isSelectable(pkg);
                   const isChecked = selectedPackages.has(pkg.package);
-                  const isUninstalled = pkg.status === 'uninstalled';
+                  const isNeutralized = pkg.status === 'uninstalled' || pkg.status === 'disabled';
                   const isProtected = pkg.tierKey === 'level_5_critical_system';
 
                   return (
@@ -435,7 +438,7 @@ export default function DebloatTab({
                       key={pkg.package}
                       style={{
                         cursor: selectable ? 'pointer' : 'default',
-                        opacity: isUninstalled && statusFilter !== 'uninstalled' ? 0.6 : 1,
+                        opacity: isNeutralized && statusFilter !== 'uninstalled' ? 0.6 : 1,
                         background: isChecked ? 'rgba(37, 99, 235, 0.12)' : 'transparent',
                       }}
                       onClick={() => handleToggle(pkg.package, selectable)}
@@ -456,7 +459,7 @@ export default function DebloatTab({
                         />
                       </td>
 
-                      <td style={{ padding: '8px 10px', fontWeight: 600, color: isUninstalled ? 'var(--text-muted)' : 'var(--text-bright)' }}>
+                      <td style={{ padding: '8px 10px', fontWeight: 600, color: isNeutralized ? 'var(--text-muted)' : 'var(--text-bright)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <AppIcon pkg={pkg.package} name={pkg.name} isUser={false} size={28} />
                           <span>{pkg.name}</span>
