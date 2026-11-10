@@ -538,6 +538,36 @@ export default function App() {
     }
   };
 
+  const handleCleanCache = async () => {
+    setIsExecuting(true);
+    setExecutingTask('Dọn dẹp cache tạm toàn máy');
+    try {
+      addToast('info', 'Dọn Dẹp Cache', 'Đang thu hồi và làm sạch bộ nhớ đệm cache tạm thời...');
+      await adbService.cleanCache();
+      addToast('success', 'Dọn Dẹp Hoàn Tất', 'Đã giải phóng bộ nhớ đệm cache của tất cả ứng dụng an toàn 100%!');
+    } catch (e) {
+      addToast('error', 'Lỗi dọn cache', e.message);
+    } finally {
+      setIsExecuting(false);
+      setExecutingTask('');
+    }
+  };
+
+  const handleOptimizePostUpdate = async () => {
+    setIsExecuting(true);
+    setExecutingTask('Tối ưu hóa sau cập nhật');
+    try {
+      addToast('info', 'Tối Ưu Sau Cập Nhật', 'Đang dọn cache rác, biên dịch lại ART runtime và cân chỉnh pin...');
+      await adbService.optimizePostUpdate();
+      addToast('success', 'Tối Ưu Thành Công', 'Máy đã được dọn sạch cache và tối ưu hóa toàn diện sau update!');
+    } catch (e) {
+      addToast('error', 'Lỗi tối ưu hóa', e.message);
+    } finally {
+      setIsExecuting(false);
+      setExecutingTask('');
+    }
+  };
+
   const handleDebloat = async (packages) => {
     setIsExecuting(true);
     setExecutingTask(`Gỡ ${packages.length} Bloatware`);
@@ -766,6 +796,8 @@ export default function App() {
             onInstallPlayStore={handleInstallPlayStore}
             onSetupFullGoogleEcosystem={handleSetupFullGoogleEcosystem}
             onCompileApps={handleCompileApps}
+            onCleanCache={handleCleanCache}
+            onOptimizePostUpdate={handleOptimizePostUpdate}
             onDisableTelemetry={handleDisableTelemetry}
             onFixWeather={handleFixWeather}
             onReboot={handleReboot}

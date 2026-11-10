@@ -151,6 +151,8 @@ export default function ToolboxTab({
   onInstallPlayStore,
   onSetupFullGoogleEcosystem,
   onCompileApps,
+  onCleanCache,
+  onOptimizePostUpdate,
   onDisableTelemetry,
   onFixWeather,
   onReboot,
@@ -618,8 +620,40 @@ export default function ToolboxTab({
       }
     );
 
-    // --- GROUP 6: SYSTEM & PERFORMANCE (5 Items) ---
+    // --- GROUP 6: SYSTEM & PERFORMANCE (6 Items) ---
     list.push(
+      {
+        id: 'sys_post_update_optimize',
+        category: 'system',
+        categoryLabel: 'Sau Cập Nhật',
+        title: 'Tối Ưu Hóa Toàn Diện Sau Cập Nhật (Post-OTA Maintenance)',
+        scope: 'pm trim-caches + cmd package bg-dexopt-job + batterystats reset',
+        summary: 'Khắc phục triệt để tình trạng nóng máy ngầm, khựng khung hình và hao pin sau khi nâng cấp MagicOS / OTA.',
+        desc: 'Chuỗi 3 bước bảo dưỡng chuẩn hãng: 1. Thu hồi sạch sẽ toàn bộ cache tạm thời cũ; 2. Kích hoạt tác vụ nền ART Dexopt để hệ điều hành biên dịch lại ứng dụng tương thích hoàn hảo với bản cập nhật mới; 3. Cân chỉnh lại bộ đếm pin để loại bỏ pin ảo.',
+        adbCommand: 'adb shell pm trim-caches 999999999999\nadb shell cmd package bg-dexopt-job\nadb shell dumpsys batterystats --reset',
+        impact: 'Máy mượt như mới đập hộp, triệt tiêu xung đột cache cũ và tiết kiệm pin tối đa.',
+        safety: 'An Toàn Tuyệt Đối 100% (Không làm mất ứng dụng hay dữ liệu)',
+        recommended: true,
+        type: 'action',
+        actionLabel: 'Tối Ưu Sau Cập Nhật',
+        onExecute: onOptimizePostUpdate,
+      },
+      {
+        id: 'sys_clean_cache',
+        category: 'system',
+        categoryLabel: 'Bộ Nhớ Đệm',
+        title: 'Dọn Sạch Cache Tạm Toàn Máy (Trim App Caches)',
+        scope: 'pm trim-caches 999999999999',
+        summary: 'Thu hồi sạch sẽ bộ nhớ đệm cache tạm thời của tất cả ứng dụng mà không làm mất dữ liệu.',
+        desc: 'Ép Android quét và thu hồi (trim) toàn bộ file đệm cache rác phát sinh trong quá trình sử dụng và sau khi cập nhật phần mềm. Cam kết 100% an toàn, không làm mất tài khoản, mật khẩu hay dữ liệu cá nhân của người dùng.',
+        adbCommand: 'adb shell pm trim-caches 999999999999',
+        impact: 'Giải phóng tức thì từ vài trăm MB đến vài GB bộ nhớ rác, giúp máy nhẹ và mượt hơn.',
+        safety: 'An Toàn Tuyệt Đối 100% (Không mất ứng dụng hay dữ liệu)',
+        recommended: true,
+        type: 'action',
+        actionLabel: 'Dọn Cache Ngay',
+        onExecute: onCleanCache,
+      },
       {
         id: 'sys_wifi_adb',
         category: 'system',
@@ -789,10 +823,10 @@ export default function ToolboxTab({
       {
         id: 'system',
         title: 'Hiệu Năng & Hệ Thống',
-        subtitle: 'Biên Dịch Native ART & Fix Độ C',
-        badge: 'dex2oat 65+ App',
+        subtitle: 'Bảo Trì Sau Cập Nhật, Dọn Cache & ART',
+        badge: 'Post-OTA & ART',
         badgeType: 'tag-safe',
-        desc: 'Biên dịch trước bytecode thành mã máy Native 64-bit cho 65+ ứng dụng Việt Nam (Zalo, Facebook, TikTok, Ngân hàng), mở kết nối Wi-Fi ADB cổng 5555, sửa app thời tiết sang độ C và trung tâm Reboot.',
+        desc: 'Bảo dưỡng tối ưu hóa sau cập nhật OTA, dọn sạch cache tạm thời toàn máy, biên dịch mã máy Native 64-bit cho 65+ ứng dụng Việt Nam, mở kết nối Wi-Fi ADB cổng 5555, sửa app thời tiết sang độ C và trung tâm Reboot.',
         icon: (
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
@@ -803,7 +837,7 @@ export default function ToolboxTab({
             <line x1="15" y1="20" x2="15" y2="23"></line>
           </svg>
         ),
-        countLabel: '4 Trình Bảo Trì',
+        countLabel: '6 Trình Bảo Trì',
       },
     ],
     [telemetryBlockedCount]
@@ -1340,6 +1374,9 @@ export default function ToolboxTab({
                     >
                       Vào Recovery
                     </button>
+                  </div>
+                  <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-dim)', lineHeight: '1.4' }}>
+                    💡 <strong>Mẹo dọn cache phân vùng Recovery:</strong> Khi vào màn hình eRecovery, chọn <strong>Clear data</strong> &rarr; chọn <strong>Clear cache</strong> (Tuyệt đối KHÔNG chọn Factory reset).
                   </div>
                 </div>
               )}

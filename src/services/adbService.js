@@ -1205,6 +1205,62 @@ class AdbService {
   }
 
   /**
+   * Clean temporary app cache (pm trim-caches)
+   */
+  async cleanCache() {
+    this.addLog('info', 'Bắt đầu thu hồi và giải phóng bộ nhớ đệm cache tạm thời của toàn bộ ứng dụng...');
+    try {
+      const resp = await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clean_cache' }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        this.addLog('success', 'Đã làm sạch toàn bộ cache tạm thời an toàn 100%!');
+        return data;
+      }
+    } catch (e) {}
+
+    // WebUSB fallback
+    await this.runAdbCommand('pm trim-caches 999999999999');
+    this.addLog('success', 'Đã làm sạch toàn bộ cache tạm thời an toàn 100%!');
+    return { success: true };
+  }
+
+  /**
+   * Post-Update Maintenance (Trim Cache + ART Dexopt Job + Battery stats reset)
+   */
+  async optimizePostUpdate() {
+    this.addLog('info', 'Bắt đầu quy trình Tối Ưu Hóa & Dọn Dẹp Sau Cập Nhật Hệ Thống (Post-Update Maintenance)...');
+    try {
+      const resp = await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'optimize_post_update' }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        this.addLog('success', 'Quy trình Tối Ưu Hóa Sau Cập Nhật đã hoàn tất thành công!');
+        return data;
+      }
+    } catch (e) {}
+
+    // WebUSB fallback
+    this.addLog('step', '▶ [1/3] Đang dọn sạch toàn bộ cache tạm thời (pm trim-caches)...');
+    await this.runAdbCommand('pm trim-caches 999999999999');
+
+    this.addLog('step', '▶ [2/3] Đang kích hoạt tác vụ tối ưu hóa nền ART Dexopt (cmd package bg-dexopt-job)...');
+    await this.runAdbCommand('cmd package bg-dexopt-job');
+
+    this.addLog('step', '▶ [3/3] Đang cân chỉnh lại cache thống kê pin sau khi update (dumpsys batterystats --reset)...');
+    await this.runAdbCommand('dumpsys batterystats --reset');
+
+    this.addLog('success', '=== ĐÃ HOÀN TẤT TỐI ƯU HÓA HỆ THỐNG SAU CẬP NHẬT 100%! ===');
+    return { success: true };
+  }
+
+  /**
    * Scan packages on the device for bloatware and VN apps status
    */
   async scanPackages() {

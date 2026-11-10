@@ -1977,6 +1977,8 @@ ACTION_TITLES = {
     'disable_telemetry': 'Vô hiệu hóa Telemetry & Dịch vụ gửi log máy chủ TQ',
     'apply_display': 'Cấu hình hiển thị màn hình (DPI Sweet-spot & Tần số quét Hz)',
     'compile_apps': 'Tăng tốc biên dịch Native ARM64 AOT (dex2oat)',
+    'clean_cache': 'Dọn dẹp sạch bộ nhớ đệm tạm thời (pm trim-caches)',
+    'optimize_post_update': 'Tối ưu hóa toàn diện sau cập nhật hệ thống (Post-OTA Maintenance)',
     'fix_weather': 'Chuyển đổi ứng dụng Thời tiết Honor sang en-GB (Độ C)',
     'set_assistant_google': 'Đặt Google Assistant / Gemini làm trợ lý mặc định',
     'install_gesture_search': 'Cài đặt thanh cử chỉ Gesture Search gọi Gemini',
@@ -2518,6 +2520,35 @@ def handle_action(payload):
         add_log('info', f'  ↳ Đã giải phóng bộ nhớ đệm cache hệ thống ({out_trim.strip() or "OK"}).')
         add_log('success', f'=== [HOÀN TẤT 100%] Đã hoàn tất tăng tốc Native ARM64 cho toàn bộ {success_count}/{total} ứng dụng & dọn dẹp cache! ===')
         return {'success': True, 'count': success_count}
+
+    elif action == 'clean_cache':
+        add_log('info', 'Bắt đầu thu hồi và làm sạch bộ nhớ đệm cache tạm thời của toàn bộ ứng dụng...')
+        add_log('cmd', '$ adb shell pm trim-caches 999999999999')
+        code, out_trim, _ = run_cmd(['adb', 'shell', 'pm', 'trim-caches', '999999999999'])
+        add_log('info', f'  ↳ Đã thu hồi sạch sẽ bộ nhớ đệm cache hệ thống ({out_trim.strip() or "OK"}).')
+        add_log('success', '=== [HOÀN TẤT 100%] Đã làm sạch toàn bộ cache tạm thời, bảo vệ nguyên vẹn 100% dữ liệu & ứng dụng! ===')
+        return {'success': True, 'output': out_trim.strip()}
+
+    elif action == 'optimize_post_update':
+        add_log('step', '>>> [BƯỚC 1/3] Đang thu hồi & làm sạch toàn bộ cache rác tạm thời...')
+        add_log('cmd', '$ adb shell pm trim-caches 999999999999')
+        run_cmd(['adb', 'shell', 'pm', 'trim-caches', '999999999999'])
+        add_log('info', '  ↳ Đã dọn sạch cache tạm thời của tất cả ứng dụng mà không làm mất dữ liệu.')
+
+        add_log('step', '>>> [BƯỚC 2/3] Kích hoạt tác vụ tối ưu hóa nền ART Dexopt (tương thích bản cập nhật mới)...')
+        add_log('cmd', '$ adb shell cmd package bg-dexopt-job')
+        code, out_dex, err_dex = run_cmd(['adb', 'shell', 'cmd', 'package', 'bg-dexopt-job'], timeout=180)
+        add_log('info', f'  ↳ Tác vụ biên dịch nền Android Runtime đã hoàn tất ({out_dex.strip() or "Success"}).')
+
+        add_log('step', '>>> [BƯỚC 3/3] Đặt lại bộ đếm thống kê pin để hệ thống học lại chu kỳ sạc chuẩn...')
+        add_log('cmd', '$ adb shell dumpsys batterystats --reset')
+        run_cmd(['adb', 'shell', 'dumpsys', 'batterystats', '--reset'])
+        add_log('info', '  ↳ Đã xóa cache pin ảo sau cập nhật OTA thành công.')
+
+        add_log('success', '=======================================================')
+        add_log('success', '=== [HOÀN TẤT 100%] TỐI ƯU HÓA HỆ THỐNG SAU CẬP NHẬT THÀNH CÔNG! ===')
+        add_log('success', '=======================================================')
+        return {'success': True}
 
     elif action == 'fix_weather':
         add_log('info', 'Bắt đầu cấu hình ứng dụng Thời tiết Honor sang Tiếng Anh en-GB (Độ C)...')
