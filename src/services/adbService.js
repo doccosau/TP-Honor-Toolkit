@@ -1210,12 +1210,12 @@ class AdbService {
   async scanPackages() {
     if (this.mode === 'webusb' && this.adbInstance) {
       try {
-        const installedRaw = await this.executeShell('pm list packages');
-        const disabledRaw = await this.executeShell('pm list packages -d');
+        const enabledRaw = await this.executeShell('pm list packages -e --user 0');
+        const disabledRaw = await this.executeShell('pm list packages -d --user 0');
         const dozeRaw = await this.executeShell('dumpsys deviceidle whitelist');
 
-        const installedSet = new Set(
-          installedRaw.split('\n').map((l) => l.replace('package:', '').trim()).filter(Boolean)
+        const enabledSet = new Set(
+          enabledRaw.split('\n').map((l) => l.replace('package:', '').trim()).filter(Boolean)
         );
         const disabledSet = new Set(
           disabledRaw.split('\n').map((l) => l.replace('package:', '').trim()).filter(Boolean)
@@ -1227,7 +1227,7 @@ class AdbService {
         Object.entries(vnAppsData.categories || {}).forEach(([catKey, cat]) => {
           (cat.apps || []).forEach((app) => {
             const pkg = app.package;
-            const isInstalled = installedSet.has(pkg);
+            const isInstalled = enabledSet.has(pkg) || disabledSet.has(pkg);
             const isWhitelisted = dozeLines.some((line) => line.includes(pkg));
             detectedVnApps.push({
               name: app.name,
@@ -1254,8 +1254,10 @@ class AdbService {
             packages: (levelData.packages || []).map((item) => {
               const pkg = item.package;
               let status = 'uninstalled';
-              if (installedSet.has(pkg)) {
-                status = disabledSet.has(pkg) ? 'disabled' : 'active';
+              if (enabledSet.has(pkg)) {
+                status = 'active';
+              } else if (disabledSet.has(pkg)) {
+                status = 'disabled';
               }
               return {
                 name: item.name,
@@ -1357,7 +1359,10 @@ class AdbService {
         const pkg = packages[i];
         this.addLog('step', `[${i + 1}/${packages.length}] Gỡ bỏ ứng dụng: ${pkg}...`);
         await this.runAdbCommand(`pm disable-user --user 0 ${pkg}`);
-        await this.runAdbCommand(`pm uninstall -k --user 0 ${pkg}`);
+        const resClean = await this.runAdbCommand(`pm uninstall --user 0 ${pkg}`);
+        if (!resClean || !resClean.includes('Success')) {
+          await this.runAdbCommand(`pm uninstall -k --user 0 ${pkg}`);
+        }
         count++;
       }
       this.addLog('success', `Đã hoàn tất gỡ ${count} ứng dụng hệ thống an toàn.`);
@@ -2272,9 +2277,9 @@ class AdbService {
     if (this.mode === 'webusb' && this.adbInstance) {
       this.addLog('info', 'Đang quét danh sách ứng dụng thực tế từ điện thoại qua WebUSB...');
       try {
-        const outUser = await this.executeShell('pm list packages -f -3');
-        const outSys = await this.executeShell('pm list packages -f -s');
-        const outDis = await this.executeShell('pm list packages -d');
+        const outUser = await this.executeShell('pm list packages -f -3 --user 0');
+        const outSys = await this.executeShell('pm list packages -f -s --user 0');
+        const outDis = await this.executeShell('pm list packages -d --user 0');
 
         const userMap = {};
         outUser.split('\n').forEach((line) => {

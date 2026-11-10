@@ -1359,8 +1359,8 @@ def get_all_applications():
         return {'connected': False, 'apps': [], 'counts': {'total': 0, 'user': 0, 'system': 0, 'disabled': 0}}
 
     add_log('info', 'Đang quét danh mục ứng dụng từ điện thoại qua ADB (User & System packages)...')
-    add_log('cmd', '$ adb shell pm list packages -f -3 && pm list packages -f -s && pm list packages -d')
-    _, out_user, _ = run_cmd(['adb', 'shell', 'pm', 'list', 'packages', '-f', '-3'])
+    add_log('cmd', '$ adb shell pm list packages -f -3 --user 0 && pm list packages -f -s --user 0 && pm list packages -d --user 0')
+    _, out_user, _ = run_cmd(['adb', 'shell', 'pm', 'list', 'packages', '-f', '-3', '--user', '0'])
     user_map = {}
     for line in out_user.splitlines():
         line = line.strip()
@@ -1369,7 +1369,7 @@ def get_all_applications():
             if len(parts) == 2:
                 user_map[parts[1]] = parts[0]
 
-    _, out_sys, _ = run_cmd(['adb', 'shell', 'pm', 'list', 'packages', '-f', '-s'])
+    _, out_sys, _ = run_cmd(['adb', 'shell', 'pm', 'list', 'packages', '-f', '-s', '--user', '0'])
     sys_map = {}
     for line in out_sys.splitlines():
         line = line.strip()
@@ -1378,7 +1378,7 @@ def get_all_applications():
             if len(parts) == 2:
                 sys_map[parts[1]] = parts[0]
 
-    _, out_dis, _ = run_cmd(['adb', 'shell', 'pm', 'list', 'packages', '-d'])
+    _, out_dis, _ = run_cmd(['adb', 'shell', 'pm', 'list', 'packages', '-d', '--user', '0'])
     disabled_set = set(line.replace('package:', '').strip() for line in out_dis.splitlines() if line.strip())
 
     # Fast dumpsys package for versionNames
@@ -1431,11 +1431,11 @@ def scan_packages():
     if not is_device_connected():
         return {'connected': False, 'message': 'Thiết bị chưa kết nối'}
 
-    # Get installed & disabled packages
-    _, installed_out, _ = run_cmd(['adb', 'shell', 'pm', 'list', 'packages'])
-    installed_set = set(line.replace('package:', '').strip() for line in installed_out.splitlines() if line)
+    # Lấy danh sách package ĐANG HOẠT ĐỘNG và ĐÃ ĐÓNG BĂNG chuẩn xác cho User 0
+    _, enabled_out, _ = run_cmd(['adb', 'shell', 'pm', 'list', 'packages', '-e', '--user', '0'])
+    enabled_set = set(line.replace('package:', '').strip() for line in enabled_out.splitlines() if line)
 
-    _, disabled_out, _ = run_cmd(['adb', 'shell', 'pm', 'list', 'packages', '-d'])
+    _, disabled_out, _ = run_cmd(['adb', 'shell', 'pm', 'list', 'packages', '-d', '--user', '0'])
     disabled_set = set(line.replace('package:', '').strip() for line in disabled_out.splitlines() if line)
 
     # Check Whitelist Doze
@@ -1447,7 +1447,7 @@ def scan_packages():
     for cat_id, cat_data in VN_APPS_DB.get('categories', {}).items():
         for app in cat_data.get('apps', []):
             pkg = app['package']
-            is_installed = pkg in installed_set
+            is_installed = (pkg in enabled_set) or (pkg in disabled_set)
             is_whitelisted = any(pkg in line for line in doze_whitelist)
             detected_vn_apps.append({
                 'name': app['name'],
@@ -1471,9 +1471,13 @@ def scan_packages():
         }
         for item in level_data.get('packages', []):
             pkg = item['package']
-            status = 'uninstalled'
-            if pkg in installed_set:
-                status = 'disabled' if pkg in disabled_set else 'active'
+            if pkg in enabled_set:
+                status = 'active'
+            elif pkg in disabled_set:
+                status = 'disabled'
+            else:
+                status = 'uninstalled'
+
             bloat_results[level_id]['packages'].append({
                 'name': item['name'],
                 'package': pkg,
@@ -2069,8 +2073,10 @@ def handle_action(payload):
         for i, p in enumerate(pkgs, 1):
             add_log('cmd', f'[{i}/{total}] $ adb shell pm disable-user --user 0 {p}')
             run_cmd(['adb', 'shell', 'pm', 'disable-user', '--user', '0', p])
-            add_log('cmd', f'[{i}/{total}] $ adb shell pm uninstall -k --user 0 {p}')
-            code, out, _ = run_cmd(['adb', 'shell', 'pm', 'uninstall', '-k', '--user', '0', p])
+            add_log('cmd', f'[{i}/{total}] $ adb shell pm uninstall --user 0 {p}')
+            code, out, _ = run_cmd(['adb', 'shell', 'pm', 'uninstall', '--user', '0', p])
+            if code != 0 and 'Success' not in out:
+                code, out, _ = run_cmd(['adb', 'shell', 'pm', 'uninstall', '-k', '--user', '0', p])
             if code == 0 or 'Success' in out:
                 success_count += 1
                 if p not in backup_data:
