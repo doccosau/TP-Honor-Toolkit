@@ -2178,11 +2178,11 @@ class AdbService {
     }
     // Fallback default info
     return {
-      version_name: '3.1.0',
+      version_name: '3.0.2',
       version_code: 43,
       channel: 'stable',
       release_date: '2026-11-12',
-      download_url: 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.1.0-b43.apk',
+      download_url: 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.2-b43.apk',
       file_size: 22848357,
       changelog_vi: [
         'Giám sát sức khỏe pin thời gian thực với chip BMS Honor',
@@ -2242,8 +2242,8 @@ class AdbService {
     if (!liveOta || !liveOta.download_url) {
       liveOta = await this.fetchTppiLatestOta();
     }
-    const targetUrl = liveOta?.download_url_arm64 || liveOta?.download_url || 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.1.0-b43.apk';
-    const verName = liveOta?.version_name || '3.1.0';
+    const targetUrl = liveOta?.download_url_arm64 || liveOta?.download_url || 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.2-b43.apk';
+    const verName = liveOta?.version_name || '3.0.2';
     const verCode = liveOta?.version_code || 43;
     const filename = `TPPI-PowerIntelligence-v${verName}-b${verCode}.apk`;
 

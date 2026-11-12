@@ -336,11 +336,11 @@ APK_SOURCES = {
         'package': 'com.android.vending',
         'urls': []
     },
-    'TPPI-PowerIntelligence-v3.1.0-Release.apk': {
+    'TPPI-PowerIntelligence-v3.0.2-Release.apk': {
         'name': 'TP Power Intelligence (Quản Gia Pin & Năng Lượng AI)',
         'package': 'vn.tp.powerintelligence',
         'url': [
-            'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.1.0-b43.apk'
+            'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.2-b43.apk'
         ],
         'desc': 'Quản gia pin & năng lượng AI chính chủ cho MagicOS 11 & Android 17: Đồng bộ sạc nhánh, đo nội trở BMS và làm mát CPU.',
         'auto_install': True
@@ -2857,11 +2857,11 @@ def handle_action(payload):
         add_log('info', '  ↳ [1/4] Đang kết nối máy chủ OTA https://tppi.nhacquan.io.vn/api/ota/latest...')
         ota_info = fetch_tppi_ota_info()
         
-        ver_name = (ota_info.get('version_name') if ota_info else None) or payload.get('version_name') or '3.1.0'
+        ver_name = (ota_info.get('version_name') if ota_info else None) or payload.get('version_name') or '3.0.2'
         ver_code = (ota_info.get('version_code') if ota_info else None) or payload.get('version_code') or 43
         dl_url = (ota_info.get('download_url_arm64') or ota_info.get('download_url')) if ota_info else payload.get('download_url')
         if not dl_url:
-            dl_url = 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.1.0-b43.apk'
+            dl_url = 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.2-b43.apk'
         expected_size = (ota_info.get('file_size') if ota_info else None) or 22848357
         size_mb = f"{expected_size / (1024 * 1024):.1f}"
 
@@ -2878,8 +2878,8 @@ def handle_action(payload):
             if not download_apk_with_progress(dl_url, dest_apk, f'TP Power Intelligence v{ver_name}'):
                 fallback_names = [
                     f'TPPI-PowerIntelligence-v{ver_name}-b{ver_code}.apk',
-                    'TP-Power-Intelligence-v3.1.0-Release.apk',
-                    'TPPI-PowerIntelligence-v3.1.0-Release.apk',
+                    'TP-Power-Intelligence-v3.0.2-Release.apk',
+                    'TPPI-PowerIntelligence-v3.0.2-Release.apk',
                     'TPPI-PowerIntelligence-v3.0.1-Release.apk',
                     'TP-Power-Intelligence-v3.0.1-Release.apk'
                 ]
