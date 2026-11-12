@@ -37,7 +37,7 @@ export default function SpecsGrid({ device, onWhitelistApps, onNavigateTab }) {
               {isOnline ? (device.soc || device.cpu_display || 'Snapdragon / Dimensity') : '--'}
             </span>
             <span className="metric-capsule-sub">
-              {isOnline ? `${device.cpu_abi || 'arm64-v8a'} • Android ${device.android_version}` : 'Chờ thiết bị'}
+              {isOnline ? `${device.cpu_abi || 'arm64-v8a'} • Android ${device.android_version}${device.page_size_str ? ` • ${device.page_size_str}` : ''}` : 'Chờ thiết bị'}
             </span>
           </div>
         </div>
@@ -191,7 +191,7 @@ export default function SpecsGrid({ device, onWhitelistApps, onNavigateTab }) {
               </td>
               <td className="label-col">Phiên bản Android:</td>
               <td id="specAndroidVer" className="val-col">
-                {isOnline ? `Android ${device.android_version}` : '--'}
+                {isOnline ? `Android ${device.android_version}${device.page_size_str ? ` (${device.page_size_str} Pages)` : ''}` : '--'}
               </td>
             </tr>
             <tr>

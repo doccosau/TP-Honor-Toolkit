@@ -12,6 +12,7 @@ export default function DisplayTab({ device, onApplyDisplay }) {
   const [sdrPlus, setSdrPlus] = useState(true);
   const [tianshan, setTianshan] = useState(true);
   const [disableLowRes, setDisableLowRes] = useState(true);
+  const [windowBlur, setWindowBlur] = useState(true);
 
   // AOD & Gesture switches
   const [fullScreenAod, setFullScreenAod] = useState(false);
@@ -62,6 +63,7 @@ export default function DisplayTab({ device, onApplyDisplay }) {
         knuckleGestures,
         fingerprintSlide,
         disableLowRes,
+        windowBlur,
       });
     } finally {
       setIsApplying(false);
@@ -88,6 +90,7 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       setKnuckleGestures(false);
       setFingerprintSlide(false);
       setDisableLowRes(false);
+      setWindowBlur(true);
     } finally {
       setIsApplying(false);
     }
@@ -201,6 +204,22 @@ export default function DisplayTab({ device, onApplyDisplay }) {
         onChange: (checked) => setDisableLowRes(checked),
       },
       {
+        id: 'window_blur',
+        category: 'engine',
+        categoryLabel: 'Động Cơ Hiển Thị',
+        title: 'Hiệu Ứng Kính Mờ Liquid Glass (Window Blur)',
+        scope: 'global: window_blur_enabled = 1 | 0',
+        summary: 'Bật/tắt hiệu ứng mờ nền Gaussian Blur thời gian thực của giao diện MagicOS 11.',
+        desc: 'MagicOS 11 sử dụng hiệu ứng kính mờ (Gaussian Blur) trên thanh Control Center và bảng thông báo. Bật để giữ vẻ đẹp nguyên bản của Liquid Glass, hoặc tắt để giảm tải GPU, tiết kiệm pin và chống tụt FPS khi chơi game.',
+        adbCommand: 'adb shell settings put global window_blur_enabled 1 # (hoặc 0 để tắt)',
+        impact: 'Tắt giúp GPU nhẹ hơn 15-20%, giảm nóng máy khi chơi game nặng.',
+        safety: 'An Toàn Tuyệt Đối',
+        recommended: true,
+        type: 'toggle',
+        checked: windowBlur,
+        onChange: (checked) => setWindowBlur(checked),
+      },
+      {
         id: 'dpi_density',
         category: 'density',
         categoryLabel: 'Mật Độ DPI',
@@ -305,7 +324,8 @@ export default function DisplayTab({ device, onApplyDisplay }) {
         value: selectedAnim,
         onChange: (val) => setSelectedAnim(val),
         options: [
-          { value: '0.5', label: 'Tốc độ 0.5x (Phản Hồi Siêu Nhanh - Đề Xuất)' },
+          { value: '0.75', label: 'Tốc độ 0.75x (Tối Ưu Liquid Motion MagicOS 11 - Đề Xuất)' },
+          { value: '0.5', label: 'Tốc độ 0.5x (Phản Hồi Siêu Nhanh)' },
           { value: '0', label: 'Tắt hoạt ảnh 0x (Phản Hồi Ngay Lập Tức)' },
           { value: '1.0', label: 'Mặc định nhà sản xuất 1.0x' },
         ],
@@ -318,6 +338,7 @@ export default function DisplayTab({ device, onApplyDisplay }) {
       sdrPlus,
       tianshan,
       disableLowRes,
+      windowBlur,
       selectedDpi,
       sweetDpi,
       fullScreenAod,

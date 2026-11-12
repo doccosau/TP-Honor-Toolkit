@@ -453,6 +453,11 @@ class AdbService {
         ? 'Chưa cài app VN'
         : `Đã Whitelist ${vnWhitelisted}/${vnInstalled} app VN`;
 
+      // 16KB Page Size Architecture check (Android 17 Readiness)
+      const pageSizeRaw = await this.executeShell('getconf PAGE_SIZE 2>/dev/null');
+      const pageSizeVal = pageSizeRaw.trim();
+      const pageSizeKb = pageSizeVal === '16384' ? '16' : '4';
+
       // Real Dynamic Health Score Calculation
       let score = 40;
       if (!allPkgsSet.has('com.hihonor.servicecenter')) score += 15;
@@ -477,6 +482,9 @@ class AdbService {
         series: matched?.series || 'Thiết bị Honor MagicOS',
         soc: socDisplay,
         cpu_display: cpu_display || socDisplay,
+        page_size: pageSizeKb,
+        page_size_bytes: pageSizeVal,
+        page_size_str: `${pageSizeKb} KB`,
         screen_desc: matched?.screen || `${width}x${height}`,
         battery_desc: matched?.battery || `${bat_level}%`,
         waterproof: matched?.waterproof || 'Tiêu chuẩn',
@@ -690,6 +698,7 @@ class AdbService {
     knuckleGestures = false,
     fingerprintSlide = false,
     disableLowRes = true,
+    windowBlur = true,
     resetDefaults = false,
   } = {}) {
     this.addLog('info', `Đang cấu hình màn hình: Tần số ${hz}Hz, Animation ${anim}x, DPI ${dpi}...`);
@@ -711,6 +720,7 @@ class AdbService {
           knuckle_gestures: knuckleGestures,
           fingerprint_slide: fingerprintSlide,
           disable_low_res: disableLowRes,
+          window_blur: windowBlur,
           reset_defaults: resetDefaults,
         }),
       });
@@ -737,6 +747,7 @@ class AdbService {
       await this.runAdbCommand('settings put secure lock_to_aod_duration 30');
       await this.runAdbCommand('settings put secure fingersense_letters_enabled 0');
       await this.runAdbCommand('settings put secure fingerprint_slide_switch 0');
+      await this.runAdbCommand('settings put global window_blur_enabled 1');
       this.addLog('success', 'Đã khôi phục thiết lập màn hình về mặc định gốc của máy.');
       return { success: true };
     }
@@ -801,6 +812,9 @@ class AdbService {
     await this.runAdbCommand(`settings put secure lock_to_aod_duration ${extendAodDuration ? 200 : 30}`);
     await this.runAdbCommand(`settings put secure fingersense_letters_enabled ${knuckleGestures ? 1 : 0}`);
     await this.runAdbCommand(`settings put secure fingerprint_slide_switch ${fingerprintSlide ? 1 : 0}`);
+    if (windowBlur !== undefined) {
+      await this.runAdbCommand(`settings put global window_blur_enabled ${windowBlur ? 1 : 0}`);
+    }
 
     this.addLog('success', 'Đã áp dụng độ phân giải và tần số quét màn hình thành công.');
     return { success: true };
@@ -2605,6 +2619,7 @@ class AdbService {
         ['lock_to_aod_duration', 'secure', '200'],
         ['show_network_speed_enabled', 'system', '1'],
         ['smart_network_switch', 'secure', '1'],
+        ['window_blur_enabled', 'global', '1'],
       ];
       const marketingKeys = [
         'state_of_ads_switch',
@@ -2617,7 +2632,9 @@ class AdbService {
         'intelligent_recommendation_toggle',
         'search.recommend.letter.switch',
         'cloud_maintenance',
-        'location_report_switch'
+        'location_report_switch',
+        'smart_screen_switch',
+        'ai_screen_suggestions'
       ];
       const tweaks = {};
       for (const [key, table, onVal] of keys) {
@@ -2640,6 +2657,15 @@ class AdbService {
         }
       }
       tweaks['marketing_all_disabled'] = { enabled: mAllOff, details: mDetails };
+
+      // Query Phantom Process Killer state (Android 16/17)
+      try {
+        const pVal = (await this.executeShell('/system/bin/device_config get activity_manager max_phantom_processes')).trim();
+        tweaks['phantom_killer_disabled'] = { value: pVal, enabled: pVal === '2147483647' };
+      } catch (e) {
+        tweaks['phantom_killer_disabled'] = { value: '', enabled: false };
+      }
+
       return { success: true, tweaks };
     }
     try {
@@ -2684,7 +2710,9 @@ class AdbService {
       'intelligent_recommendation_toggle',
       'search.recommend.letter.switch',
       'cloud_maintenance',
-      'location_report_switch'
+      'location_report_switch',
+      'smart_screen_switch',
+      'ai_screen_suggestions'
     ];
     const marketingKeys = Array.isArray(keys) && keys.length > 0 ? keys : allMarketingKeys;
     if (this.mode === 'webusb' && this.adbInstance) {
@@ -2699,6 +2727,36 @@ class AdbService {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'apply_all_marketing_off', turn_off: turnOff, keys: marketingKeys }),
+      });
+      if (resp.ok) return await resp.json();
+    } catch (e) {}
+    return { success: false };
+  }
+
+  /**
+   * Toggle Phantom Process Killer (Android 16/17 Multitasking Fix)
+   */
+  async togglePhantomKiller(disable = true) {
+    if (this.mode === 'webusb' && this.adbInstance) {
+      this.addLog('info', disable ? 'Đang nới lỏng Phantom Process Killer lên tối đa (2,147,483,647)...' : 'Đang khôi phục Phantom Process Killer về mặc định...');
+      try {
+        if (disable) {
+          await this.executeShell('/system/bin/device_config set_sync_disabled_for_tests persistent');
+          await this.executeShell('/system/bin/device_config put activity_manager max_phantom_processes 2147483647');
+        } else {
+          await this.executeShell('/system/bin/device_config delete activity_manager max_phantom_processes');
+          await this.executeShell('/system/bin/device_config set_sync_disabled_for_tests none');
+        }
+        return { success: true, disabled: disable };
+      } catch (e) {
+        return { success: false, error: e.message };
+      }
+    }
+    try {
+      const resp = await fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle_phantom_killer', disable }),
       });
       if (resp.ok) return await resp.json();
     } catch (e) {}

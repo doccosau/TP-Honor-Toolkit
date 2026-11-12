@@ -3,7 +3,7 @@ import { adbService } from '../services/adbService';
 import ThemeStudioModal from './ThemeStudioModal';
 import CrmDrawer from './CrmDrawer';
 
-// Detailed definitions for the 11 system marketing & telemetry keys
+// Detailed definitions for the 13 system marketing & telemetry keys (including MagicOS 11 YOYO 2.0 AI)
 const TELEMETRY_DEFINITIONS = [
   {
     key: 'state_of_ads_switch',
@@ -134,6 +134,30 @@ const TELEMETRY_DEFINITIONS = [
     desc: 'Vô hiệu hóa cờ báo cáo tọa độ định kỳ của thiết bị về trung tâm dịch vụ mạng của Honor.',
     adbCommand: 'adb shell settings put secure location_report_switch 0',
     impact: 'Bảo vệ quyền riêng tư định vị 24/7 và giảm chu kỳ thức máy nền.',
+    safety: 'An Toàn Tuyệt Đối',
+    recommended: true,
+  },
+  {
+    key: 'smart_screen_switch',
+    title: 'Nhận Diện & Quét Màn Hình YOYO (Smart Screen / Ask YOYO)',
+    category: 'telemetry',
+    categoryLabel: 'YOYO AI',
+    scope: 'Settings Secure',
+    desc: 'Tắt engine AI âm thầm chụp và nhận diện ngữ cảnh màn hình thời gian thực (Ask YOYO 2.0) phục vụ dịch vụ nội địa TQ.',
+    adbCommand: 'adb shell settings put secure smart_screen_switch 0',
+    impact: 'Bảo vệ riêng tư tuyệt đối nội dung màn hình, giảm tải NPU & pin chờ.',
+    safety: 'An Toàn Tuyệt Đối (Không ảnh hưởng chức năng chụp màn hình)',
+    recommended: true,
+  },
+  {
+    key: 'ai_screen_suggestions',
+    title: 'Đề Xuất Ngữ Cảnh Tác Vụ YOYO 2.0 (Screen Suggestions)',
+    category: 'telemetry',
+    categoryLabel: 'YOYO AI',
+    scope: 'Settings Secure',
+    desc: 'Ngăn YOYO Agent phân tích thói quen mở app và văn bản để gợi ý hành động nội địa Trung Quốc.',
+    adbCommand: 'adb shell settings put secure ai_screen_suggestions 0',
+    impact: 'Triệt tiêu gợi ý rác tiếng Trung, giải phóng RAM và chu kỳ CPU.',
     safety: 'An Toàn Tuyệt Đối',
     recommended: true,
   },
@@ -407,6 +431,32 @@ export default function ToolboxTab({
         loading: loadingTweakKey === 'infinite_volume_music_bt_a2dp',
       },
       {
+        id: 'tweak_phantom_killer',
+        category: 'tweaks',
+        categoryLabel: 'Android 17',
+        title: 'Vô Hiệu Hóa Phantom Process Killer (Nới Lỏng Đa Nhiệm)',
+        scope: 'device_config: max_phantom_processes = 2147483647',
+        summary: 'Nới lỏng giới hạn 32 tiến trình ngầm của Android 16/17 lên 2 tỷ, chống văng app đa nhiệm.',
+        desc: 'Android 16/17 ngầm giới hạn số lượng tiến trình phụ (phantom processes) tối đa chỉ 32. Nếu Zalo, Telegram, VPN, LocalSend hoặc Termux chạy nhiều tác vụ nền sẽ bị Android tắt ngầm. Tinh chỉnh này nới lỏng giới hạn lên 2,147,483,647 giúp đa nhiệm trơn tru, không lo chết tác vụ nền.',
+        adbCommand: 'adb shell /system/bin/device_config set_sync_disabled_for_tests persistent\nadb shell /system/bin/device_config put activity_manager max_phantom_processes 2147483647',
+        impact: 'Zalo, Telegram, VPN, LocalSend giữ kết nối liên tục, không bao giờ bị văng tác vụ nền.',
+        safety: 'Chuẩn tham số Android Developer API (An Toàn Tuyệt Đối)',
+        recommended: true,
+        type: 'toggle',
+        checked: Boolean(magicTweaks?.phantom_killer_disabled?.enabled),
+        onToggle: async () => {
+          const currentEnabled = Boolean(magicTweaks?.phantom_killer_disabled?.enabled);
+          setLoadingTweakKey('phantom_killer');
+          try {
+            await adbService.togglePhantomKiller(!currentEnabled);
+            await loadMagicTweaks();
+          } finally {
+            setLoadingTweakKey(null);
+          }
+        },
+        loading: loadingTweakKey === 'phantom_killer',
+      },
+      {
         id: 'tweak_open_display',
         category: 'tweaks',
         categoryLabel: 'Màn Hình & DPI',
@@ -424,7 +474,7 @@ export default function ToolboxTab({
       }
     );
 
-    // --- GROUP 2: TELEMETRY & MARKETING (11 Items) ---
+    // --- GROUP 2: TELEMETRY & MARKETING (13 Items) ---
     TELEMETRY_DEFINITIONS.forEach((t) => {
       const isBlocked = magicTweaks?.marketing_all_disabled?.details?.[t.key] === '0';
       list.push({
@@ -745,11 +795,11 @@ export default function ToolboxTab({
     () => [
       {
         id: 'tweaks',
-        title: 'Cài Đặt Ẩn MagicOS',
-        subtitle: 'Siêu Sạc Nhanh & Âm Lượng Vô Cực',
+        title: 'Cài Đặt Ẩn MagicOS & Android 17',
+        subtitle: 'Siêu Sạc, Âm Lượng & Phantom Killer',
         badge: 'Non-Root An Toàn',
         badgeType: 'tag-safe',
-        desc: 'Kích hoạt Siêu sạc nhanh khi mở màn hình (Charge Turbo) duy trì công suất tối đa và Âm lượng Bluetooth vô cực phá vỡ giới hạn âm thanh an toàn.',
+        desc: 'Kích hoạt Siêu sạc nhanh khi mở màn hình (Charge Turbo), Âm lượng Bluetooth vô cực và Vô hiệu hóa Phantom Process Killer nới lỏng giới hạn đa nhiệm của Android 17.',
         icon: (
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
@@ -759,11 +809,11 @@ export default function ToolboxTab({
       },
       {
         id: 'telemetry',
-        title: 'Khóa 11 Telemetry & Tiếp Thị',
-        subtitle: 'Xóa Sạch Quảng Cáo & Tracking Ngầm',
-        badge: `Đã Chặn ${telemetryBlockedCount}/11`,
-        badgeType: telemetryBlockedCount >= 10 ? 'tag-safe' : 'tag-warn',
-        desc: 'Chặn toàn bộ banner quảng cáo trong app hệ thống, ngắt engine AI đọc trộm tin nhắn SMS / OTP ngân hàng, chặn định vị GPS nhắm mục tiêu và tắt log cloud.',
+        title: 'Khóa 13 Telemetry & YOYO AI',
+        subtitle: 'Xóa Sạch Quảng Cáo, Ask YOYO & Tracking',
+        badge: `Đã Chặn ${telemetryBlockedCount}/13`,
+        badgeType: telemetryBlockedCount >= 12 ? 'tag-safe' : 'tag-warn',
+        desc: 'Chặn toàn bộ banner quảng cáo trong app hệ thống, ngắt engine Ask YOYO 2.0 đọc trộm tin nhắn SMS / OTP ngân hàng và phân tích màn hình, chặn định vị GPS nhắm mục tiêu và tắt log cloud.',
         icon: (
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -771,7 +821,7 @@ export default function ToolboxTab({
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
         ),
-        countLabel: '11 Khóa Secure',
+        countLabel: '13 Khóa Secure',
       },
       {
         id: 'google',
@@ -928,20 +978,20 @@ export default function ToolboxTab({
                     Sẵn Sàng
                   </span>
                 </div>
-                <span className="metric-capsule-sub">Turbo Charge • Bluetooth Vô Cực • Khóa 120Hz</span>
+                <span className="metric-capsule-sub">Turbo Charge • Bluetooth Vô Cực • Phantom Killer</span>
               </div>
 
               <div className="metric-capsule">
-                <span className="metric-capsule-label">Khóa Telemetry &amp; Marketing</span>
+                <span className="metric-capsule-label">Khóa Telemetry &amp; YOYO AI</span>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                  <span className="metric-capsule-value" style={{ color: telemetryBlockedCount >= 10 ? '#10b981' : '#f59e0b' }}>
-                    Đã chặn {telemetryBlockedCount}/11
+                  <span className="metric-capsule-value" style={{ color: telemetryBlockedCount >= 12 ? '#10b981' : '#f59e0b' }}>
+                    Đã chặn {telemetryBlockedCount}/{TELEMETRY_DEFINITIONS.length}
                   </span>
                   <span className="badge-tag tag-safe" style={{ fontSize: '9px', padding: '1px 5px' }}>
                     Secure Table
                   </span>
                 </div>
-                <span className="metric-capsule-sub">Xóa sạch tracking, bảo vệ tin nhắn OTP ngân hàng</span>
+                <span className="metric-capsule-sub">Xóa sạch tracking, tắt AI đọc màn hình &amp; bảo vệ OTP</span>
               </div>
 
               <div className="metric-capsule">
@@ -1112,7 +1162,7 @@ export default function ToolboxTab({
                   style={{ fontSize: '11px', padding: '5px 10px' }}
                   onClick={() => setSelectedTelemetryKeys(new Set(TELEMETRY_DEFINITIONS.map((d) => d.key)))}
                 >
-                  Chọn Tất Cả (11)
+                  Chọn Tất Cả ({TELEMETRY_DEFINITIONS.length})
                 </button>
                 <button
                   type="button"
@@ -1121,7 +1171,7 @@ export default function ToolboxTab({
                   onClick={() => handleApplySelectedTelemetry(true)}
                   disabled={!isOnline || isApplyingTelemetry}
                 >
-                  Chặn Tất Cả 11 Mục
+                  Chặn Tất Cả {TELEMETRY_DEFINITIONS.length} Mục
                 </button>
               </div>
             )}
@@ -1173,10 +1223,10 @@ export default function ToolboxTab({
           >
             <div>
               <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-bright)' }}>
-                Đã chặn {telemetryBlockedCount}/11 dịch vụ theo dõi
+                Đã chặn {telemetryBlockedCount}/{TELEMETRY_DEFINITIONS.length} dịch vụ theo dõi
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                Khuyên dùng: Chặn toàn bộ 11 khóa để bảo vệ quyền riêng tư và tiết kiệm pin tối đa
+                Khuyên dùng: Chặn toàn bộ {TELEMETRY_DEFINITIONS.length} khóa để bảo vệ quyền riêng tư và tiết kiệm pin tối đa
               </div>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -1186,7 +1236,7 @@ export default function ToolboxTab({
                 style={{ fontSize: '11px', padding: '4px 10px' }}
                 onClick={() => setSelectedTelemetryKeys(new Set(TELEMETRY_DEFINITIONS.map((d) => d.key)))}
               >
-                Chọn Tất Cả (11)
+                Chọn Tất Cả ({TELEMETRY_DEFINITIONS.length})
               </button>
               <button
                 type="button"
@@ -1436,7 +1486,7 @@ export default function ToolboxTab({
         <div className="crm-floating-dock">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="badge-tag tag-safe" style={{ fontSize: '11px', fontWeight: 600 }}>
-              Đã chọn {selectedTelemetryKeys.size}/11 khóa
+              Đã chọn {selectedTelemetryKeys.size}/{TELEMETRY_DEFINITIONS.length} khóa
             </span>
           </div>
 

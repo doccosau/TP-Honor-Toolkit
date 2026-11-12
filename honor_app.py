@@ -741,6 +741,11 @@ def get_device_info():
     else:
         fcm_summary = f"Đã Whitelist {vn_whitelisted}/{vn_installed} app VN"
 
+    # 16KB Page Size Architecture check (Android 17 Readiness)
+    _, page_size_raw, _ = run_cmd(['adb', 'shell', 'getconf', 'PAGE_SIZE'])
+    page_size_val = page_size_raw.strip()
+    page_size_kb = '16' if page_size_val == '16384' else '4'
+
     return {
         'connected': True,
         'serial': serial,
@@ -750,6 +755,9 @@ def get_device_info():
         'series': matched_device['series'] if matched_device else 'Thiết bị Honor MagicOS',
         'soc': matched_device['soc'] if matched_device else (cpu_display or soc_prop or 'Qualcomm / MediaTek'),
         'cpu_display': cpu_display or (matched_device['soc'] if matched_device else ''),
+        'page_size': page_size_kb,
+        'page_size_bytes': page_size_val,
+        'page_size_str': f"{page_size_kb} KB",
         'screen_desc': matched_device['screen'] if matched_device else f'{width}x{height}',
         'battery_desc': matched_device['battery'] if matched_device else f'{bat_level}%',
         'waterproof': matched_device.get('waterproof', 'Kháng nước tiêu chuẩn') if matched_device else 'Tiêu chuẩn',
@@ -1506,6 +1514,7 @@ def get_magic_tweaks_status():
         ('lock_to_aod_duration', 'secure', '200'),
         ('show_network_speed_enabled', 'system', '1'),
         ('smart_network_switch', 'secure', '1'),
+        ('window_blur_enabled', 'global', '1'),
     ]
     marketing_keys = [
         'state_of_ads_switch',
@@ -1518,13 +1527,16 @@ def get_magic_tweaks_status():
         'intelligent_recommendation_toggle',
         'search.recommend.letter.switch',
         'cloud_maintenance',
-        'location_report_switch'
+        'location_report_switch',
+        'smart_screen_switch',
+        'ai_screen_suggestions'
     ]
     status = {}
     if not is_device_connected():
         for key, table, on_val in keys:
             status[key] = {'value': '', 'table': table, 'enabled': False}
         status['marketing_all_disabled'] = {'enabled': True, 'details': {k: '' for k in marketing_keys}}
+        status['phantom_killer_disabled'] = {'value': '', 'enabled': False}
         return {'success': True, 'tweaks': status}
 
     # Batch read in 1 adb execution for maximum speed (~80ms instead of 22 roundtrips)
@@ -1559,6 +1571,15 @@ def get_magic_tweaks_status():
         'enabled': m_all_off,
         'details': m_details
     }
+
+    # Query Phantom Process Killer state (Android 16/17)
+    _, phantom_out, _ = run_cmd(['adb', 'shell', '/system/bin/device_config', 'get', 'activity_manager', 'max_phantom_processes'])
+    p_val = phantom_out.strip()
+    status['phantom_killer_disabled'] = {
+        'value': p_val,
+        'enabled': (p_val == '2147483647')
+    }
+
     return {'success': True, 'tweaks': status}
 
 def apply_magic_tweak(table, key, value):
@@ -1587,7 +1608,9 @@ def apply_all_marketing_off(turn_off=True, keys=None):
         'intelligent_recommendation_toggle',
         'search.recommend.letter.switch',
         'cloud_maintenance',
-        'location_report_switch'
+        'location_report_switch',
+        'smart_screen_switch',
+        'ai_screen_suggestions'
     ]
     target_keys = [k for k in keys if k in all_marketing_keys] if (keys and isinstance(keys, list)) else all_marketing_keys
     action_str = "dập tắt" if turn_off else "bật lại"
@@ -1965,7 +1988,9 @@ def get_root_lsposed_status():
 # Action Handlers
 ACTION_TITLES = {
     'apply_magic_tweak': 'Cấu hình cài đặt ẩn MagicOS',
-    'apply_all_marketing_off': 'Dập tắt 11 khóa Marketing & Telemetry ngầm',
+    'apply_all_marketing_off': 'Dập tắt 13 khóa Marketing, Telemetry & AI ngầm',
+    'toggle_phantom_killer': 'Cấu hình Phantom Process Killer (Nới lỏng tiến trình ngầm Android 17)',
+    'set_window_blur': 'Cấu hình hiệu ứng kính mờ Liquid Glass (window_blur_enabled)',
     'extract_trial_theme': 'Trích xuất Theme VIP đang dùng thử thành vĩnh viễn (.hnt)',
     'deploy_theme_file': 'Nạp file theme .hnt vào ứng dụng Chủ Đề',
     'clear_logs': 'Làm sạch console nhật ký',
@@ -2358,6 +2383,7 @@ def handle_action(payload):
             run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'lock_to_aod_duration', '30'])
             run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'fingersense_letters_enabled', '0'])
             run_cmd(['adb', 'shell', 'settings', 'put', 'secure', 'fingerprint_slide_switch', '0'])
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'window_blur_enabled', '1'])
             add_log('success', '=== [HOÀN TẤT] Đã khôi phục thiết lập màn hình về mặc định gốc của máy! ===')
             return {'success': True}
 
@@ -2462,6 +2488,13 @@ def handle_action(payload):
             add_log('info', f'  ↳ Đã chỉnh tốc độ hiệu ứng (Animation): {anim_val}x và tối ưu quét nền.')
         except:
             pass
+
+        # 8. Liquid Glass Window Blur
+        window_blur = payload.get('window_blur', None)
+        if window_blur is not None:
+            wb_val = '1' if window_blur else '0'
+            run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'window_blur_enabled', wb_val])
+            add_log('info', f'  ↳ Đã cấu hình hiệu ứng kính mờ Liquid Glass (window_blur_enabled = {wb_val}).')
 
         add_log('success', '=== [HOÀN TẤT 100%] Đã áp dụng toàn bộ cấu hình Màn hình MagicOS thành công! ===')
         return {'success': True}
@@ -3173,6 +3206,34 @@ def handle_action(payload):
         turn_off = payload.get('turn_off', True)
         keys = payload.get('keys', None)
         return apply_all_marketing_off(turn_off, keys)
+
+    elif action == 'toggle_phantom_killer':
+        disable = payload.get('disable', True)
+        if disable:
+            add_log('info', 'Đang nới lỏng giới hạn Phantom Process Killer của Android lên tối đa (2,147,483,647)...')
+            add_log('cmd', '$ adb shell /system/bin/device_config set_sync_disabled_for_tests persistent')
+            run_cmd(['adb', 'shell', '/system/bin/device_config', 'set_sync_disabled_for_tests', 'persistent'])
+            add_log('cmd', '$ adb shell /system/bin/device_config put activity_manager max_phantom_processes 2147483647')
+            code, out, err = run_cmd(['adb', 'shell', '/system/bin/device_config', 'put', 'activity_manager', 'max_phantom_processes', '2147483647'])
+            add_log('success', '=== [HOÀN TẤT] Đã vô hiệu hóa Phantom Process Killer! Đa nhiệm mượt mà, không bị tắt tiến trình ngầm. ===')
+            return {'success': True, 'disabled': True}
+        else:
+            add_log('info', 'Đang khôi phục cài đặt Phantom Process Killer về mặc định của hệ thống...')
+            add_log('cmd', '$ adb shell /system/bin/device_config delete activity_manager max_phantom_processes')
+            run_cmd(['adb', 'shell', '/system/bin/device_config', 'delete', 'activity_manager', 'max_phantom_processes'])
+            add_log('cmd', '$ adb shell /system/bin/device_config set_sync_disabled_for_tests none')
+            run_cmd(['adb', 'shell', '/system/bin/device_config', 'set_sync_disabled_for_tests', 'none'])
+            add_log('success', '=== Đã khôi phục Phantom Process Killer về mặc định. ===')
+            return {'success': True, 'disabled': False}
+
+    elif action == 'set_window_blur':
+        enable = payload.get('enable', True)
+        val = '1' if enable else '0'
+        add_log('info', f'Đang thiết lập hiệu ứng kính mờ Window Blur Liquid Glass: {val}...')
+        add_log('cmd', f'$ adb shell settings put global window_blur_enabled {val}')
+        run_cmd(['adb', 'shell', 'settings', 'put', 'global', 'window_blur_enabled', val])
+        add_log('success', f'=== [HOÀN TẤT] Đã {"bật" if enable else "tắt"} hiệu ứng kính mờ Window Blur thành công! ===')
+        return {'success': True, 'enabled': enable}
 
     elif action == 'extract_trial_theme':
         return extract_trial_theme()
