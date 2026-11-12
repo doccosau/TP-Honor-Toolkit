@@ -421,11 +421,11 @@ export default function InspectionTab({ device }) {
                 ) : tppiAppStatus.installed ? (
                   isUpdateAvailable ? (
                     <span className="badge-tag tag-warn" style={{ fontSize: '10.5px' }}>
-                      Có Bản Cập Nhật v{tppiOta?.version_name || '3.0.1'} (Máy: v{tppiAppStatus.versionName})
+                      Có Bản Cập Nhật v{tppiOta?.version_name || '3.1.0'} (Máy: v{tppiAppStatus.versionName})
                     </span>
                   ) : (
                     <span className="badge-tag tag-safe" style={{ fontSize: '10.5px' }}>
-                      Đã Kích Hoạt (v{tppiAppStatus.versionName || '3.0.1'} - b{tppiAppStatus.versionCode || 42})
+                      Đã Kích Hoạt (v{tppiAppStatus.versionName || '3.1.0'} - b{tppiAppStatus.versionCode || 43})
                     </span>
                   )
                 ) : (
@@ -472,8 +472,8 @@ export default function InspectionTab({ device }) {
             <div style={{ background: 'rgba(0,0,0,0.2)', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
               <div>
                 <span style={{ color: 'var(--text-dim)' }}>Kênh phát hành OTA: </span>
-                <b style={{ color: 'var(--text-bright)' }}>v{tppiOta?.version_name || '3.0.1'}</b>
-                <span style={{ color: 'var(--text-dim)', marginLeft: '6px' }}>• Build {tppiOta?.version_code || 42}</span>
+                <b style={{ color: 'var(--text-bright)' }}>v{tppiOta?.version_name || '3.1.0'}</b>
+                <span style={{ color: 'var(--text-dim)', marginLeft: '6px' }}>• Build {tppiOta?.version_code || 43}</span>
                 <span style={{ color: 'var(--text-dim)', marginLeft: '6px' }}>• {tppiOta?.release_date || '07/11/2026'}</span>
                 {tppiOta?.file_size && (
                   <span style={{ color: '#10b981', marginLeft: '6px' }}>
@@ -508,7 +508,7 @@ export default function InspectionTab({ device }) {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', fontSize: '10px' }}>
                   <div style={{ background: ['fetching_ota', 'downloading_apk', 'installing_adb', 'granting_permissions', 'completed'].includes(deployStep) ? 'rgba(16, 185, 129, 0.15)' : 'var(--panel-alt)', border: `1px solid ${['fetching_ota', 'downloading_apk', 'installing_adb', 'granting_permissions', 'completed'].includes(deployStep) ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-light)'}`, borderRadius: '6px', padding: '6px', textAlign: 'center' }}>
                     <div style={{ fontWeight: 600, color: 'var(--text-bright)' }}>1. API Cloud</div>
-                    <div style={{ color: 'var(--text-dim)', marginTop: '2px' }}>v{tppiOta?.version_name || '3.0.1'}</div>
+                    <div style={{ color: 'var(--text-dim)', marginTop: '2px' }}>v{tppiOta?.version_name || '3.1.0'}</div>
                   </div>
                   <div style={{ background: ['downloading_apk', 'installing_adb', 'granting_permissions', 'completed'].includes(deployStep) ? 'rgba(16, 185, 129, 0.15)' : 'var(--panel-alt)', border: `1px solid ${['downloading_apk', 'installing_adb', 'granting_permissions', 'completed'].includes(deployStep) ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-light)'}`, borderRadius: '6px', padding: '6px', textAlign: 'center' }}>
                     <div style={{ fontWeight: 600, color: 'var(--text-bright)' }}>2. Tải APK</div>
@@ -602,7 +602,7 @@ export default function InspectionTab({ device }) {
                       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                     </svg>
                   </span>
-                  <span>{isInstallingTppi ? 'Đang Nạp Vào Máy...' : `Cài Đặt Lên Điện Thoại (v${tppiOta?.version_name || '3.0.1'})`}</span>
+                  <span>{isInstallingTppi ? 'Đang Nạp Vào Máy...' : `Cài Đặt Lên Điện Thoại (v${tppiOta?.version_name || '3.1.0'})`}</span>
                 </button>
               </div>
             )}

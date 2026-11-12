@@ -457,6 +457,23 @@ export default function ToolboxTab({
         loading: loadingTweakKey === 'phantom_killer',
       },
       {
+        id: 'tweak_adaptive_battery',
+        category: 'tweaks',
+        categoryLabel: 'Android 17',
+        title: 'Học Máy Quản Lý Pin Thích Ứng (Android 17 Adaptive Battery AI)',
+        scope: 'global: adaptive_battery_management_enabled = 1',
+        summary: 'Ép kích hoạt mô hình học máy tự động cắt giảm 15% điện năng tiêu thụ của app ít dùng.',
+        desc: 'Android 16/17 nâng cấp mô hình học máy theo dõi thói quen mở ứng dụng. Khi bật cờ này, hệ thống sẽ phân tích chu kỳ sử dụng hàng ngày và tự động đưa các app không dùng tới vào chế độ ngủ sâu, giúp tiết kiệm pin chờ vượt trội mà không làm trễ thông báo của app quan trọng.',
+        adbCommand: 'adb shell settings put global adaptive_battery_management_enabled 1',
+        impact: 'Giảm 15% lượng pin hao hụt khi tắt màn hình, tăng thời lượng pin chờ qua đêm.',
+        safety: 'Chuẩn tham số Android AOSP (An Toàn Tuyệt Đối)',
+        recommended: true,
+        type: 'toggle',
+        checked: Boolean(magicTweaks?.adaptive_battery_management_enabled?.enabled),
+        onToggle: () => handleToggleTweak('global', 'adaptive_battery_management_enabled', magicTweaks?.adaptive_battery_management_enabled?.value, '1', '0'),
+        loading: loadingTweakKey === 'adaptive_battery_management_enabled',
+      },
+      {
         id: 'tweak_open_display',
         category: 'tweaks',
         categoryLabel: 'Màn Hình & DPI',
@@ -796,10 +813,10 @@ export default function ToolboxTab({
       {
         id: 'tweaks',
         title: 'Cài Đặt Ẩn MagicOS & Android 17',
-        subtitle: 'Siêu Sạc, Âm Lượng & Phantom Killer',
+        subtitle: 'Siêu Sạc, Âm Lượng, Phantom Killer & Adaptive Battery',
         badge: 'Non-Root An Toàn',
         badgeType: 'tag-safe',
-        desc: 'Kích hoạt Siêu sạc nhanh khi mở màn hình (Charge Turbo), Âm lượng Bluetooth vô cực và Vô hiệu hóa Phantom Process Killer nới lỏng giới hạn đa nhiệm của Android 17.',
+        desc: 'Kích hoạt Siêu sạc nhanh khi mở màn hình (Charge Turbo), Âm lượng Bluetooth vô cực, Vô hiệu hóa Phantom Process Killer và Học máy quản lý pin thích ứng (Android 17 Adaptive Battery AI).',
         icon: (
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>

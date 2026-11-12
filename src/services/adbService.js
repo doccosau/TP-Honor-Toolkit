@@ -1749,8 +1749,24 @@ class AdbService {
       let healthPct = 100;
       if (sohVal !== null) {
         healthPct = sohVal;
-      } else if (chargeFullMah && designMah && designMah > 0) {
-        healthPct = Math.min(100, Math.round((chargeFullMah / designMah) * 1000) / 10);
+      } else {
+        // Fallback Android 15/16/17 ASOC in dumpsys battery
+        const asocM = batDump.match(/mSavedBatteryAsoc\s*:\s*(\d+)/i) || batDump.match(/battery_health_percentage\s*:\s*(\d+)/i);
+        if (asocM && parseInt(asocM[1]) > 0 && parseInt(asocM[1]) <= 100) {
+          healthPct = parseFloat(asocM[1]);
+        } else if (chargeFullMah && designMah && designMah > 0) {
+          healthPct = Math.min(100, Math.round((chargeFullMah / designMah) * 1000) / 10);
+        }
+      }
+
+      // Check cycles fallback for Android 16/17 mSavedBatteryUsage
+      if (cycles === null) {
+        const usageM = batDump.match(/mSavedBatteryUsage\s*:\s*(\d+)/i);
+        if (usageM) {
+          const rawU = parseInt(usageM[1]);
+          const valC = rawU > 1000 ? Math.floor(rawU / 100) : rawU;
+          if (valC > 0 && valC < 5000) cycles = valC;
+        }
       }
 
       // Effective Full Capacity (Dung Lượng Tối Đa Khi Đầy 100%)
@@ -2162,11 +2178,11 @@ class AdbService {
     }
     // Fallback default info
     return {
-      version_name: '3.0.1',
-      version_code: 42,
+      version_name: '3.1.0',
+      version_code: 43,
       channel: 'stable',
-      release_date: '2026-11-07',
-      download_url: 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.1-b42.apk',
+      release_date: '2026-11-12',
+      download_url: 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.1.0-b43.apk',
       file_size: 22848357,
       changelog_vi: [
         'Giám sát sức khỏe pin thời gian thực với chip BMS Honor',
@@ -2226,9 +2242,9 @@ class AdbService {
     if (!liveOta || !liveOta.download_url) {
       liveOta = await this.fetchTppiLatestOta();
     }
-    const targetUrl = liveOta?.download_url_arm64 || liveOta?.download_url || 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.1-b42.apk';
-    const verName = liveOta?.version_name || '3.0.1';
-    const verCode = liveOta?.version_code || 42;
+    const targetUrl = liveOta?.download_url_arm64 || liveOta?.download_url || 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.1.0-b43.apk';
+    const verName = liveOta?.version_name || '3.1.0';
+    const verCode = liveOta?.version_code || 43;
     const filename = `TPPI-PowerIntelligence-v${verName}-b${verCode}.apk`;
 
     if (this.mode === 'webusb' && this.adbInstance) {
@@ -2255,8 +2271,13 @@ class AdbService {
       const res = await this.installUploadedApk(filename, dataB64);
       if (res && res.success) {
         onProgress?.('granting_permissions');
-        this.addLog('step', '>>> [WEBUSB TỰ ĐỘNG] Đang tự động cấp quyền Doze Whitelist & Widget MagicOS...');
+        this.addLog('step', '>>> [WEBUSB TỰ ĐỘNG] Đang cấp quyền WRITE_SECURE_SETTINGS, Doze Whitelist & Widget MagicOS...');
+        await this.runAdbCommand('pm grant vn.tp.powerintelligence android.permission.WRITE_SECURE_SETTINGS');
+        await this.runAdbCommand('cmd deviceidle whitelist +vn.tp.powerintelligence');
         await this.runAdbCommand('dumpsys deviceidle whitelist +vn.tp.powerintelligence');
+        await this.runAdbCommand('cmd appops set vn.tp.powerintelligence ACCESS_RESTRICTED_SETTINGS allow');
+        await this.runAdbCommand('cmd appops set vn.tp.powerintelligence RUN_ANY_IN_BACKGROUND allow');
+        await this.runAdbCommand('cmd appops set vn.tp.powerintelligence RUN_IN_BACKGROUND allow');
         await this.runAdbCommand('cmd appops set vn.tp.powerintelligence POST_NOTIFICATION allow');
         await this.runAdbCommand('cmd appops set vn.tp.powerintelligence SYSTEM_ALERT_WINDOW allow');
         await this.runAdbCommand('cmd appops set vn.tp.powerintelligence PACKAGE_USAGE_STATS allow');
@@ -2620,6 +2641,7 @@ class AdbService {
         ['show_network_speed_enabled', 'system', '1'],
         ['smart_network_switch', 'secure', '1'],
         ['window_blur_enabled', 'global', '1'],
+        ['adaptive_battery_management_enabled', 'global', '1'],
       ];
       const marketingKeys = [
         'state_of_ads_switch',

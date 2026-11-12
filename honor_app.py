@@ -336,6 +336,15 @@ APK_SOURCES = {
         'package': 'com.android.vending',
         'urls': []
     },
+    'TPPI-PowerIntelligence-v3.1.0-Release.apk': {
+        'name': 'TP Power Intelligence (Quản Gia Pin & Năng Lượng AI)',
+        'package': 'vn.tp.powerintelligence',
+        'url': [
+            'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.1.0-b43.apk'
+        ],
+        'desc': 'Quản gia pin & năng lượng AI chính chủ cho MagicOS 11 & Android 17: Đồng bộ sạc nhánh, đo nội trở BMS và làm mát CPU.',
+        'auto_install': True
+    },
     'TPPI-PowerIntelligence-v3.0.1-Release.apk': {
         'name': 'TP Power Intelligence (Quản Gia Pin & Năng Lượng AI)',
         'package': 'vn.tp.powerintelligence',
@@ -833,6 +842,15 @@ def get_battery_health_details():
     soh_val = None
     if soh_out.strip().isdigit() and int(soh_out.strip()) > 0:
         soh_val = float(int(soh_out.strip()))
+    else:
+        # Fallback Android 15/16/17 ASOC in dumpsys battery
+        asoc_m = re.search(r'mSavedBatteryAsoc\s*:\s*(\d+)', bat_dump, re.IGNORECASE)
+        if asoc_m and 0 < int(asoc_m.group(1)) <= 100:
+            soh_val = float(int(asoc_m.group(1)))
+        else:
+            pct_m = re.search(r'battery_health_percentage\s*:\s*(\d+)', bat_dump, re.IGNORECASE)
+            if pct_m and 0 < int(pct_m.group(1)) <= 100:
+                soh_val = float(int(pct_m.group(1)))
 
     # 3. Real Batterystats Checkin: Parse cycle count & learned capacity
     # 3. Query Real Cycle Count from multi-source kernel sysfs & dumpsys
@@ -861,6 +879,15 @@ def get_battery_health_details():
             c_val = int(m.group(1))
             if 0 < c_val < 5000:
                 cycles = c_val
+
+    if cycles is None:
+        # Fallback Android 16/17 mSavedBatteryUsage in dumpsys battery
+        usage_m = re.search(r'mSavedBatteryUsage\s*:\s*(\d+)', bat_dump, re.IGNORECASE)
+        if usage_m:
+            raw_u = int(usage_m.group(1))
+            val_c = raw_u // 100 if raw_u > 1000 else raw_u
+            if 0 < val_c < 5000:
+                cycles = val_c
 
     # Real capacity calculation & database matching
     dev_info = get_device_info()
@@ -1515,6 +1542,7 @@ def get_magic_tweaks_status():
         ('show_network_speed_enabled', 'system', '1'),
         ('smart_network_switch', 'secure', '1'),
         ('window_blur_enabled', 'global', '1'),
+        ('adaptive_battery_management_enabled', 'global', '1'),
     ]
     marketing_keys = [
         'state_of_ads_switch',
@@ -2829,11 +2857,11 @@ def handle_action(payload):
         add_log('info', '  ↳ [1/4] Đang kết nối máy chủ OTA https://tppi.nhacquan.io.vn/api/ota/latest...')
         ota_info = fetch_tppi_ota_info()
         
-        ver_name = (ota_info.get('version_name') if ota_info else None) or payload.get('version_name') or '3.0.1'
-        ver_code = (ota_info.get('version_code') if ota_info else None) or payload.get('version_code') or 42
+        ver_name = (ota_info.get('version_name') if ota_info else None) or payload.get('version_name') or '3.1.0'
+        ver_code = (ota_info.get('version_code') if ota_info else None) or payload.get('version_code') or 43
         dl_url = (ota_info.get('download_url_arm64') or ota_info.get('download_url')) if ota_info else payload.get('download_url')
         if not dl_url:
-            dl_url = 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.0.1-b42.apk'
+            dl_url = 'https://tppi.nhacquan.io.vn/dl/file/TPPI-PowerIntelligence-v3.1.0-b43.apk'
         expected_size = (ota_info.get('file_size') if ota_info else None) or 22848357
         size_mb = f"{expected_size / (1024 * 1024):.1f}"
 
@@ -2848,7 +2876,13 @@ def handle_action(payload):
         if not os.path.exists(dest_apk) or os.path.getsize(dest_apk) < 1000000:
             add_log('info', f'  ↳ [2/4] Đang tự động tải gói cài đặt chính thức từ Cloud OTA...')
             if not download_apk_with_progress(dl_url, dest_apk, f'TP Power Intelligence v{ver_name}'):
-                fallback_names = ['TPPI-PowerIntelligence-v3.0.1-Release.apk', 'TP-Power-Intelligence-v3.0.1-Release.apk']
+                fallback_names = [
+                    f'TPPI-PowerIntelligence-v{ver_name}-b{ver_code}.apk',
+                    'TP-Power-Intelligence-v3.1.0-Release.apk',
+                    'TPPI-PowerIntelligence-v3.1.0-Release.apk',
+                    'TPPI-PowerIntelligence-v3.0.1-Release.apk',
+                    'TP-Power-Intelligence-v3.0.1-Release.apk'
+                ]
                 for fb in fallback_names:
                     fb_p = os.path.join(apks_dir, fb)
                     if os.path.exists(fb_p) and os.path.getsize(fb_p) > 1000000:
@@ -2868,16 +2902,21 @@ def handle_action(payload):
             add_log('error', f'Cài đặt thất bại qua ADB: {err or out}')
             return {'success': False, 'error': err or out}
 
-        # Bước 4: Tự động cấp quyền Whitelist Doze & AppOps cho 8 Widgets MagicOS
-        add_log('step', '  ↳ [4/4] Tự động cấp quyền Doze Whitelist & Widget làm mát MagicOS...')
+        # Bước 4: Tự động cấp quyền Hệ Thống Tối Cao WRITE_SECURE_SETTINGS, Whitelist Doze & AppOps cho TPPI
+        add_log('step', '  ↳ [4/4] Tự động cấp quyền WRITE_SECURE_SETTINGS, Doze Whitelist & Widget làm mát MagicOS...')
+        run_cmd(['adb', 'shell', 'pm', 'grant', 'vn.tp.powerintelligence', 'android.permission.WRITE_SECURE_SETTINGS'])
+        run_cmd(['adb', 'shell', 'cmd', 'deviceidle', 'whitelist', '+vn.tp.powerintelligence'])
         run_cmd(['adb', 'shell', 'dumpsys', 'deviceidle', 'whitelist', '+vn.tp.powerintelligence'])
+        run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'ACCESS_RESTRICTED_SETTINGS', 'allow'])
+        run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'RUN_ANY_IN_BACKGROUND', 'allow'])
+        run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'RUN_IN_BACKGROUND', 'allow'])
         run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'POST_NOTIFICATION', 'allow'])
         run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'SYSTEM_ALERT_WINDOW', 'allow'])
         run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'PACKAGE_USAGE_STATS', 'allow'])
         run_cmd(['adb', 'shell', 'cmd', 'appops', 'set', 'vn.tp.powerintelligence', 'SCHEDULE_EXACT_ALARM', 'allow'])
 
         add_log('success', f'=== [HOÀN TẤT 100%] ĐÃ TỰ ĐỘNG CÀI ĐẶT & KÍCH HOẠT TP POWER INTELLIGENCE v{ver_name}! ===')
-        add_log('info', '  ✦ Đã cấp quyền Doze Whitelist & 4 quyền AppOps: Giám sát BMS và 8 Widget MagicOS đã sẵn sàng.')
+        add_log('info', '  ✦ Đã cấp quyền WRITE_SECURE_SETTINGS (đồng bộ sạc MagicOS), Doze Whitelist & AppOps chạy nền.')
         return {'success': True, 'version_name': ver_name, 'version_code': ver_code}
 
     elif action == 'check_app_version':
