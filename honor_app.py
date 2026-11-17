@@ -118,6 +118,7 @@ def find_adb_binary():
     is_win = sys.platform == 'win32'
     exe_name = 'adb.exe' if is_win else 'adb'
     candidates = [
+        os.path.expanduser('~/Android/Sdk/platform-tools/adb'),
         os.path.join(BASE_DIR, 'platform-tools', exe_name),
         os.path.join(BASE_DIR, 'scrcpy', exe_name),
         os.path.join(BASE_DIR, 'tools', 'platform-tools', exe_name),
